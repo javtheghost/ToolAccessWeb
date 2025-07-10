@@ -1,0 +1,80 @@
+/* Global imports */
+@use './tailwind.css';
+@use './assets/layout/layout.scss';
+@use 'primeicons/primeicons.css';
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
+
+
+/* Tablas */
+.p-datatable {
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo para los encabezados (th) */
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-thead > tr > th:hover,
+.p-datatable .p-datatable-thead > tr > th:focus,
+.p-datatable .p-datatable-thead > tr > th.p-highlight,
+.p-datatable .p-datatable-thead > tr > th.p-sortable-column:focus,
+.p-datatable .p-datatable-thead > tr > th.p-sortable-column.p-highlight {
+    font-family: 'Georgia', serif;
+    background-color: var(--secundary-color) !important;
+    color: var(--primary-color) !important;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 0.875rem;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Estilo para el contenido de la tabla (td) */
+.p-datatable .p-datatable-tbody > tr > td {
+    font-family: 'Arial', sans-serif;
+    font-size: 0.875rem;
+    color: #333;
+}
+
+.custom-flat-icon-button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: inherit;
+
+
+}
+
+.custom-flat-icon-button-delete {
+  color: var(--color-danger) !important; /* rojo para eliminar, opcional */
+}
+
+.custom-flat-icon-button-edit {
+  color: var(--primary-color) !important; /* azul para editar, opcional */
+}
+
+// hover buttons dialogs confirms
+.custom-confirm-button-delete {
+    background-color: #d9534f !important;
+    border-color: #d9534f !important;
+    color: white !important;
+    transition: background-color 0.2s ease;
+}
+
+.custom-confirm-button-delete:hover {
+    background-color: #c9302c !important;
+    border-color: #ac2925 !important;
+}
+
+.custom-confirm-button-warning {
+    background-color: #f0ad4e !important;
+    border-color: #f0ad4e !important;
+    color: white !important;
+    transition: background-color 0.2s ease;
+}
+
+.custom-confirm-button-warning:hover {
+    background-color: #ec971f !important;
+    border-color: #d58512 !important;
+}
