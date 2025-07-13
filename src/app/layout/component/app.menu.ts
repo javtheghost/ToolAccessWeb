@@ -53,7 +53,7 @@ export class AppMenu {
                         label: 'Roles',
                         icon: 'material-symbols-outlined',
                         iconText: 'groups',
-                        routerLink: ['/pages/roles']
+                        routerLink: ['/pages/roles-crud']
                     }
                 ]
             },

@@ -88,7 +88,7 @@ interface ExtendedProduct extends Product {
             >
                 <ng-template #caption>
                     <div class="flex items-center justify-between">
-                        <h5 class="m-0 p-2">Administrar Herramientas</h5>
+                        <h5 class="m-0 p-2 text-[var(--primary-color)]">Administrar Herramientas</h5>
                     </div>
                     <div class="flex items-center justify-between gap-4 mt-2">
                         <p-iconfield class="flex-1">
@@ -225,7 +225,7 @@ interface ExtendedProduct extends Product {
                             'custom-confirm-button-delete': confirmIcon === 'delete',
                             'custom-confirm-button-warning': confirmIcon === 'warning'
                         }"
-                        (click)="accept()"
+                        (click)="saveProduct()"
                     ></button>
                 </div>
             </ng-template>

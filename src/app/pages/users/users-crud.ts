@@ -56,19 +56,13 @@ interface User {
         InputTextModule,
         DialogModule,
         ConfirmDialogModule,
-        InputSwitchModule
+        InputSwitchModule,
+        InputIconModule,
+        IconFieldModule
     ],
     template: `
         <div class="p-6">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-2">
-                    <span class="pi pi-search text-xl text-gray-500"></span>
-                    <input pInputText type="text" [(ngModel)]="globalFilter" (input)="onGlobalFilter($event)" placeholder="Buscar" class="w-72" />
-                </div>
-                <button pButton type="button" class="bg-[#002e6d] text-white px-6 py-2 rounded-lg flex items-center gap-2" (click)="openNew()">
-                    <span class="pi pi-plus"></span> Crear usuario
-                </button>
-            </div>
+            
             <p-table
                 #dt
                 [value]="users"
@@ -83,6 +77,20 @@ interface User {
                 [rowsPerPageOptions]="[10, 20, 30]"
                 class="shadow-md rounded-lg"
             >
+                <ng-template #caption>
+                    <div class="flex items-center justify-between">
+                        <h5 class="m-0 p-2 text-[var(--primary-color)]">Administrar Usuarios</h5>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 mt-2">
+                        <p-iconfield class="flex-1">
+                            <p-inputicon styleClass="pi pi-search" />
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
+                        </p-iconfield>
+                        <div class="flex justify-end">
+                            <p-button label="Crear Usuario" icon="pi pi-plus" (onClick)="openNew()"></p-button>
+                        </div>
+                    </div>
+                </ng-template>
                 <ng-template pTemplate="header">
                     <tr class="bg-[#6ea1cc] text-white">
                         <th>Nombres</th>
@@ -169,6 +177,7 @@ export class UserCrudComponent implements OnInit {
     user: User = this.emptyUser();
     selectedUsers?: User[] | null;
     globalFilter: string = '';
+    @ViewChild('dt') dt!: Table;
 
     constructor(
         private messageService: MessageService,
@@ -202,8 +211,8 @@ export class UserCrudComponent implements OnInit {
         ];
     }
 
-    onGlobalFilter(event: Event) {
-        // El filtro global se maneja automáticamente por PrimeNG si se enlaza [(ngModel)]="globalFilter" y [globalFilterFields]
+    onGlobalFilter(table: Table, event: Event) {
+        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
     openNew() {
