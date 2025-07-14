@@ -10,5 +10,3 @@ node_modules
 .angular
 *.md
 *.yml
-/tsconfig.json
-*.json
