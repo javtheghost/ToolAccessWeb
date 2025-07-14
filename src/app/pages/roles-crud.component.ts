@@ -122,75 +122,55 @@ interface Role {
         </div>
 
         <!-- Diálogo para crear/editar rol -->
-        <p-dialog [(visible)]="roleDialog" [style]="{ width: '600px' }" [header]="isEditMode ? 'Editar Rol' : 'Nuevo Rol'" [modal]="true" [draggable]="false">
+        <p-dialog [(visible)]="roleDialog" [style]="{ width: '500px' }" [header]="isEditMode ? 'Editar Rol' : 'Nuevo Rol'" [modal]="true" [draggable]="false">
             <ng-template pTemplate="content">
-                <div class="grid grid-cols-1 gap-4">
-                    <!-- Nombre -->
-                    <div class="relative">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative col-span-2">
                         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">badge</span>
                         <input type="text" id="name" name="name" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="role.name" />
                         <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
                     </div>
-                    
-                    <!-- Descripción -->
-                    <div class="relative">
+                    <div class="relative col-span-2">
                         <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">description</span>
-                        <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="role.description"></textarea>
+                        <textarea id="description" name="description" rows="2" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="role.description"></textarea>
                         <label for="description" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
                     </div>
-                    
-                    <!-- Activo (toggle) -->
-                    <div class="flex flex-col items-center justify-center">
+                    <div class="flex flex-col items-center justify-center col-span-2">
                         <label class="mb-2">Activo</label>
                         <p-inputSwitch [(ngModel)]="role.active"></p-inputSwitch>
                     </div>
                 </div>
-            </ng-template>
-            <ng-template pTemplate="footer">
-                <div class="flex justify-end gap-2">
-                    <p-button label="Cancelar" icon="pi pi-times" (onClick)="hideDialog()" styleClass="p-button-text"></p-button>
-                    <p-button label="Guardar" icon="pi pi-check" (onClick)="saveRole()"></p-button>
+                <div class="flex justify-end gap-4 mt-6">
+                    <button pButton type="button" class="p-button-outlined" (click)="hideDialog()">Cancelar</button>
+                    <button pButton type="button" class="p-button" (click)="saveRole()">Guardar</button>
                 </div>
             </ng-template>
         </p-dialog>
-
-        <!-- Diálogo de confirmación -->
-        <p-confirmDialog
-            [style]="{ width: '450px' }"
-            acceptButtonStyleClass="p-button-danger"
-            rejectButtonStyleClass="p-button-text"
-            acceptLabel="Aceptar"
-            rejectLabel="Cancelar"
-        >
+        <p-confirmDialog [style]="{ width: '350px' }" [draggable]="false">
             <ng-template pTemplate="message" let-message>
-                <div class="flex flex-col items-center">
-                    <i 
-                        class="material-symbols-outlined text-6xl mb-4"
-                        [ngClass]="{
-                            'text-red-600': confirmIcon === 'delete',
-                            'text-amber-600': confirmIcon === 'warning'
-                        }"
-                    >
-                        {{ confirmIcon }}
-                    </i>
-                    <div class="text-center">
+                <div class="flex flex-col items-start">
+                    <i class="material-symbols-outlined text-red-600 text-6xl mb-4">delete</i>
+                    <div class="text-left">
                         <div [innerHTML]="message.message"></div>
                     </div>
                 </div>
             </ng-template>
-            <ng-template pTemplate="acceptbutton">
-                <button 
-                    pButton 
-                    type="button" 
-                    label="Aceptar" 
-                    class="p-button-danger"
-                    [ngClass]="{
-                        'custom-confirm-button-delete': confirmIcon === 'delete',
-                        'custom-confirm-button-warning': confirmIcon === 'warning'
-                    }"
-                    (click)="saveRole()"
-                ></button>
-            </ng-template>
+            <ng-template pTemplate="footer" let-accept="accept" let-reject="reject">
+    <div class="flex justify-center gap-3">
+        <button pButton type="button" label="Cancelar" class="p-button-outlined" (click)="reject()"></button>
+        <button
+            pButton
+            type="button"
+            label="Aceptar"
+            [ngClass]="{
+                'custom-confirm-button-delete': confirmIcon === 'delete',
+                'custom-confirm-button-warning': confirmIcon === 'warning'
+            }"
+            (click)="accept()"
+        ></button>
+    </div>
+</ng-template>
+
         </p-confirmDialog>
     `,
     providers: [MessageService, ConfirmationService],
@@ -232,9 +212,8 @@ export class RolesCrudComponent implements OnInit {
         // Datos de ejemplo para roles
         const sampleRoles: Role[] = [
             { id: '1', name: 'Administrador', description: 'Acceso completo al sistema', active: true },
-            { id: '2', name: 'Supervisor', description: 'Gestión de herramientas y reportes', active: true },
             { id: '3', name: 'Operador', description: 'Acceso básico para préstamos', active: true },
-            { id: '4', name: 'Invitado', description: 'Solo consulta de información', active: false }
+            { id: '4', name: 'Recepcionista', description: 'Accesso limitado, gestionar ordenes, no modificar   ', active: false }
         ];
         this.roles.set(sampleRoles);
     }
@@ -259,12 +238,8 @@ export class RolesCrudComponent implements OnInit {
     deleteRole(role: Role) {
         this.confirmIcon = 'delete';
         this.confirmIconColor = '#D9534F';
-
         this.confirmationService.confirm({
             message: `
-              <div style="display: flex; justify-content: center; align-items: center; width: 100%; min-height: 80px; margin-bottom: 16px;">
-                <i class="material-symbols-outlined text-red-600 text-6xl" style="display: block;">delete</i>
-              </div>
               <div style="text-align: center;">
                 <strong>¿Estás seguro de eliminar el rol ${role.name}?</strong>
                 <p style="margin-top: 8px;">Una vez que aceptes, no podrás revertir los cambios.</p>
@@ -278,6 +253,9 @@ export class RolesCrudComponent implements OnInit {
                     detail: 'Rol eliminado',
                     life: 3000
                 });
+            },
+            reject: () => {
+                this.hideDialog();
             },
             rejectLabel: 'Cancelar',
             acceptLabel: 'Aceptar',
@@ -339,6 +317,9 @@ export class RolesCrudComponent implements OnInit {
                         });
                         this.roleDialog = false;
                         this.role = { name: '', description: '', active: true };
+                    },
+                    reject: () => {
+                        this.hideDialog();
                     }
                 });
             } else {
@@ -362,4 +343,4 @@ export class RolesCrudComponent implements OnInit {
             });
         }
     }
-} 
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -7,30 +7,12 @@ import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
-import { RatingModule } from 'primeng/rating';
 import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { SelectModule } from 'primeng/select';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
-import { TagModule } from 'primeng/tag';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { Product, ProductService } from '../service/product.service';
 import { InputSwitchModule } from 'primeng/inputswitch';
-
-interface Column {
-    field: string;
-    header: string;
-    customExportHeader?: string;
-}
-
-interface ExportColumn {
-    title: string;
-    dataKey: string;
-}
 
 interface User {
     id: string;
@@ -61,128 +43,164 @@ interface User {
         IconFieldModule
     ],
     template: `
-        <div class="p-6">
-            
-            <p-table
-                #dt
-                [value]="users"
-                [rows]="10"
-                [paginator]="true"
-                [globalFilterFields]="['nombres', 'apellidoPaterno', 'apellidoMaterno', 'correo', 'rol']"
-                [tableStyle]="{ 'min-width': '75rem' }"
-                [(selection)]="selectedUsers"
-                [rowHover]="true"
-                dataKey="id"
-                [showCurrentPageReport]="false"
-                [rowsPerPageOptions]="[10, 20, 30]"
-                class="shadow-md rounded-lg"
-            >
-                <ng-template #caption>
-                    <div class="flex items-center justify-between">
-                        <h5 class="m-0 p-2 text-[var(--primary-color)]">Administrar Usuarios</h5>
-                    </div>
-                    <div class="flex items-center justify-between gap-4 mt-2">
-                        <p-iconfield class="flex-1">
-                            <p-inputicon styleClass="pi pi-search" />
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
-                        </p-iconfield>
-                        <div class="flex justify-end">
-                            <p-button label="Crear Usuario" icon="pi pi-plus" (onClick)="openNew()"></p-button>
-                        </div>
-                    </div>
-                </ng-template>
-                <ng-template pTemplate="header">
-                    <tr class="bg-[#6ea1cc] text-white">
-                        <th>Nombres</th>
-                        <th>Apellido Paterno</th>
-                        <th>Apellido Materno</th>
-                        <th>Correo</th>
-                        <th>Rol</th>
-                        <th>Activo</th>
-                        <th>Acción</th>
-                    </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-user>
-                    <tr>
-                        <td>{{ user.nombres }}</td>
-                        <td>{{ user.apellidoPaterno }}</td>
-                        <td>{{ user.apellidoMaterno }}</td>
-                        <td>{{ user.correo }}</td>
-                        <td>{{ user.rol }}</td>
-                        <td>
-                            <p-inputSwitch [ngModel]="user.activo" [disabled]="true"></p-inputSwitch>
-                        </td>
-                        <td>
-                            <button pButton type="button" icon="pi pi-pencil" class="p-0 mr-2 text-[#002e6d]" (click)="editUser(user)"></button>
-                            <button pButton type="button" icon="pi pi-trash" class="p-0 text-red-600" (click)="deleteUser(user)"></button>
-                        </td>
-                    </tr>
-                </ng-template>
-            </p-table>
-            <div class="flex justify-center mt-6">
-                <!-- La paginación de PrimeNG ya está centrada por defecto si la tabla está centrada -->
+<p-toast></p-toast>
+<div class="p-6">
+    <p-table
+        #dt
+        [value]="users"
+        [rows]="10"
+        [paginator]="true"
+        [globalFilterFields]="['nombres', 'apellidoPaterno', 'apellidoMaterno', 'correo', 'rol']"
+        [tableStyle]="{ 'min-width': '75rem' }"
+        [(selection)]="selectedUsers"
+        [rowHover]="true"
+        dataKey="id"
+        [showCurrentPageReport]="false"
+        [rowsPerPageOptions]="[10, 20, 30]"
+        class="shadow-md rounded-lg"
+    >
+        <ng-template #caption>
+            <div class="flex items-center justify-between">
+                <h5 class="m-0 p-2 text-[var(--primary-color)]">Administrar Usuarios</h5>
+            </div>
+            <div class="flex items-center justify-between gap-4 mt-2">
+                <p-iconfield class="flex-1">
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
+                </p-iconfield>
+                <div class="flex justify-end">
+                    <p-button label="Crear Usuario" icon="pi pi-plus" (onClick)="openNew()"></p-button>
+                </div>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr class="bg-[#6ea1cc] text-white">
+                <th>Nombres</th>
+                <th>Apellido Paterno</th>
+                <th>Apellido Materno</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Activo</th>
+                <th>Acción</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-user>
+            <tr>
+                <td>{{ user.nombres }}</td>
+                <td>{{ user.apellidoPaterno }}</td>
+                <td>{{ user.apellidoMaterno }}</td>
+                <td>{{ user.correo }}</td>
+                <td>{{ user.rol }}</td>
+                <td>
+                    <p-inputSwitch [ngModel]="user.activo" [disabled]="true"></p-inputSwitch>
+                </td>
+                <td>
+                    <p-button (click)="editUser(user)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
+                        <ng-template pTemplate="icon">
+                            <i class="material-symbols-outlined">edit</i>
+                        </ng-template>
+                    </p-button>
+                    <p-button (click)="deleteUser(user)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                        <ng-template pTemplate="icon">
+                            <i class="material-symbols-outlined">delete</i>
+                        </ng-template>
+                    </p-button>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+    <div class="flex justify-center mt-6"></div>
+</div>
+<p-dialog [(visible)]="userDialog" [style]="{ width: '500px' }" [header]="isEditMode ? 'Editar Usuario' : 'Nuevo Usuario'" [modal]="true" [draggable]="false">
+    <ng-template pTemplate="content">
+        <div class="grid grid-cols-2 gap-4">
+            <div class="relative col-span-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">person</span>
+                <input type="text" id="nombres" name="nombres" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombres" [(ngModel)]="user.nombres" />
+                <label for="nombres" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombres</label>
+            </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">badge</span>
+                <input type="text" id="apellidoPaterno" name="apellidoPaterno" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Apellido Paterno" [(ngModel)]="user.apellidoPaterno" />
+                <label for="apellidoPaterno" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Paterno</label>
+            </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">badge</span>
+                <input type="text" id="apellidoMaterno" name="apellidoMaterno" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Apellido Materno" [(ngModel)]="user.apellidoMaterno" />
+                <label for="apellidoMaterno" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Materno</label>
+            </div>
+            <div class="relative col-span-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">mail</span>
+                <input type="email" id="correo" name="correo" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Correo" [(ngModel)]="user.correo" />
+                <label for="correo" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Correo</label>
+            </div>
+            <div class="relative col-span-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">supervisor_account</span>
+                <input type="text" id="rol" name="rol" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Rol" [(ngModel)]="user.rol" />
+                <label for="rol" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Rol</label>
+            </div>
+            <div class="flex flex-col items-center justify-center col-span-2">
+                <label class="mb-2">Activo</label>
+                <p-inputSwitch [(ngModel)]="user.activo"></p-inputSwitch>
             </div>
         </div>
-        <!-- Diálogo para crear/editar usuario -->
-        <p-dialog [(visible)]="userDialog" [style]="{ width: '450px' }" header="Nuevo Usuario" [modal]="true">
-            <ng-template pTemplate="content">
-                <div class="flex flex-col gap-6">
-                    <div class="relative">
-                        <label class="block mb-1">Nombres</label>
-                        <input pInputText type="text" [(ngModel)]="user.nombres" class="w-full" placeholder="Nombres" />
-                    </div>
-                    <div class="relative">
-                        <label class="block mb-1">Apellido Paterno</label>
-                        <input pInputText type="text" [(ngModel)]="user.apellidoPaterno" class="w-full" placeholder="Apellido Paterno" />
-                    </div>
-                    <div class="relative">
-                        <label class="block mb-1">Apellido Materno</label>
-                        <input pInputText type="text" [(ngModel)]="user.apellidoMaterno" class="w-full" placeholder="Apellido Materno" />
-                    </div>
-                    <div class="relative">
-                        <label class="block mb-1">Correo</label>
-                        <input pInputText type="email" [(ngModel)]="user.correo" class="w-full" placeholder="Correo" />
-                    </div>
-                    <div class="relative">
-                        <label class="block mb-1">Rol</label>
-                        <input pInputText type="text" [(ngModel)]="user.rol" class="w-full" placeholder="Rol" />
-                    </div>
-                    <div class="relative flex items-center gap-2">
-                        <label class="mb-0">Activo</label>
-                        <p-inputSwitch [ngModel]="user.activo" [disabled]="true"></p-inputSwitch>
-                    </div>
-                </div>
-            </ng-template>
-            <ng-template pTemplate="footer">
-                <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-                <button pButton type="button" label="Guardar" icon="pi pi-check" (click)="saveUser()"></button>
-            </ng-template>
-        </p-dialog>
-        <p-confirmDialog [style]="{ width: '350px' }" [draggable]="false"></p-confirmDialog>
+        <div class="flex justify-end gap-4 mt-6">
+            <button pButton type="button" class="p-button-outlined" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="button" class="p-button" (click)="saveUser()">Guardar</button>
+        </div>
+    </ng-template>
+</p-dialog>
+<p-confirmDialog [style]="{ width: '350px' }" [draggable]="false">
+    <ng-template pTemplate="message" let-message>
+        <div class="flex flex-col items-start">
+            <i class="material-symbols-outlined text-6xl mb-4"
+                [ngClass]="{
+                    'text-red-600': confirmIcon === 'delete',
+                    'text-amber-600': confirmIcon === 'warning'
+                }"
+            >{{ confirmIcon }}</i>
+            <div class="text-left">
+                <div [innerHTML]="message.message"></div>
+            </div>
+        </div>
+    </ng-template>
+    <ng-template pTemplate="footer" let-accept let-reject>
+        <div class="flex justify-center gap-3">
+            <button pButton type="button" label="Cancelar" class="p-button-outlined" (click)="reject()"></button>
+            <button
+                pButton
+                type="button"
+                label="Aceptar"
+                [ngClass]="{
+                    'custom-confirm-button-delete': confirmIcon === 'delete',
+                    'custom-confirm-button-warning': confirmIcon === 'warning'
+                }"
+                (click)="accept()"
+            ></button>
+        </div>
+    </ng-template>
+</p-confirmDialog>
     `,
     providers: [MessageService, ConfirmationService],
-    styles: [`
-        .p-dialog .p-dialog-header {
-            background: #002e6d;
-            color: white;
-        }
-        .p-dialog .p-dialog-content {
-            background: #f8fafc;
-        }
-    `]
+    styles: [
+        `.p-dialog .p-dialog-header { background: #002e6d; color: white; }`,
+        `.p-dialog .p-dialog-content { background: #f8fafc; }`
+    ]
 })
-export class UserCrudComponent implements OnInit {
+export class UsersCrudComponent implements OnInit {
     users: User[] = [];
     userDialog: boolean = false;
     user: User = this.emptyUser();
-    selectedUsers?: User[] | null;
-    globalFilter: string = '';
+    selectedUsers: User[] | null = null;
+    isEditMode: boolean = false;
+    confirmIcon: string = 'delete';
+    confirmIconColor: string = '#D9534F';
     @ViewChild('dt') dt!: Table;
 
     constructor(
         private messageService: MessageService,
         private confirmationService: ConfirmationService
-    ) { }
+    ) {}
 
     ngOnInit() {
         this.loadDemoData();
@@ -217,58 +235,94 @@ export class UserCrudComponent implements OnInit {
 
     openNew() {
         this.user = this.emptyUser();
+        this.isEditMode = false;
         this.userDialog = true;
     }
 
     editUser(user: User) {
         this.user = { ...user };
+        this.isEditMode = true;
         this.userDialog = true;
     }
 
     deleteUser(user: User) {
+        this.confirmIcon = 'delete';
+        this.confirmIconColor = '#D9534F';
         this.confirmationService.confirm({
-            message: `¿Estás seguro de eliminar a ${user.nombres}?`,
-            header: 'Confirmar',
-            icon: 'pi pi-exclamation-triangle',
+            message: `
+              <div style="text-align: center;">
+                <strong>¿Estás seguro de eliminar el usuario ${user.nombres}?</strong>
+                <p style="margin-top: 8px;">Una vez que aceptes, no podrás revertir los cambios.</p>
+              </div>
+            `,
             accept: () => {
                 this.users = this.users.filter(u => u.id !== user.id);
                 this.messageService.add({
                     severity: 'success',
-                    summary: 'Eliminado',
+                    summary: 'Éxito',
                     detail: 'Usuario eliminado',
                     life: 3000
                 });
-            }
+            },
+            rejectLabel: 'Cancelar',
+            acceptLabel: 'Aceptar',
+            rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
+            acceptButtonStyleClass: 'p-button p-button-danger'
         });
     }
 
     hideDialog() {
         this.userDialog = false;
+        this.isEditMode = false;
     }
 
     saveUser() {
-        if (this.user.id) {
-            // Editar
-            const idx = this.users.findIndex(u => u.id === this.user.id);
-            if (idx > -1) this.users[idx] = { ...this.user };
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Actualizado',
-                detail: 'Usuario actualizado',
-                life: 3000
-            });
+        if (this.user.nombres?.trim()) {
+            if (this.user.id) {
+                this.confirmIcon = 'warning';
+                this.confirmIconColor = '#FFA726';
+                this.confirmationService.confirm({
+                    message: `¿Estás seguro que deseas continuar con esta operación?<br><small>Una vez que aceptes, los cambios reemplazarán la información actual.</small>`,
+                    header: 'Confirmar Actualización',
+                    acceptButtonStyleClass: 'p-button-warning custom-accept-button',
+                    rejectButtonStyleClass: 'p-button-text',
+                    acceptLabel: 'Aceptar',
+                    rejectLabel: 'Cancelar',
+                    accept: () => {
+                        const idx = this.users.findIndex(u => u.id === this.user.id);
+                        if (idx > -1) this.users[idx] = { ...this.user };
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Usuario actualizado',
+                            life: 3000
+                        });
+                        this.userDialog = false;
+                        this.isEditMode = false;
+                        this.user = this.emptyUser();
+                    }
+                });
+            } else {
+                this.user.id = this.createId();
+                this.users.push({ ...this.user });
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Éxito',
+                    detail: 'Usuario creado',
+                    life: 3000
+                });
+                this.userDialog = false;
+                this.isEditMode = false;
+                this.user = this.emptyUser();
+            }
         } else {
-            // Nuevo
-            this.user.id = this.createId();
-            this.users.push({ ...this.user });
             this.messageService.add({
-                severity: 'success',
-                summary: 'Creado',
-                detail: 'Usuario creado',
+                severity: 'error',
+                summary: 'Error',
+                detail: 'El nombre es requerido',
                 life: 3000
             });
         }
-        this.userDialog = false;
     }
 
     createId(): string {

@@ -69,7 +69,7 @@ interface ExtendedProduct extends Product {
 <p-toast></p-toast>
 
         <div class="p-6">
-            
+
             <p-table
                 #dt
                 [value]="products()"
@@ -207,7 +207,7 @@ interface ExtendedProduct extends Product {
                     </div>
                 </div>
                 <!-- Botones -->
-                <div class="flex justify-between mt-6">
+                <div class="flex justify-end gap-4 mt-6">
                     <button pButton type="button" class="p-button-outlined" (click)="hideDialog()">Cancelar</button>
                     <button pButton type="button" class="p-button" (click)="saveProduct()">Publicar</button>
                 </div>
@@ -299,7 +299,6 @@ export class ToolCrudComponent implements OnInit {
         this.isEditMode = true;
         this.productDialog = true;
     }
-
     deleteProduct(product: ExtendedProduct) {
         this.confirmIcon = 'delete';
         this.confirmIconColor = '#D9534F';
@@ -307,7 +306,7 @@ export class ToolCrudComponent implements OnInit {
         this.confirmationService.confirm({
             message: `
               <div style="display: flex; justify-content: center; align-items: center; width: 100%; min-height: 80px; margin-bottom: 16px;">
-                <i class="material-symbols-outlined text-red-600 text-6xl" style="display: block;">delete</i>
+                <i class="material-symbols-outlined text-red-600 text-6xl">delete</i>
               </div>
               <div style="text-align: center;">
                 <strong>¿Estás seguro de eliminar ${product.name}?</strong>
