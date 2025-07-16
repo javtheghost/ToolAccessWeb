@@ -1,0 +1,60 @@
+<div class="reports-container">
+  <h2 class="titulo">Reportes del Sistema</h2>
+  <div class="filtros-card">
+    <h3 class="filtros-titulo">Filtros para el Reporte</h3>
+    <form class="filtros-form" (ngSubmit)="generarReporte()">
+      <div class="filtros-row">
+        <div class="filtro-col">
+          <label>Tipo de Reporte</label>
+          <p-dropdown [options]="tiposReporte" [(ngModel)]="filtroTipoReporte" name="tipoReporte" optionLabel="label" optionValue="value" placeholder="Seleccionar..."></p-dropdown>
+        </div>
+        <div class="filtro-col rango-fechas">
+          <label>Rango de Fechas</label>
+          <div class="fechas-flex">
+            <p-calendar [(ngModel)]="filtroFechaInicio" name="fechaInicio" dateFormat="dd/mm/yy" showIcon="true" placeholder="Desde"></p-calendar>
+            <span class="a-label">a</span>
+            <p-calendar [(ngModel)]="filtroFechaFin" name="fechaFin" dateFormat="dd/mm/yy" showIcon="true" placeholder="Hasta"></p-calendar>
+          </div>
+        </div>
+        <div class="filtro-col">
+          <label>Estado</label>
+          <p-dropdown [options]="estados" [(ngModel)]="filtroEstado" name="estado" optionLabel="label" optionValue="value" placeholder="Todos"></p-dropdown>
+        </div>
+      </div>
+      <div class="filtros-row">
+        <div class="filtro-col">
+          <label>Categoría de Herramientas</label>
+          <p-dropdown [options]="categorias" [(ngModel)]="filtroCategoria" name="categoria" optionLabel="label" optionValue="value" placeholder="Todas"></p-dropdown>
+        </div>
+        <div class="filtro-col">
+          <label>Usuario</label>
+          <p-dropdown [options]="usuarios" [(ngModel)]="filtroUsuario" name="usuario" optionLabel="label" optionValue="value" placeholder="Todos"></p-dropdown>
+        </div>
+        <div class="filtro-col boton-generar">
+          <button pButton type="submit" label="Generar Reporte" class="p-button-primary"></button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="reportes-recientes-card">
+    <div class="reportes-header">
+      <h3>Reportes Generados Recientemente</h3>
+      <a href="#" class="ver-todos">Ver todos los reportes</a>
+    </div>
+    <div class="lista-reportes">
+      <div class="reporte-item" *ngFor="let rep of reportes">
+        <div class="reporte-info">
+          <strong>{{ rep.nombre }}</strong>
+          <div class="reporte-fecha">{{ rep.fecha }}</div>
+          <ul>
+            <li>{{ rep.descripcion }}</li>
+          </ul>
+        </div>
+        <div class="reporte-descargar">
+          <a href="#" (click)="descargarReporte(rep.descargarUrl); $event.preventDefault();">Descargar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
