@@ -42,7 +42,6 @@ interface Column {
         TextareaModule,
         DialogModule,
         InputSwitchModule,
-        ConfirmDialogModule,
         IconFieldModule,
         InputIconModule
     ],
@@ -53,15 +52,13 @@ interface Column {
         #dt
         [value]="categories()"
         [rows]="10"
-        [columns]="cols"
         [paginator]="true"
         [globalFilterFields]="['name', 'description', 'active']"
         [tableStyle]="{ 'min-width': '50rem' }"
         [(selection)]="selectedCategories"
         [rowHover]="true"
         dataKey="id"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} categorías"
-        [showCurrentPageReport]="true"
+        [showCurrentPageReport]="false"
         [rowsPerPageOptions]="[10, 20, 30]"
         class="shadow-md rounded-lg"
     >
@@ -92,7 +89,7 @@ interface Column {
                 <td>{{ category.name }}</td>
                 <td>{{ category.description }}</td>
                 <td>
-                    <p-inputSwitch [ngModel]="category.active !== false" [disabled]="true"></p-inputSwitch>
+                    <input type="checkbox" class="custom-toggle" [(ngModel)]="category.active" disabled />
                 </td>
                 <td>
                     <p-button (click)="editCategory(category)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
@@ -126,65 +123,70 @@ interface Column {
             </div>
             <div class="flex flex-col items-center justify-center col-span-2">
                 <label class="mb-2">Activo</label>
-                <p-inputSwitch [(ngModel)]="category.active"></p-inputSwitch>
+                <input type="checkbox" class="custom-toggle" [(ngModel)]="category.active" />
             </div>
         </div>
         <div class="flex justify-end gap-4 mt-6">
-            <button pButton type="button" class="p-button-outlined" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="button" class="custom-cancel-btn" (click)="hideDialog()">Cancelar</button>
             <button pButton type="button" class="p-button" (click)="saveCategory()">Guardar</button>
         </div>
     </ng-template>
 </p-dialog>
-<p-confirmDialog [style]="{ width: '350px' }" [draggable]="false">
-    <ng-template pTemplate="footer" let-accept let-reject>
-        <div class="flex justify-center gap-3">
-            <button pButton type="button" label="Cancelar" class="p-button-outlined" (click)="reject()"></button>
-            <button
-                pButton
-                type="button"
-                label="Aceptar"
-                (click)="saveCategory()"
-            ></button>
-        </div>
-    </ng-template>
-</p-confirmDialog>
+<!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
+<div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+    <button type="button" (click)="onCustomConfirmReject()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none text-2xl">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <div class="flex flex-col items-start">
+      <i class="material-symbols-outlined text-6xl mb-4"
+        [ngClass]="{
+          'text-danger': confirmIcon === 'delete',
+          'text-warning': confirmIcon === 'warning'
+        }"
+      >{{ confirmIcon }}</i>
+      <div class="text-left mb-6">
+        <div [innerHTML]="confirmMessage"></div>
+      </div>
+      <div class="flex gap-4 self-end">
+        <button type="button"
+          class="custom-cancel-btn px-4 py-2 font-semibold"
+          (click)="onCustomConfirmReject()"
+        >Cancelar</button>
+        <button type="button"
+          [ngClass]="confirmIcon === 'delete' ? 'custom-confirm-accept-danger' : 'custom-confirm-accept-warning'"
+          class="px-4 py-2 rounded font-semibold"
+          (click)="onCustomConfirmAccept()"
+        >Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
     `,
-    providers: [MessageService, ConfirmationService],
-    styles: [`
-        .p-dialog .p-dialog-header {
-            background: #002e6d;
-            color: white;
-        }
-        .p-dialog .p-dialog-content {
-            background: #f8fafc;
-        }
-    `]
+    providers: [MessageService],
+    styles: []
 })
 export class CategoriesCrudComponent implements OnInit {
     categoryDialog: boolean = false;
     categories = signal<Category[]>([]);
     category: Category = {};
     selectedCategories: Category[] | null = null;
-    submitted: boolean = false;
-    cols: Column[] = [];
     isEditMode: boolean = false;
+    confirmIcon: string = 'delete';
+    // Modal personalizado
+    showCustomConfirm: boolean = false;
+    confirmMessage: string = '';
+    confirmAction: (() => void) | null = null;
 
     constructor(
-        private messageService: MessageService,
-        private confirmationService: ConfirmationService
+        private messageService: MessageService
     ) {}
 
     ngOnInit() {
         this.loadCategories();
-        this.cols = [
-            { field: 'name', header: 'Nombre' },
-            { field: 'description', header: 'Descripción' },
-            { field: 'active', header: 'Activo' }
-        ];
     }
 
     loadCategories() {
-        // Simulación de datos
         this.categories.set([
             { id: '1', name: 'Eléctrica', description: 'Herramientas eléctricas', active: true },
             { id: '2', name: 'Manual', description: 'Herramientas manuales', active: true }
@@ -197,7 +199,6 @@ export class CategoriesCrudComponent implements OnInit {
 
     openNew() {
         this.category = {};
-        this.submitted = false;
         this.isEditMode = false;
         this.categoryDialog = true;
     }
@@ -209,47 +210,24 @@ export class CategoriesCrudComponent implements OnInit {
     }
 
     deleteCategory(category: Category) {
-        this.confirmationService.confirm({
-            message: `
-              <div style="display: flex; justify-content: center; align-items: center; width: 100%; min-height: 80px; margin-bottom: 16px;">
-                <i class="material-symbols-outlined text-red-600 text-6xl" style="display: block;">delete</i>
-              </div>
-              <div style="text-align: center;">
-                <strong>¿Estás seguro de eliminar ${category.name}?</strong>
-                <p style="margin-top: 8px;">Una vez que aceptes, no podrás revertir los cambios.</p>
-              </div>
-            `,
-            accept: () => {
-                this.categories.set(this.categories().filter((val) => val.id !== category.id));
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Categoría eliminada',
-                    life: 3000
-                });
-            },
-            rejectLabel: 'Cancelar',
-            acceptLabel: 'Aceptar',
-            rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
-            acceptButtonStyleClass: 'p-button p-button-danger'
-        });
+        this.confirmIcon = 'delete';
+        this.confirmMessage = `¿Estás seguro de eliminar la categoría <span class='text-primary'>${category.name}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
+        this.confirmAction = () => {
+            this.categories.set(this.categories().filter((val) => val.id !== category.id));
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Categoría eliminada',
+                life: 3000
+            });
+        };
+        this.showCustomConfirm = true;
     }
 
     hideDialog() {
         this.categoryDialog = false;
-        this.submitted = false;
         this.isEditMode = false;
-    }
-
-    findIndexById(id: string): number {
-        let index = -1;
-        for (let i = 0; i < this.categories().length; i++) {
-            if (this.categories()[i].id === id) {
-                index = i;
-                break;
-            }
-        }
-        return index;
+        this.showCustomConfirm = false;
     }
 
     createId(): string {
@@ -262,31 +240,36 @@ export class CategoriesCrudComponent implements OnInit {
     }
 
     saveCategory() {
-        this.submitted = true;
-        let _categories = this.categories();
-
         if (this.category.name?.trim()) {
             if (this.category.id) {
-                _categories[this.findIndexById(this.category.id!)] = this.category;
-                this.categories.set([..._categories]);
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: `¡${this.category.name} actualizada correctamente!`,
-                    life: 3000
-                });
-                this.categoryDialog = false;
-                this.category = {};
+                this.confirmIcon = 'warning';
+                this.confirmMessage = `¿Estás seguro que deseas actualizar la categoría <span class='text-primary'>${this.category.name}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+                this.confirmAction = () => {
+                    const idx = this.categories().findIndex(c => c.id === this.category.id);
+                    if (idx > -1) this.categories().splice(idx, 1, { ...this.category });
+                    this.categories.set([...this.categories()]);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Categoría actualizada',
+                        life: 3000
+                    });
+                    this.categoryDialog = false;
+                    this.isEditMode = false;
+                    this.category = {};
+                };
+                this.showCustomConfirm = true;
             } else {
                 this.category.id = this.createId();
-                this.categories.set([..._categories, this.category]);
+                this.categories.set([...this.categories(), { ...this.category }]);
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Éxito',
-                    detail: `¡${this.category.name} creada correctamente!`,
+                    detail: 'Categoría creada',
                     life: 3000
                 });
                 this.categoryDialog = false;
+                this.isEditMode = false;
                 this.category = {};
             }
         } else {
@@ -297,5 +280,14 @@ export class CategoriesCrudComponent implements OnInit {
                 life: 3000
             });
         }
+    }
+
+    // Métodos para el modal personalizado
+    onCustomConfirmAccept() {
+        if (this.confirmAction) this.confirmAction();
+        this.showCustomConfirm = false;
+    }
+    onCustomConfirmReject() {
+        this.showCustomConfirm = false;
     }
 }

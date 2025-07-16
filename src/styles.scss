@@ -78,3 +78,144 @@
     background-color: #ec971f !important;
     border-color: #d58512 !important;
 }
+
+/* ===== ESTILOS GLOBALES PARA COMPONENTES CRUD ===== */
+
+/* ===== DIALOGS Y MODALES ===== */
+.p-dialog .p-dialog-header { 
+    color: var(--primary-color); 
+}
+
+.p-dialog .p-dialog-content { 
+    background: #f8fafc; 
+}
+
+/* ===== BOTONES ===== */
+.custom-cancel-btn { 
+    border: 1px solid #002e6d !important; 
+    color: #002e6d !important; 
+    background: #fff !important; 
+    border-radius: 0.5rem !important; 
+    font-weight: 500 !important; 
+    padding: 0.5rem 1.5rem !important; 
+    transition: background 0.2s, color 0.2s; 
+}
+
+.custom-cancel-btn:hover, 
+.custom-cancel-btn:focus { 
+    background: #e6f0ff !important; 
+    color: #002e6d !important; 
+}
+
+/* ===== BOTONES DE CONFIRMACIÓN ===== */
+.custom-confirm-accept-danger { 
+    background-color: #d9534f !important; 
+    border-color: #d9534f !important; 
+    color: white !important; 
+}
+
+.custom-confirm-accept-danger:hover { 
+    background-color: #b52b27 !important; 
+    border-color: #b52b27 !important; 
+}
+
+.custom-confirm-accept-warning { 
+    background-color: #ffa726 !important; 
+    border-color: #ffa726 !important; 
+    color: white !important; 
+}
+
+.custom-confirm-accept-warning:hover { 
+    background-color: #fb8c00 !important; 
+    border-color: #fb8c00 !important; 
+}
+
+/* ===== COLORES DE TEXTO ===== */
+.text-danger { 
+    color: #d9534f !important; 
+}
+
+.text-warning { 
+    color: #ffa726 !important; 
+}
+
+/* ===== MODAL PERSONALIZADO ===== */
+.fixed { 
+    position: fixed; 
+}
+
+.inset-0 { 
+    top: 0; 
+    right: 0; 
+    bottom: 0; 
+    left: 0; 
+}
+
+.z-modal-confirm { 
+    z-index: 3000 !important; 
+}
+
+.bg-black { 
+    background-color: rgba(0,0,0,1); 
+}
+
+.bg-opacity-40 { 
+    background-color: rgba(0,0,0,0.4); 
+}
+
+.max-w-md { 
+    max-width: 28rem; 
+}
+
+.shadow-lg { 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); 
+}
+
+.rounded-lg { 
+    border-radius: 0.5rem; 
+}
+
+.p-8 { 
+    padding: 2rem; 
+}
+
+/* ===== TOGGLE SWITCH PERSONALIZADO ===== */
+.custom-toggle {
+    width: 32px;
+    height: 18px;
+    appearance: none;
+    background: #e5e7eb;
+    border-radius: 9999px;
+    position: relative;
+    outline: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    vertical-align: middle;
+}
+
+.custom-toggle:checked {
+    background: #12A883;
+}
+
+.custom-toggle::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.custom-toggle:checked::before {
+    transform: translateX(14px);
+}
+
+/* ===== PRIMENG INPUT SWITCH ===== */
+.p-inputswitch.p-inputswitch-checked .p-inputswitch-slider { 
+    background: #12A883 !important; 
+    border-color: #12A883 !important; 
+}

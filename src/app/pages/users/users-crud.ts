@@ -92,7 +92,7 @@ interface User {
                 <td>{{ user.correo }}</td>
                 <td>{{ user.rol }}</td>
                 <td>
-                    <p-inputSwitch [ngModel]="user.activo" [disabled]="true"></p-inputSwitch>
+                    <input type="checkbox" class="custom-toggle" [(ngModel)]="user.activo" disabled />
                 </td>
                 <td>
                     <p-button (click)="editUser(user)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
@@ -141,51 +141,49 @@ interface User {
             </div>
             <div class="flex flex-col items-center justify-center col-span-2">
                 <label class="mb-2">Activo</label>
-                <p-inputSwitch [(ngModel)]="user.activo"></p-inputSwitch>
+                <input type="checkbox" class="custom-toggle" [(ngModel)]="user.activo" />
             </div>
         </div>
         <div class="flex justify-end gap-4 mt-6">
-            <button pButton type="button" class="p-button-outlined" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="button" class="custom-cancel-btn" (click)="hideDialog()">Cancelar</button>
             <button pButton type="button" class="p-button" (click)="saveUser()">Guardar</button>
         </div>
     </ng-template>
 </p-dialog>
-<p-confirmDialog [style]="{ width: '350px' }" [draggable]="false">
-    <ng-template pTemplate="message" let-message>
-        <div class="flex flex-col items-start">
-            <i class="material-symbols-outlined text-6xl mb-4"
-                [ngClass]="{
-                    'text-red-600': confirmIcon === 'delete',
-                    'text-amber-600': confirmIcon === 'warning'
-                }"
-            >{{ confirmIcon }}</i>
-            <div class="text-left">
-                <div [innerHTML]="message.message"></div>
-            </div>
-        </div>
-    </ng-template>
-    <ng-template pTemplate="footer" let-accept let-reject>
-        <div class="flex justify-center gap-3">
-            <button pButton type="button" label="Cancelar" class="p-button-outlined" (click)="reject()"></button>
-            <button
-                pButton
-                type="button"
-                label="Aceptar"
-                [ngClass]="{
-                    'custom-confirm-button-delete': confirmIcon === 'delete',
-                    'custom-confirm-button-warning': confirmIcon === 'warning'
-                }"
-                (click)="accept()"
-            ></button>
-        </div>
-    </ng-template>
-</p-confirmDialog>
+<!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
+<div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+    <!-- Tachita de cerrar -->
+    <button type="button" (click)="onCustomConfirmReject()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none text-2xl">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <div class="flex flex-col items-start">
+      <i class="material-symbols-outlined text-6xl mb-4"
+        [ngClass]="{
+          'text-danger': confirmIcon === 'delete',
+          'text-warning': confirmIcon === 'warning'
+        }"
+      >{{ confirmIcon }}</i>
+      <div class="text-left mb-6">
+        <div [innerHTML]="confirmMessage"></div>
+      </div>
+      <div class="flex gap-4 self-end">
+        <button type="button"
+          class="custom-cancel-btn px-4 py-2 font-semibold"
+          (click)="onCustomConfirmReject()"
+        >Cancelar</button>
+        <button type="button"
+          [ngClass]="confirmIcon === 'delete' ? 'custom-confirm-accept-danger' : 'custom-confirm-accept-warning'"
+          class="px-4 py-2 rounded font-semibold"
+          (click)="onCustomConfirmAccept()"
+        >Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
     `,
-    providers: [MessageService, ConfirmationService],
-    styles: [
-        `.p-dialog .p-dialog-header { background: #002e6d; color: white; }`,
-        `.p-dialog .p-dialog-content { background: #f8fafc; }`
-    ]
+    providers: [MessageService],
+    styles: []
 })
 export class UsersCrudComponent implements OnInit {
     users: User[] = [];
@@ -194,12 +192,15 @@ export class UsersCrudComponent implements OnInit {
     selectedUsers: User[] | null = null;
     isEditMode: boolean = false;
     confirmIcon: string = 'delete';
-    confirmIconColor: string = '#D9534F';
     @ViewChild('dt') dt!: Table;
 
+    // NUEVO: variables para el modal personalizado
+    showCustomConfirm: boolean = false;
+    confirmMessage: string = '';
+    confirmAction: (() => void) | null = null;
+
     constructor(
-        private messageService: MessageService,
-        private confirmationService: ConfirmationService
+        private messageService: MessageService
     ) {}
 
     ngOnInit() {
@@ -247,62 +248,47 @@ export class UsersCrudComponent implements OnInit {
 
     deleteUser(user: User) {
         this.confirmIcon = 'delete';
-        this.confirmIconColor = '#D9534F';
-        this.confirmationService.confirm({
-            message: `
-              <div style="text-align: center;">
-                <strong>¿Estás seguro de eliminar el usuario ${user.nombres}?</strong>
-                <p style="margin-top: 8px;">Una vez que aceptes, no podrás revertir los cambios.</p>
-              </div>
-            `,
-            accept: () => {
-                this.users = this.users.filter(u => u.id !== user.id);
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Usuario eliminado',
-                    life: 3000
-                });
-            },
-            rejectLabel: 'Cancelar',
-            acceptLabel: 'Aceptar',
-            rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
-            acceptButtonStyleClass: 'p-button p-button-danger'
-        });
+        this.confirmMessage = `¿Estás seguro de eliminar el usuario <span class='text-primary'>${user.nombres}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
+        this.confirmAction = () => {
+            this.users = this.users.filter(u => u.id !== user.id);
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Usuario eliminado',
+                life: 3000
+            });
+        };
+        this.showCustomConfirm = true;
     }
 
     hideDialog() {
         this.userDialog = false;
         this.isEditMode = false;
+        this.showCustomConfirm = false; // Cierra también el modal de confirmación personalizada
     }
 
     saveUser() {
         if (this.user.nombres?.trim()) {
             if (this.user.id) {
+                // Modo edición - mostrar confirmación
                 this.confirmIcon = 'warning';
-                this.confirmIconColor = '#FFA726';
-                this.confirmationService.confirm({
-                    message: `¿Estás seguro que deseas continuar con esta operación?<br><small>Una vez que aceptes, los cambios reemplazarán la información actual.</small>`,
-                    header: 'Confirmar Actualización',
-                    acceptButtonStyleClass: 'p-button-warning custom-accept-button',
-                    rejectButtonStyleClass: 'p-button-text',
-                    acceptLabel: 'Aceptar',
-                    rejectLabel: 'Cancelar',
-                    accept: () => {
-                        const idx = this.users.findIndex(u => u.id === this.user.id);
-                        if (idx > -1) this.users[idx] = { ...this.user };
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Éxito',
-                            detail: 'Usuario actualizado',
-                            life: 3000
-                        });
-                        this.userDialog = false;
-                        this.isEditMode = false;
-                        this.user = this.emptyUser();
-                    }
-                });
+                this.confirmMessage = `¿Estás seguro que deseas actualizar el usuario <span class='text-primary'>${this.user.nombres}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+                this.confirmAction = () => {
+                    const idx = this.users.findIndex(u => u.id === this.user.id);
+                    if (idx > -1) this.users[idx] = { ...this.user };
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Usuario actualizado',
+                        life: 3000
+                    });
+                    this.userDialog = false;
+                    this.isEditMode = false;
+                    this.user = this.emptyUser();
+                };
+                this.showCustomConfirm = true;
             } else {
+                // Modo creación - guardar directamente
                 this.user.id = this.createId();
                 this.users.push({ ...this.user });
                 this.messageService.add({
@@ -323,6 +309,15 @@ export class UsersCrudComponent implements OnInit {
                 life: 3000
             });
         }
+    }
+
+    // Métodos para el modal personalizado
+    onCustomConfirmAccept() {
+        if (this.confirmAction) this.confirmAction();
+        this.showCustomConfirm = false;
+    }
+    onCustomConfirmReject() {
+        this.showCustomConfirm = false;
     }
 
     createId(): string {
