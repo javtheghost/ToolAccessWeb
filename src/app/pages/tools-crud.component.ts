@@ -183,7 +183,7 @@ interface Tool {
 </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
 <div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
-  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative" style="background: #fff;">
     <button type="button" (click)="onCustomConfirmReject()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none text-2xl">
       <span class="material-symbols-outlined">close</span>
     </button>
@@ -213,7 +213,14 @@ interface Tool {
 </div>
     `,
     providers: [MessageService],
-    styles: []
+    styles: [
+        `:host ::ng-deep .p-dialog .p-dialog-content {
+            background: #fff !important;
+        }
+        :host ::ng-deep .p-dialog .p-dialog-header {
+            background: #fff !important;
+        }
+    `]
 })
 export class ToolsCrudComponent implements OnInit {
     tools: Tool[] = [];

@@ -1,3 +1,5 @@
+import { FinesDamagesComponent } from './fines-damages/fines-damages.component';
+import { FinesConfigComponent } from './fines-damages/fines-config/fines-config.component';
 import { Routes } from '@angular/router';
 import { Empty } from './empty/empty';
 import { RolesCrudComponent } from './roles-crud.component';
@@ -20,6 +22,10 @@ export default [
       path: 'reports',
       loadComponent: () => import('./reports-page.component').then(m => m.ReportsPageComponent)
     },
+    {
+        path: 'fines-damages',
+        loadComponent: () => import('./fines-damages/fines-damages.component').then(m => m.FinesDamagesComponent)
+      },
 
     { path: '**', redirectTo: '/notfound' },
 ] as Routes;

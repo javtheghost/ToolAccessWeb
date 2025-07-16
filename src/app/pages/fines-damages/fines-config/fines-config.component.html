@@ -1,0 +1,90 @@
+<p-toast></p-toast>
+<div class="p-6">
+  <h3 class="font-bold text-lg mb-2">Configuración de Multas</h3>
+  
+  <p-table
+    #dt
+    [value]="fines"
+    [rows]="5"
+    [paginator]="true"
+    [globalFilterFields]="['name', 'category']"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    [(selection)]="selectedFines"
+    [rowHover]="true"
+    dataKey="id"
+    [showCurrentPageReport]="false"
+    [rowsPerPageOptions]="[5, 10, 20]"
+    class="shadow-md rounded-lg"
+  >
+    <ng-template pTemplate="header">
+      <tr class="bg-[#6ea1cc] text-white">
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Valor base</th>
+        <th>Activo</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-fine>
+      <tr>
+        <td>{{ fine.name }}</td>
+        <td>{{ fine.category }}</td>
+        <td>${{ fine.baseValue }}</td>
+        <td>
+          <input type="checkbox" class="custom-toggle" [(ngModel)]="fine.active" disabled />
+        </td>
+        <td>
+          <p-button (click)="editFine(fine)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
+            <ng-template pTemplate="icon">
+              <i class="material-symbols-outlined">edit</i>
+            </ng-template>
+          </p-button>
+          <p-button (click)="deleteFine(fine)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+            <ng-template pTemplate="icon">
+              <i class="material-symbols-outlined">delete</i>
+            </ng-template>
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+<p-dialog
+  [(visible)]="fineDialog"
+  [style]="{ width: '500px' }"
+  [modal]="true"
+  [draggable]="false"
+>
+  <ng-template pTemplate="header">
+    <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
+      {{ isEditMode ? 'Editar configuración de multa' : 'Nueva configuración de multa' }}
+    </span>
+  </ng-template>
+  <ng-template pTemplate="content">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="relative col-span-2 py-2 mt-2">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
+        <input type="text" id="name" name="name" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="fine.name" />
+        <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+      </div>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">category</span>
+        <input type="text" id="category" name="category" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Categoría" [(ngModel)]="fine.category" />
+        <label for="category" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría</label>
+      </div>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">payments</span>
+        <input type="number" id="baseValue" name="baseValue" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Valor base" [(ngModel)]="fine.baseValue" />
+        <label for="baseValue" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Valor base</label>
+      </div>
+      <div class="flex flex-col items-center justify-center col-span-2 mt-2">
+        <label class="mb-2">Activo</label>
+        <input type="checkbox" class="custom-toggle" [(ngModel)]="fine.active" />
+      </div>
+    </div>
+    <div class="flex justify-end gap-4 mt-6">
+      <button pButton type="button" class="custom-cancel-btn w-24" (click)="fineDialog = false">Cancelar</button>
+      <button pButton type="button" class="p-button w-24" (click)="saveFine()">Guardar</button>
+    </div>
+  </ng-template>
+</p-dialog>
