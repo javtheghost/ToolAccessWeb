@@ -5,9 +5,11 @@ import { CategoriesCrudComponent } from './categories-crud.component';
 import { SubcategoriasCrudComponent } from './subcategorias-crud.component';
 import { UsersCrudComponent } from './users/users-crud';
 import { ToolsCrudComponent } from './tools-crud.component';
+import { LoansCrudComponent } from './loans-crud.component';
 
 export default [
     { path: 'tools', component: ToolsCrudComponent },
+    { path: 'loans', component: LoansCrudComponent },
     { path: 'empty', component: Empty },
     {path: 'categories-list', component:CategoriesCrudComponent},
     {path: 'subcategories-list', component:SubcategoriasCrudComponent},

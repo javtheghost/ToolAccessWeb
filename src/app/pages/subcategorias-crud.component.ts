@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, HostListener } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -114,20 +114,20 @@ interface Column {
 <p-dialog [(visible)]="subcategoryDialog" [style]="{ width: '500px' }" [header]="isEditMode ? 'Editar Subcategoría' : 'Nueva Subcategoría'" [modal]="true" [draggable]="false">
     <ng-template pTemplate="content">
         <div class="grid grid-cols-2 gap-4">
-            <div class="relative col-span-2">
+            <div class="relative col-span-2 py-2 mt-2">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
                 <input type="text" id="name" name="name" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="subcategory.name" />
-                <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+                <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
             </div>
             <div class="relative col-span-2">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">description</span>
+                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
                 <textarea id="description" name="description" rows="2" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="subcategory.description"></textarea>
-                <label for="description" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
+                <label for="description" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
             </div>
             <div class="relative col-span-2">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">category</span>
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">inventory_2</span>
                 <input type="text" id="category" name="category" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Categoría" [(ngModel)]="subcategory.category" />
-                <label for="category" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría</label>
+                <label for="category" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría</label>
             </div>
             <div class="flex flex-col items-center justify-center col-span-2">
                 <label class="mb-2">Activo</label>
@@ -135,8 +135,8 @@ interface Column {
             </div>
         </div>
         <div class="flex justify-end gap-4 mt-6">
-            <button pButton type="button" class="custom-cancel-btn" (click)="hideDialog()">Cancelar</button>
-            <button pButton type="button" class="p-button" (click)="saveSubcategory()">Guardar</button>
+            <button pButton type="button" class="custom-cancel-btn w-24" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="button" class="p-button w-24" (click)="saveSubcategory()">Guardar</button>
         </div>
     </ng-template>
 </p-dialog>
@@ -158,12 +158,12 @@ interface Column {
       </div>
       <div class="flex gap-4 self-end">
         <button type="button"
-          class="custom-cancel-btn px-4 py-2 font-semibold"
+          class="custom-cancel-btn px-4 py-2 font-semibold w-24 text-center"
           (click)="onCustomConfirmReject()"
         >Cancelar</button>
         <button type="button"
           [ngClass]="confirmIcon === 'delete' ? 'custom-confirm-accept-danger' : 'custom-confirm-accept-warning'"
-          class="px-4 py-2 rounded font-semibold"
+          class="px-4 py-2 rounded font-semibold w-24 text-center"
           (click)="onCustomConfirmAccept()"
         >Aceptar</button>
       </div>
@@ -299,4 +299,13 @@ export class SubcategoriasCrudComponent implements OnInit {
     onCustomConfirmReject() {
         this.showCustomConfirm = false;
     }
-} 
+
+    @HostListener('document:keydown.escape')
+    onEscapePress() {
+        if (this.showCustomConfirm) {
+            this.onCustomConfirmReject();
+        } else if (this.subcategoryDialog) {
+            this.hideDialog();
+        }
+    }
+}
