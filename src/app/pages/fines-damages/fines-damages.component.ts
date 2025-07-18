@@ -1,4 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FinesConfigComponent } from './fines-config/fines-config.component';
 import { DamageTypesRegistryComponent } from './damage-types-registry/damage-types-registry.component';
 import { DamageHistoryComponent } from './damage-history/damage-history.component';
@@ -11,6 +12,7 @@ import { ButtonModule } from 'primeng/button';
   templateUrl: './fines-damages.component.html',
   styleUrls: ['./fines-damages.component.scss'],
   imports: [
+    CommonModule,
     FinesConfigComponent,
     DamageTypesRegistryComponent,
     DamageHistoryComponent,

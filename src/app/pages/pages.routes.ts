@@ -9,6 +9,8 @@ import { UsersCrudComponent } from './users/users-crud';
 import { ToolsCrudComponent } from './tools-crud.component';
 import { LoansCrudComponent } from './loans-crud.component';
 import { ReportsPageComponent } from './reports-page.component';
+import { AuthGuard } from '../pages/guards/auth.guard';
+import { AdminGuard } from '../pages/guards/admin.guard';
 
 export default [
     { path: 'tools', component: ToolsCrudComponent },
@@ -26,6 +28,10 @@ export default [
         path: 'fines-damages',
         loadComponent: () => import('./fines-damages/fines-damages.component').then(m => m.FinesDamagesComponent)
       },
-
+    {
+      path: 'dashboard',
+      loadComponent: () => import('./dashboard/dashboard').then(m => m.Dashboard),
+      canActivate: [AuthGuard]
+    },
     { path: '**', redirectTo: '/notfound' },
 ] as Routes;
