@@ -22,7 +22,7 @@ export const appRoutes: Routes = [
             { 
                 path: 'dashboard', 
                 component: Dashboard,
-                canActivate: [AuthGuard]
+              //  canActivate: [AuthGuard]
             }, // Cambiado a /dashboard en vez de raíz
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
