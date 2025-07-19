@@ -31,7 +31,7 @@ export default [
     {
       path: 'dashboard',
       loadComponent: () => import('./dashboard/dashboard').then(m => m.Dashboard),
-      canActivate: [AuthGuard]
+     // canActivate: [AuthGuard]
     },
     { path: '**', redirectTo: '/notfound' },
 ] as Routes;
