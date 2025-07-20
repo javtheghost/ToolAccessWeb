@@ -35,15 +35,14 @@ export class OAuthCallbackComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    console.log('🚀 OAuth Callback ngOnInit iniciado');
     this.status = 'Callback iniciado';
-    
+
     // Obtener parámetros de la URL
     const code = this.route.snapshot.queryParams['code'];
     const state = this.route.snapshot.queryParams['state'];
     const error = this.route.snapshot.queryParams['error'];
     const errorDescription = this.route.snapshot.queryParams['error_description'];
-    
+
     this.debugInfo = {
       code: code,
       state: state,
@@ -51,7 +50,7 @@ export class OAuthCallbackComponent implements OnInit {
       error: error,
       errorDescription: errorDescription
     };
-    
+
     console.log('📋 Parámetros de URL:', {
       code: code ? 'Presente' : 'Ausente',
       state: state ? 'Presente' : 'Ausente',
@@ -59,22 +58,19 @@ export class OAuthCallbackComponent implements OnInit {
       errorDescription: errorDescription,
       fullUrl: window.location.href
     });
-    
+
     // Verificar si hay error en la URL
     if (error) {
-      console.error('❌ Error en URL de callback:', error, errorDescription);
       this.error = `Error de autorización: ${error}${errorDescription ? ' - ' + errorDescription : ''}`;
       this.status = 'Error de autorización';
       setTimeout(() => this.router.navigate(['/auth/login']), 3000);
       return;
     }
-    
+
     if (!code || !state) {
       this.error = 'Faltan parámetros de autenticación.';
       this.status = 'Error: Faltan parámetros';
-      console.error('❌ Faltan parámetros:', { code, state });
-      console.error('❌ URL completa:', window.location.href);
-      console.error('❌ Query params:', this.route.snapshot.queryParams);
+
       setTimeout(() => this.router.navigate(['/auth/login']), 3000);
       return;
     }
@@ -82,30 +78,24 @@ export class OAuthCallbackComponent implements OnInit {
     try {
       this.status = 'Procesando autenticación...';
       console.log('✅ Iniciando handleCallback...');
-      
+
       // Verificar estado antes del callback
       console.log('🔍 Estado antes del callback:', {
         isAuthenticated: this.oauthService.isAuthenticated(),
         hasToken: this.oauthService.hasValidToken(),
         currentUser: this.oauthService.getCurrentUser()
       });
-      
+
       await this.oauthService.handleCallback(code, state);
-      
+
       this.status = 'Autenticación exitosa, navegando...';
-      console.log('🎉 Callback exitoso, navegando a dashboard...');
-      
-      // Verificar estado después del callback
-      console.log('🔍 Estado después del callback:', {
-        isAuthenticated: this.oauthService.isAuthenticated(),
-        hasToken: this.oauthService.hasValidToken(),
-        currentUser: this.oauthService.getCurrentUser()
-      });
-      
+
+
+
       // Verificar token después del callback
       const token = this.oauthService.getToken();
       console.log('🎫 Token después del callback:', token ? 'Presente' : 'Ausente');
-      
+
       // Esperar un poco más para asegurar que el estado se propague
       setTimeout(() => {
         console.log('🔄 Navegando a dashboard...');
@@ -120,4 +110,4 @@ export class OAuthCallbackComponent implements OnInit {
       setTimeout(() => this.router.navigate(['/auth/login']), 4000);
     }
   }
-} 
+}

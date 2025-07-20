@@ -90,9 +90,9 @@ export class AppMenu {
                     },
                     {
                         label: 'Multas y daños',
-                        icon: 'material-symbols-outlined',
-                        iconText: 'gavel',
-                        routerLink: ['/pages/fines-damages']
+                        svgIcon: 'assets/icons/multa_nav.svg',
+                        routerLink: ['/pages/fines-damages'],
+                        style: { background: '#fff' }
                     }
                 ]
             },

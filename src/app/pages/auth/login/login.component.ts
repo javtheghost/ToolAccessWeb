@@ -4,11 +4,10 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { OAuthService } from '../../service/oauth.service';
 import { HttpClientModule } from '@angular/common/http';
-import { DebugComponent } from './debug.component';
 
 @Component({
   selector: 'app-login',
-  imports: [AppTopbar, RouterModule, FormsModule, HttpClientModule, DebugComponent],
+  imports: [AppTopbar, RouterModule, FormsModule, HttpClientModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })

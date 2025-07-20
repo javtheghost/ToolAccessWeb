@@ -1,30 +1,34 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FinesConfigComponent } from './fines-config/fines-config.component';
-import { DamageTypesRegistryComponent } from './damage-types-registry/damage-types-registry.component';
-import { DamageHistoryComponent } from './damage-history/damage-history.component';
-import { RecentFinesComponent } from './recent-fines/recent-fines.component';
-import { ButtonModule } from 'primeng/button';
+import { DamageTypesCrudComponent } from './damage-types-crud.component';
+import { HistoryDamagesCrudComponent } from './history-damages-crud.component';
+import { FinesConfigCrudComponent } from './fines-config-crud.component';
+import { RecentFinesCrudComponent } from './recent-fines-crud.component';
 
 @Component({
   selector: 'app-fines-damages',
   standalone: true,
-  templateUrl: './fines-damages.component.html',
-  styleUrls: ['./fines-damages.component.scss'],
-  imports: [
-    CommonModule,
-    FinesConfigComponent,
-    DamageTypesRegistryComponent,
-    DamageHistoryComponent,
-    RecentFinesComponent,
-    ButtonModule
-  ]
+  imports: [CommonModule, DamageTypesCrudComponent, HistoryDamagesCrudComponent, FinesConfigCrudComponent, RecentFinesCrudComponent],
+  template: `
+    <div class="p-4 sm:p-6 lg:p-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--primary-color)] mb-6">Configuración de Multas y Daños</h1>
+
+      <section class="mb-8">
+        <app-damage-types-crud></app-damage-types-crud>
+      </section>
+
+      <section class="mb-8">
+        <app-history-damages-crud></app-history-damages-crud>
+      </section>
+
+      <section class="mb-8">
+        <app-fines-config-crud></app-fines-config-crud>
+      </section>
+
+      <section>
+        <app-recent-fines-crud></app-recent-fines-crud>
+      </section>
+    </div>
+  `
 })
-export class FinesDamagesComponent {
-abrirModalMulta() {
-throw new Error('Method not implemented.');
-}
-abrirModalTipo() {
-throw new Error('Method not implemented.');
-}
-}
+export class FinesDamagesComponent {}

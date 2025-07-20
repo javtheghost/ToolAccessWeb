@@ -22,6 +22,7 @@ import { LineChartComponent } from './components/line-chart.component';
         </div>
         <div class="col-span-12 md:col-span-6 xl:col-span-3">
           <app-stats-card-orange />
+          
         </div>
         <div class="col-span-12 md:col-span-6 xl:col-span-3">
           <app-stats-card-green />

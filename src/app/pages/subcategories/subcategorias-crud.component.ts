@@ -172,7 +172,22 @@ interface Column {
 </div>
     `,
     providers: [MessageService],
-    styles: []
+    styles: [
+        `/* Estilos para hacer el modal más suave y sin aspecto cuadrado */
+        :host ::ng-deep .p-dialog {
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-header {
+            border-radius: 12px 12px 0 0 !important;
+            border-bottom: 1px solid #e5e7eb !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-content {
+            border-radius: 0 0 12px 12px !important;
+        }`
+    ]
 })
 export class SubcategoriasCrudComponent implements OnInit {
     subcategoryDialog: boolean = false;
