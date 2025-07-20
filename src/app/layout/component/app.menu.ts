@@ -100,10 +100,10 @@ export class AppMenu {
                 label: 'Perfil',
                 items: [
                     {
-                        label: 'Ajustes de perfil',
+                        label: 'Mi Perfil',
                         icon: 'material-symbols-outlined',
                         iconText: 'person',
-                        routerLink: ['/pages/profile-settings']
+                        routerLink: ['/pages/profile']
                     }
                 ]
             },

@@ -8,6 +8,7 @@ import { ToolsCrudComponent } from './tools-crud.component';
 import { LoansCrudComponent } from './loans/loans-crud.component';
 import { SubcategoriasCrudComponent } from './subcategories/subcategorias-crud.component';
 import { FinesDamagesComponent } from './fines-damages/fines-damages.component';
+import { ProfileComponent } from './profile/profile.component';
 
 export default [
     { path: 'tools', component: ToolsCrudComponent },
@@ -30,10 +31,10 @@ export default [
       path: 'fines-damages',
       component: FinesDamagesComponent
     },
-    // {
-    //   path: 'profile-settings',
-    //   loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
-    // },
+    {
+      path: 'profile',
+      component: ProfileComponent
+    },
 
     { path: '**', redirectTo: '/notfound' },
 ] as Routes;
