@@ -44,20 +44,20 @@ export class OAuthService {
     try {
       const token = this.getStoredToken();
       const refreshToken = this.getStoredRefreshToken();
-      console.log('🔍 Tokens encontrados:', {
+      console.log(' Tokens encontrados:', {
         hasToken: !!token,
         hasRefreshToken: !!refreshToken
       });
 
       if (token) {
-        console.log('✅ Token encontrado, actualizando estado...');
+        console.log(' Token encontrado, actualizando estado...');
         this.updateAuthState({ token, refreshToken, isAuthenticated: true });
         await this.loadUserInfo();
       } else {
-        console.log('❌ No hay token almacenado');
+        console.log(' No hay token almacenado');
       }
     } catch (error) {
-      console.error('💥 Error inicializando estado:', error);
+      console.error(' Error inicializando estado:', error);
       this.clearAuthState();
     } finally {
       this.setLoading(false);
@@ -66,7 +66,7 @@ export class OAuthService {
   }
 
   login(): void {
-    console.log('🚀 Iniciando login OAuth...');
+    console.log(' Iniciando login OAuth...');
     const state = this.generateRandomString(32);
     const nonce = this.generateRandomString(32);
 
@@ -85,46 +85,46 @@ export class OAuthService {
     });
 
     const authUrl = `${this.config.authUrl}?${params.toString()}`;
-    console.log('🌐 URL de autorización:', authUrl);
+    console.log(' URL de autorización:', authUrl);
 
     window.location.href = authUrl;
   }
 
   async handleCallback(code: string, state: string): Promise<TokenResponse> {
-    console.log('🚀 handleCallback iniciado');
-    console.log('📋 Parámetros recibidos:', { code, state });
+    console.log(' handleCallback iniciado');
+    console.log(' Parámetros recibidos:', { code, state });
     this.setLoading(true);
 
     try {
       const savedState = localStorage.getItem('oauth_state');
-      console.log('🔐 Estado guardado:', savedState);
-      console.log('📋 Estado recibido:', state);
+      console.log(' Estado guardado:', savedState);
+      console.log(' Estado recibido:', state);
 
       if (state !== savedState) {
         console.error('❌ Estados no coinciden - posible ataque CSRF');
         throw new Error('Estado OAuth inválido - posible ataque CSRF');
       }
 
-      console.log('✅ Estado válido, intercambiando código por token...');
+      console.log(' Estado válido, intercambiando código por token...');
       const tokenData = await this.exchangeCodeForToken(code);
       console.log('🎫 Token obtenido:', !!tokenData.access_token);
 
       this.storeTokens(tokenData);
-      console.log('💾 Tokens guardados en localStorage');
+      console.log(' Tokens guardados en localStorage');
 
       this.updateAuthState({
         token: tokenData.access_token,
         refreshToken: tokenData.refresh_token,
         isAuthenticated: true
       });
-      console.log('✅ Estado actualizado con isAuthenticated = true');
+      console.log(' Estado actualizado con isAuthenticated = true');
 
       await this.loadUserInfo();
       this.cleanupOAuthState();
-      console.log('🎉 Callback completado exitosamente');
+      console.log(' Callback completado exitosamente');
       return tokenData;
     } catch (error) {
-      console.error('💥 Error en handleCallback:', error);
+      console.error(' Error en handleCallback:', error);
       this.setError('Error en callback OAuth: ' + this.getErrorMessage(error));
       this.clearAuthState();
       throw error;
@@ -134,8 +134,8 @@ export class OAuthService {
   }
 
   private async exchangeCodeForToken(code: string): Promise<TokenResponse> {
-    console.log('🔄 Intercambiando código por token...');
-    console.log('📡 URL del token:', this.config.tokenUrl);
+    console.log(' Intercambiando código por token...');
+    console.log(' URL del token:', this.config.tokenUrl);
 
     const body = new HttpParams()
       .set('grant_type', 'authorization_code')
@@ -144,35 +144,35 @@ export class OAuthService {
       .set('client_secret', this.config.clientSecret)
       .set('redirect_uri', this.config.redirectUri);
 
-    console.log('📦 Body de la petición:', body.toString());
+    console.log(' Body de la petición:', body.toString());
 
     try {
-      console.log('📤 Enviando petición POST a:', this.config.tokenUrl);
+      console.log(' Enviando petición POST a:', this.config.tokenUrl);
       const response = await this.http.post<any>(
         this.config.tokenUrl,
         body,
         { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
       ).toPromise();
 
-      console.log('📦 Respuesta completa del servidor:', response);
-      console.log('📊 Tipo de respuesta:', typeof response);
-      console.log('📋 Keys de respuesta:', Object.keys(response || {}));
+      console.log(' Respuesta completa del servidor:', response);
+      console.log(' Tipo de respuesta:', typeof response);
+      console.log(' Keys de respuesta:', Object.keys(response || {}));
 
       // Manejar respuesta wrapped del backend
       let tokenData: TokenResponse;
       if (response && response.data) {
-        console.log('✅ Respuesta wrapped detectada');
+        console.log(' Respuesta wrapped detectada');
         tokenData = response.data;
       } else if (response && response.access_token) {
-        console.log('✅ Respuesta directa detectada');
+        console.log(' Respuesta directa detectada');
         tokenData = response;
       } else {
         console.error('❌ Formato de respuesta inválido:', response);
         throw new Error('Formato de respuesta inválido del servidor');
       }
 
-      console.log('🎫 Token extraído:', !!tokenData.access_token);
-      console.log('🔑 Token completo:', tokenData);
+      console.log(' Token extraído:', !!tokenData.access_token);
+      console.log(' Token completo:', tokenData);
 
       if (tokenData && tokenData.access_token) {
         return tokenData;
@@ -195,14 +195,14 @@ export class OAuthService {
       const token = this.getStoredToken();
       if (!token) throw new Error('No hay token');
 
-      console.log('👤 Cargando información del usuario desde:', this.config.userinfoUrl);
+      console.log(' Cargando información del usuario desde:', this.config.userinfoUrl);
 
       const response = await this.http.get<any>(
         this.config.userinfoUrl,
         { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) }
       ).toPromise();
 
-      console.log('📦 Respuesta userinfo:', response);
+      console.log(' Respuesta userinfo:', response);
 
       // El endpoint /oauth/userinfo devuelve datos directamente, no wrapped
       if (response && response.sub) {
@@ -225,14 +225,14 @@ export class OAuthService {
           updated_at: new Date().toISOString()
         };
 
-        console.log('👤 Usuario cargado:', user);
+        console.log(' Usuario cargado:', user);
         this.updateAuthState({ user });
         return user;
       }
 
       throw new Error('Formato de respuesta inválido del userinfo');
     } catch (error) {
-      console.error('💥 Error cargando usuario:', error);
+      console.error(' Error cargando usuario:', error);
       throw new Error('Error cargando usuario: ' + this.getErrorMessage(error));
     }
   }
@@ -252,25 +252,25 @@ export class OAuthService {
         .set('client_id', this.config.clientId)
         .set('client_secret', this.config.clientSecret);
 
-      console.log('📤 Enviando petición de refresh a:', this.config.tokenUrl);
+      console.log(' Enviando petición de refresh a:', this.config.tokenUrl);
       const response = await this.http.post<any>(
         this.config.tokenUrl,
         body,
         { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
       ).toPromise();
 
-      console.log('📦 Respuesta de refresh:', response);
+      console.log(' Respuesta de refresh:', response);
 
       // Manejar respuesta wrapped del backend
       let tokenData: TokenResponse;
       if (response && response.data) {
-        console.log('✅ Respuesta wrapped detectada en refresh');
+        console.log(' Respuesta wrapped detectada en refresh');
         tokenData = response.data;
       } else if (response && response.access_token) {
-        console.log('✅ Respuesta directa detectada en refresh');
+        console.log(' Respuesta directa detectada en refresh');
         tokenData = response;
       } else {
-        console.error('❌ Formato de respuesta inválido en refresh:', response);
+        console.error(' Formato de respuesta inválido en refresh:', response);
         throw new Error('Formato de respuesta inválido del servidor');
       }
 
@@ -280,12 +280,12 @@ export class OAuthService {
           token: tokenData.access_token,
           refreshToken: tokenData.refresh_token
         });
-        console.log('✅ Token renovado exitosamente');
+        console.log(' Token renovado exitosamente');
         return tokenData;
       }
       throw new Error('Error renovando token');
     } catch (error) {
-      console.error('💥 Error renovando token:', error);
+      console.error(' Error renovando token:', error);
       this.logout();
       return null;
     }
