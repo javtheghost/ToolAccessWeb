@@ -15,7 +15,7 @@ import { RouterModule } from '@angular/router';
       <img [src]="image" alt="Error" class="error-image" />
       <h1>Error {{ code }}</h1>
       <p>{{ message }}</p>
-      <p-button label="Volver" icon="pi pi-home" [routerLink]="homeLink"></p-button>
+      <p-button [label]="buttonLabel" icon="pi pi-home" [routerLink]="homeLink"></p-button>
     </div>
   `,
   styles: [
@@ -49,6 +49,8 @@ export class ErrorPageComponent {
   code: string = '';
   message: string = '';
   image: string = '';
+  homeLink: string = '/auth/login';
+  buttonLabel: string = 'Iniciar sesión';
 
   constructor(private route: ActivatedRoute) {}
 
@@ -75,6 +77,15 @@ export class ErrorPageComponent {
         default:
           this.message = 'Ha ocurrido un error inesperado.';
           this.image = 'assets/errors/500_server_error.svg';
+      }
+      // Lógica para decidir a dónde redirigir
+      const token = sessionStorage.getItem('access_token');
+      if (token) {
+        this.homeLink = '/dashboard';
+        this.buttonLabel = 'Ir al dashboard';
+      } else {
+        this.homeLink = '/auth/login';
+        this.buttonLabel = 'Iniciar sesión';
       }
     });
   }
