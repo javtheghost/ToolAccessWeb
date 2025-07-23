@@ -4,6 +4,7 @@ import { Dashboard } from './app/pages/dashboard/dashboard';
 import { Notfound } from './app/pages/notfound/notfound';
 import { AuthGuard } from './app/pages/guards/auth.guard';
 import { AdminGuard } from './app/pages/guards/admin.guard';
+import { ErrorPageComponent } from './app/pages/error/error-page.component';
 
 export const appRoutes: Routes = [
     // Redireccionar raíz al login
@@ -30,11 +31,14 @@ export const appRoutes: Routes = [
     },
 
     // Rutas específicas
-    { path: 'notfound', component: Notfound },
+
 
     // Rutas de autenticación
     { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
 
+    // Rutas de error
+    { path: 'error/:code', component: ErrorPageComponent },
+
     // Cualquier otra ruta redirige al login (opcionalmente a notfound)
-    { path: '**', redirectTo: '/auth/login' }
+    { path: '**', redirectTo: '/error/404' }
 ];
