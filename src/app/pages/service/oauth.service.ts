@@ -275,20 +275,18 @@ export class OAuthService {
 
   async refreshToken(): Promise<TokenResponse | null> {
     console.log('🔄 Intentando renovar token...');
-    console.log('[DEBUG] localStorage al iniciar refreshToken:', {
-      access_token: localStorage.getItem('access_token'),
-      refresh_token: localStorage.getItem('refresh_token')
-    });
-    const refreshToken = this.getStoredRefreshToken();
-    if (!refreshToken) {
-      console.log(' No hay refresh token');
-      this.logout();
-      return null;
-    }
+    // El refresh token ya no está disponible en el frontend
+    // Si el backend lo maneja por cookie HttpOnly, simplemente haz la petición sin enviarlo
+    // const refreshToken = this.getStoredRefreshToken();
+    // if (!refreshToken) {
+    //   console.log(' No hay refresh token');
+    //   this.logout();
+    //   return null;
+    // }
     try {
+      // Aquí deberías hacer la petición al backend, que debe leer el refresh token de la cookie
       const body = new HttpParams()
         .set('grant_type', 'refresh_token')
-        .set('refresh_token', refreshToken)
         .set('client_id', this.config.clientId)
         .set('client_secret', this.config.clientSecret);
 
@@ -297,13 +295,12 @@ export class OAuthService {
         this.http.post<any>(
           this.config.tokenUrl,
           body,
-          { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
+          { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }), withCredentials: true }
         )
       );
 
       console.log(' Respuesta de refresh:', response);
 
-      // Manejar respuesta wrapped del backend
       let tokenData: TokenResponse;
       if (response && response.data) {
         console.log(' Respuesta wrapped detectada en refresh');
@@ -320,21 +317,19 @@ export class OAuthService {
         this.storeTokens(tokenData);
         this.updateAuthState({
           token: tokenData.access_token,
-          refreshToken: tokenData.refresh_token
+          refreshToken: null // Ya no se maneja en frontend
         });
         console.log(' Token renovado exitosamente');
-        console.log('[DEBUG] localStorage tras refreshToken exitoso:', {
-          access_token: localStorage.getItem('access_token'),
-          refresh_token: localStorage.getItem('refresh_token')
+        console.log('[DEBUG] sessionStorage tras refreshToken exitoso:', {
+          access_token: sessionStorage.getItem('access_token')
         });
         return tokenData;
       }
       throw new Error('Error renovando token');
     } catch (error) {
       console.error(' Error renovando token:', error);
-      console.log('[DEBUG] localStorage tras error en refreshToken:', {
-        access_token: localStorage.getItem('access_token'),
-        refresh_token: localStorage.getItem('refresh_token')
+      console.log('[DEBUG] sessionStorage tras error en refreshToken:', {
+        access_token: sessionStorage.getItem('access_token')
       });
       this.logout();
       return null;
@@ -436,12 +431,11 @@ export class OAuthService {
 
   private clearAuthState(): void {
     console.log('🧹 Limpiando estado de autenticación...');
-    console.log('[DEBUG] localStorage antes de limpiar:', {
-      access_token: localStorage.getItem('access_token'),
-      refresh_token: localStorage.getItem('refresh_token')
+    console.log('[DEBUG] sessionStorage antes de limpiar:', {
+      access_token: sessionStorage.getItem('access_token')
     });
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('access_token');
+    // sessionStorage.removeItem('refresh_token'); // Ya no se usa
     this.cleanupOAuthState();
     this.authStateSubject.next({
       isAuthenticated: false,
@@ -451,9 +445,8 @@ export class OAuthService {
       isLoading: false,
       error: null
     });
-    console.log('[DEBUG] localStorage después de limpiar:', {
-      access_token: localStorage.getItem('access_token'),
-      refresh_token: localStorage.getItem('refresh_token')
+    console.log('[DEBUG] sessionStorage después de limpiar:', {
+      access_token: sessionStorage.getItem('access_token')
     });
   }
 
@@ -464,19 +457,23 @@ export class OAuthService {
   }
 
   private storeTokens(tokenData: TokenResponse): void {
-    console.log('💾 Guardando tokens en localStorage...');
-    localStorage.setItem('access_token', tokenData.access_token);
-    if (tokenData.refresh_token) {
-      localStorage.setItem('refresh_token', tokenData.refresh_token);
-    }
+    console.log('💾 Guardando access token en sessionStorage...');
+    sessionStorage.setItem('access_token', tokenData.access_token);
+    // ADVERTENCIA: No guardar refresh token en el frontend por seguridad
+    // Si el backend lo maneja por cookie HttpOnly, no es necesario almacenarlo aquí
+    // if (tokenData.refresh_token) {
+    //   sessionStorage.setItem('refresh_token', tokenData.refresh_token);
+    // }
   }
 
   private getStoredToken(): string | null {
-    return localStorage.getItem('access_token');
+    return sessionStorage.getItem('access_token');
   }
 
   private getStoredRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
+    // Ya no se almacena el refresh token en el frontend
+    // Si el backend lo maneja por cookie HttpOnly, este método puede retornar null
+    return null;
   }
 
   private generateRandomString(length: number): string {
