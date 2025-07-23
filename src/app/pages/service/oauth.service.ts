@@ -336,7 +336,7 @@ export class OAuthService {
     }
   }
 
-  async logout(): Promise<void> {
+  async logout(redirectToLogin: boolean = true): Promise<void> {
     console.log('🚪 Iniciando logout...');
     this.logoutLoading$.next(true);
     try {
@@ -355,8 +355,10 @@ export class OAuthService {
     } finally {
       this.clearAuthState();
       this.logoutLoading$.next(false);
-      console.log('🔄 Navegando a login...');
-      this.router.navigate(['/login']);
+      if (redirectToLogin) {
+        console.log('🔄 Navegando a login...');
+        this.router.navigate(['/auth/login']);
+      }
     }
   }
 

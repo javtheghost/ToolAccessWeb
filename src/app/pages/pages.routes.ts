@@ -9,6 +9,7 @@ import { LoansCrudComponent } from './loans/loans-crud.component';
 import { SubcategoriasCrudComponent } from './subcategories/subcategorias-crud.component';
 import { FinesDamagesComponent } from './fines-damages/fines-damages.component';
 import { ProfileComponent } from './profile/profile.component';
+import { ErrorPageComponent } from './error/error-page.component';
 
 export default [
     { path: 'tools', component: ToolsCrudComponent },
@@ -35,6 +36,32 @@ export default [
       path: 'profile',
       component: ProfileComponent
     },
-
+    {
+      path: 'unauthorized',
+      component: ErrorPageComponent,
+      data: {
+        code: 401,
+        message: 'No autorizado. Por favor, inicia sesión o verifica tus permisos.',
+        image: 'assets/errors/401_unauthorized.svg'
+      }
+    },
+    {
+      path: 'notfound',
+      component: ErrorPageComponent,
+      data: {
+        code: 404,
+        message: 'Página no encontrada. La URL no existe.',
+        image: 'assets/errors/404.svg'
+      }
+    },
+    {
+      path: 'server-error',
+      component: ErrorPageComponent,
+      data: {
+        code: 500,
+        message: 'Error interno del servidor. Intenta más tarde.',
+        image: 'assets/errors/500.svg'
+      }
+    },
     { path: '**', redirectTo: '/notfound' },
 ] as Routes;

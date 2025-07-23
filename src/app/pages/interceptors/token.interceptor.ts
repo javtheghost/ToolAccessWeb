@@ -3,6 +3,7 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpErrorResponse } from '@a
 import { Observable, throwError, BehaviorSubject, from } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { OAuthService } from '../service/oauth.service';
+import { Router } from '@angular/router';
 
 
 @Injectable()
@@ -10,7 +11,7 @@ export class TokenInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
-  constructor(private oauthService: OAuthService) {}
+  constructor(private oauthService: OAuthService, private router: Router) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<any> {
     // Agregar token si existe
@@ -21,8 +22,12 @@ export class TokenInterceptor implements HttpInterceptor {
 
     return next.handle(request).pipe(
       catchError(error => {
-        if (error instanceof HttpErrorResponse && error.status === 401) {
-          return this.handle401Error(request, next);
+        if (error instanceof HttpErrorResponse) {
+          if (error.status === 401) {
+            return this.handle401Error(request, next);
+          } else if (error.status === 500) {
+            this.router.navigate(['/error', '500']);
+          }
         }
         return throwError(error);
       })
@@ -49,11 +54,13 @@ export class TokenInterceptor implements HttpInterceptor {
             this.refreshTokenSubject.next(tokenData.access_token);
             return next.handle(this.addToken(request, tokenData.access_token));
           }
+          this.router.navigate(['/unauthorized']);
           return throwError('No se pudo renovar el token');
         }),
         catchError(error => {
           this.isRefreshing = false;
-          this.oauthService.logout();
+          this.oauthService.logout(false);
+          this.router.navigate(['/error', '401']);
           return throwError(error);
         })
       );
