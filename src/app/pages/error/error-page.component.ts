@@ -49,7 +49,6 @@ export class ErrorPageComponent {
   code: string = '';
   message: string = '';
   image: string = '';
-  homeLink: string = '/auth/login';
 
   constructor(private route: ActivatedRoute) {}
 
@@ -76,13 +75,6 @@ export class ErrorPageComponent {
         default:
           this.message = 'Ha ocurrido un error inesperado.';
           this.image = 'assets/errors/500_server_error.svg';
-      }
-      // Lógica para decidir a dónde redirigir
-      const token = sessionStorage.getItem('access_token');
-      if (token) {
-        this.homeLink = '/dashboard';
-      } else {
-        this.homeLink = '/auth/login';
       }
     });
   }
