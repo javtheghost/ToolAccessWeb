@@ -16,7 +16,6 @@ export class LoginComponent {
   showPassword: boolean = false;
 
   constructor(private oauthService: OAuthService) {
-    console.log('🔧 LoginComponent inicializado');
   }
 
   togglePasswordVisibility() {
@@ -24,7 +23,6 @@ export class LoginComponent {
   }
 
   loginOAuth() {
-    console.log('🚀 LoginComponent: Iniciando login OAuth...');
     this.oauthService.login();
   }
 }

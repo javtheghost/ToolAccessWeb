@@ -21,7 +21,7 @@ import { LayoutService } from '../service/layout.service';
                     <img [src]="item['svgIcon']" alt="{{item.label}} icon" class="menu-svg-icon" />
                 </ng-container>
                 <ng-template #defaultIcon1>
-                    <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
+                    <i [ngClass]="item.icon" class="layout-menuitem-icon">{{ item['iconText'] }}</i>
                 </ng-template>
                 <span class="layout-menuitem-text">{{ item.label }}</span>
                 <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>

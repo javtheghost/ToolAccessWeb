@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
+import { OAuthService } from '../../pages/service/oauth.service';
 
 @Component({
     selector: 'app-menu',
@@ -26,6 +27,8 @@ import { AppMenuitem } from './app.menuitem';
 })
 export class AppMenu {
     model: MenuItem[] = [];
+
+    constructor(private oauthService: OAuthService) {}
 
     ngOnInit() {
         this.model = [
@@ -112,10 +115,10 @@ export class AppMenu {
                 items: [
                     {
                         label: 'Cerrar sesión',
-                        icon: 'material-symbols-outlined',
+                        icon: 'material-symbols-outlined logout-menu-item',
                         iconText: 'logout',
-                        routerLink: ['/auth/logout'],
-                        styleClass: 'logout-menu-item' // Puedes usar esto para darle color especial en el SCSS
+                        command: () => this.oauthService.logout(),
+                        styleClass: 'logout-menu-item'
                     }
                 ]
             },

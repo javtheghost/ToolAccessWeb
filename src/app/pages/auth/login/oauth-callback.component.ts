@@ -8,18 +8,51 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   selector: 'app-oauth-callback',
   template: `
-    <div class="flex flex-col items-center justify-center h-screen">
-      <h2>Procesando autenticación...</h2>
-      <p *ngIf="error" class="text-red-600">{{ error }}</p>
-      <p>Status: {{ status }}</p>
-      <div class="mt-4 p-4 bg-gray-100 rounded">
-        <p><strong>Debug Info:</strong></p>
-        <p>Code: {{ debugInfo.code ? 'Presente' : 'Ausente' }}</p>
-        <p>State: {{ debugInfo.state ? 'Presente' : 'Ausente' }}</p>
-        <p>URL: {{ debugInfo.url }}</p>
+    <div class="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center w-full max-w-md">
+        <ng-container *ngIf="!error; else errorBlock">
+          <div class="mb-6">
+            <div class="loader mb-4"></div>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+              {{ status === 'Autenticación exitosa, navegando...' ? '¡Autenticación exitosa!' : 'Procesando autenticación...' }}
+            </h2>
+            <p class="text-gray-600 dark:text-gray-300" *ngIf="status !== 'Autenticación exitosa, navegando...'">
+              Por favor espera unos segundos...
+            </p>
+            <p class="text-green-600 font-semibold" *ngIf="status === 'Autenticación exitosa, navegando...'">
+              Redirigiendo a tu panel...
+            </p>
+          </div>
+        </ng-container>
+        <ng-template #errorBlock>
+          <div class="mb-6 flex flex-col items-center">
+            <span class="text-5xl text-red-500 mb-2">✖</span>
+            <h2 class="text-2xl font-bold text-red-600 mb-2">¡Error en autenticación!</h2>
+            <p class="text-gray-700 dark:text-gray-200 mb-4">{{ error }}</p>
+            <button (click)="reintentar()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+              Reintentar
+            </button>
+          </div>
+        </ng-template>
+
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+  `]
 })
 export class OAuthCallbackComponent implements OnInit {
   error: string | null = null;
@@ -30,12 +63,9 @@ export class OAuthCallbackComponent implements OnInit {
     private route: ActivatedRoute,
     private oauthService: OAuthService,
     private router: Router
-  ) {
-    console.log('🔧 OAuthCallbackComponent constructor ejecutado');
-  }
+  ) {}
 
   async ngOnInit(): Promise<void> {
-    this.status = 'Callback iniciado';
 
     // Obtener parámetros de la URL
     const code = this.route.snapshot.queryParams['code'];
@@ -51,13 +81,6 @@ export class OAuthCallbackComponent implements OnInit {
       errorDescription: errorDescription
     };
 
-    console.log('📋 Parámetros de URL:', {
-      code: code ? 'Presente' : 'Ausente',
-      state: state ? 'Presente' : 'Ausente',
-      error: error,
-      errorDescription: errorDescription,
-      fullUrl: window.location.href
-    });
 
     // Verificar si hay error en la URL
     if (error) {
@@ -70,14 +93,13 @@ export class OAuthCallbackComponent implements OnInit {
     if (!code || !state) {
       this.error = 'Faltan parámetros de autenticación.';
       this.status = 'Error: Faltan parámetros';
-
       setTimeout(() => this.router.navigate(['/auth/login']), 3000);
       return;
     }
 
     try {
       this.status = 'Procesando autenticación...';
-      console.log('✅ Iniciando handleCallback...');
+
 
       // Verificar estado antes del callback
       console.log('🔍 Estado antes del callback:', {
@@ -87,10 +109,9 @@ export class OAuthCallbackComponent implements OnInit {
       });
 
       await this.oauthService.handleCallback(code, state);
+      await this.oauthService.loadUserInfo();
 
       this.status = 'Autenticación exitosa, navegando...';
-
-
 
       // Verificar token después del callback
       const token = this.oauthService.getToken();
@@ -98,16 +119,17 @@ export class OAuthCallbackComponent implements OnInit {
 
       // Esperar un poco más para asegurar que el estado se propague
       setTimeout(() => {
-        console.log('🔄 Navegando a dashboard...');
         console.log('📍 URL actual:', window.location.href);
         this.router.navigate(['/dashboard']);
-        console.log('🔄 Navegación iniciada...');
       }, 500);
     } catch (e: any) {
-      console.error('💥 Error en callback:', e);
       this.error = e?.message || 'Error en la autenticación.';
       this.status = 'Error en autenticación';
       setTimeout(() => this.router.navigate(['/auth/login']), 4000);
     }
+  }
+
+  reintentar() {
+    this.router.navigate(['/auth/login']);
   }
 }

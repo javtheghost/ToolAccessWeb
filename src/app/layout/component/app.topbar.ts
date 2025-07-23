@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
@@ -12,11 +12,11 @@ import { LayoutService } from '../service/layout.service';
     template: `
     <div class="layout-topbar py-10">
         <div class="layout-topbar-logo-container">
-            <button class="layout-menu-button layout-topbar-action" *ngIf="!isAuthRoute" (click)="layoutService.onMenuToggle()">
+            <button class="layout-menu-button layout-topbar-action" *ngIf="!minimal && !isAuthRoute" (click)="layoutService.onMenuToggle()">
                 <i class="pi pi-bars"></i>
             </button>
-            <img src="assets/logos/logoHeader.png" alt="logo toolaccess" routerLink="/" class="layout-topbar-logo p-5 m-5" />
-            <a routerLink="/" class="layout-topbar-logo-text">
+            <img src="assets/logos/logoHeader.png" alt="logo toolaccess" routerLink="/dashboard" class="layout-topbar-logo p-5 m-5" />
+            <a routerLink="/dashboard" class="layout-topbar-logo-text">
                 <span>ToolAccess</span>
             </a>
         </div>
@@ -40,7 +40,7 @@ import { LayoutService } from '../service/layout.service';
             </div>
 
             <!-- Botón de notificaciones -->
-            <div class="relative" *ngIf="!isAuthRoute">
+            <div class="relative" *ngIf="!minimal && !isAuthRoute">
                 <button
                     class="layout-topbar-action"
                     pStyleClass="@next"
@@ -56,7 +56,7 @@ import { LayoutService } from '../service/layout.service';
             </div>
 
             <!-- Menú de usuario -->
-            <div class="relative">
+            <div class="relative" *ngIf="!minimal">
                 <button
                     class="layout-topbar-action"
                     pStyleClass="@next"
@@ -74,8 +74,8 @@ import { LayoutService } from '../service/layout.service';
                     class="hidden absolute right-0 mt-2 w-40 border rounded shadow-md z-50"
                     style="background-color: var(--background-color); color: var(--text-color);"
                 >
-                    <ul style="list-style: none; margin: 0; padding: 0;">
-                        <li>
+                    <ul style="list-style: none; margin: 0; padding: 0;" >
+                        <li >
                             <a
                                 routerLink="/profile"
                                 class="block px-4 py-2 cursor-pointer hover-bg-secundary"
@@ -103,6 +103,7 @@ import { LayoutService } from '../service/layout.service';
     `
 })
 export class AppTopbar {
+    @Input() minimal: boolean = false;
     constructor(public layoutService: LayoutService) {}
 
     // Verifica si la ruta actual es de autenticación

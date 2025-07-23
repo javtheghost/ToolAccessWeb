@@ -3,6 +3,7 @@ import { AppLayout } from './app/layout/component/app.layout';
 import { Dashboard } from './app/pages/dashboard/dashboard';
 import { Notfound } from './app/pages/notfound/notfound';
 import { AuthGuard } from './app/pages/guards/auth.guard';
+import { AdminGuard } from './app/pages/guards/admin.guard';
 
 export const appRoutes: Routes = [
     // Redireccionar raíz al login
@@ -18,12 +19,12 @@ export const appRoutes: Routes = [
     {
         path: '',
         component: AppLayout,
+        canActivate: [AdminGuard], // Solo administradores pueden acceder a dashboard y pages
         children: [
             {
                 path: 'dashboard',
-                component: Dashboard,
-                // canActivate: [AuthGuard]
-            }, // Cambiado a /dashboard en vez de raíz
+                component: Dashboard
+            },
             { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
         ]
     },

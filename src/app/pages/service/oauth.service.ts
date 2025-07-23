@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of, firstValueFrom } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { OAuthConfig, TokenResponse, User, OAuthState, ApiResponse } from '../../interfaces/oauth.interfaces';
@@ -32,14 +32,28 @@ export class OAuthService {
   public isAuthenticated$ = this.authState$.pipe(map(state => state.isAuthenticated));
   public user$ = this.authState$.pipe(map(state => state.user));
   public isLoading$ = this.authState$.pipe(map(state => state.isLoading));
+  public logoutLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private router: Router) {
     console.log('🔧 OAuthService inicializado');
-    this.initializeAuthState();
+    console.log('[DEBUG] localStorage al inicializar:', {
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token')
+    });
+    // this.initializeAuthState(); // Eliminado para evitar dependencia circular
+  }
+
+  // Método público para inicializar el estado de autenticación manualmente
+  public async initAuthState(): Promise<void> {
+    await this.initializeAuthState();
   }
 
   private async initializeAuthState(): Promise<void> {
     console.log('🔄 Inicializando estado de autenticación...');
+    console.log('[DEBUG] localStorage al iniciar initializeAuthState:', {
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token')
+    });
     this.setLoading(true);
     try {
       const token = this.getStoredToken();
@@ -48,7 +62,7 @@ export class OAuthService {
         hasToken: !!token,
         hasRefreshToken: !!refreshToken
       });
-
+      console.log('[DEBUG] Token recuperado en initializeAuthState:', token);
       if (token) {
         console.log(' Token encontrado, actualizando estado...');
         this.updateAuthState({ token, refreshToken, isAuthenticated: true });
@@ -62,6 +76,10 @@ export class OAuthService {
     } finally {
       this.setLoading(false);
       console.log('🏁 Inicialización completada');
+      console.log('[DEBUG] localStorage al finalizar initializeAuthState:', {
+        access_token: localStorage.getItem('access_token'),
+        refresh_token: localStorage.getItem('refresh_token')
+      });
     }
   }
 
@@ -119,7 +137,7 @@ export class OAuthService {
       });
       console.log(' Estado actualizado con isAuthenticated = true');
 
-      await this.loadUserInfo();
+      // await this.loadUserInfo(); // Eliminado para evitar ciclo de dependencias
       this.cleanupOAuthState();
       console.log(' Callback completado exitosamente');
       return tokenData;
@@ -148,11 +166,13 @@ export class OAuthService {
 
     try {
       console.log(' Enviando petición POST a:', this.config.tokenUrl);
-      const response = await this.http.post<any>(
-        this.config.tokenUrl,
-        body,
-        { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
-      ).toPromise();
+      const response = await firstValueFrom(
+        this.http.post<any>(
+          this.config.tokenUrl,
+          body,
+          { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
+        )
+      );
 
       console.log(' Respuesta completa del servidor:', response);
       console.log(' Tipo de respuesta:', typeof response);
@@ -190,55 +210,75 @@ export class OAuthService {
     }
   }
 
-  private async loadUserInfo(): Promise<User> {
+  public async loadUserInfo(): Promise<User | null> {
     try {
       const token = this.getStoredToken();
+      console.log('[DEBUG] localStorage al iniciar loadUserInfo:', {
+        access_token: localStorage.getItem('access_token'),
+        refresh_token: localStorage.getItem('refresh_token')
+      });
       if (!token) throw new Error('No hay token');
 
-      console.log(' Cargando información del usuario desde:', this.config.userinfoUrl);
+      console.log('Cargando información del usuario desde: /api/auth/profile');
 
-      const response = await this.http.get<any>(
-        this.config.userinfoUrl,
-        { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) }
-      ).toPromise();
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<User>>(
+          'http://localhost:3000/api/auth/profile',
+          { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) }
+        )
+      );
 
-      console.log(' Respuesta userinfo:', response);
+      console.log('Usuario cargado:', response);
 
-      // El endpoint /oauth/userinfo devuelve datos directamente, no wrapped
-      if (response && response.sub) {
-        // Convertir respuesta OAuth userinfo a formato User
-        const user: User = {
-          id: parseInt(response.sub),
-          email: response.email,
-          nombre: response.given_name || response.name?.split(' ')[0] || '',
-          apellido_paterno: response.family_name || response.name?.split(' ')[1] || '',
-          apellido_materno: response.name?.split(' ')[2] || '',
-          telefono: undefined,
-          estado: true,
-          rol: {
-            id: 2, // Por defecto
-            nombre: 'Usuario',
-            descripcion: 'Usuario estándar'
-          },
-          token_source: 'oauth',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
+      // Extraer el usuario del ApiResponse<User>
+      const usuario: User | undefined = response?.data ?? response as any as User;
 
-        console.log(' Usuario cargado:', user);
-        this.updateAuthState({ user });
-        return user;
+      if (!usuario) {
+        throw new Error('No se pudo obtener la información del usuario del servidor');
       }
 
-      throw new Error('Formato de respuesta inválido del userinfo');
-    } catch (error) {
-      console.error(' Error cargando usuario:', error);
-      throw new Error('Error cargando usuario: ' + this.getErrorMessage(error));
+      this.updateAuthState({ user: usuario });
+      console.log('[DEBUG] localStorage tras cargar usuario:', {
+        access_token: localStorage.getItem('access_token'),
+        refresh_token: localStorage.getItem('refresh_token')
+      });
+      return usuario;
+    } catch (error: any) {
+      console.error('Error cargando usuario:', error);
+      console.log('[DEBUG] localStorage tras error en loadUserInfo:', {
+        access_token: localStorage.getItem('access_token'),
+        refresh_token: localStorage.getItem('refresh_token')
+      });
+      if (error?.status === 401) {
+        console.warn('Recibido 401 al cargar usuario. Intentando refresh de token...');
+        try {
+          const refreshed = await this.refreshToken();
+          if (refreshed) {
+            console.log('Token refrescado exitosamente. Reintentando cargar usuario...');
+            return await this.loadUserInfo();
+          } else {
+            console.error('No se pudo refrescar el token. Limpiando estado y redirigiendo.');
+            this.clearAuthState();
+            this.router.navigate(['/error', '401'], { queryParams: { message: this.getErrorMessage(error) } });
+          }
+        } catch (refreshError) {
+          console.error('Error al refrescar token tras 401:', refreshError);
+          this.clearAuthState();
+          this.router.navigate(['/error', '401'], { queryParams: { message: this.getErrorMessage(refreshError) } });
+        }
+      } else {
+        throw new Error('Error cargando usuario: ' + this.getErrorMessage(error));
+      }
     }
+    return null;
   }
 
   async refreshToken(): Promise<TokenResponse | null> {
     console.log('🔄 Intentando renovar token...');
+    console.log('[DEBUG] localStorage al iniciar refreshToken:', {
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token')
+    });
     const refreshToken = this.getStoredRefreshToken();
     if (!refreshToken) {
       console.log(' No hay refresh token');
@@ -253,11 +293,13 @@ export class OAuthService {
         .set('client_secret', this.config.clientSecret);
 
       console.log(' Enviando petición de refresh a:', this.config.tokenUrl);
-      const response = await this.http.post<any>(
-        this.config.tokenUrl,
-        body,
-        { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
-      ).toPromise();
+      const response = await firstValueFrom(
+        this.http.post<any>(
+          this.config.tokenUrl,
+          body,
+          { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
+        )
+      );
 
       console.log(' Respuesta de refresh:', response);
 
@@ -281,11 +323,19 @@ export class OAuthService {
           refreshToken: tokenData.refresh_token
         });
         console.log(' Token renovado exitosamente');
+        console.log('[DEBUG] localStorage tras refreshToken exitoso:', {
+          access_token: localStorage.getItem('access_token'),
+          refresh_token: localStorage.getItem('refresh_token')
+        });
         return tokenData;
       }
       throw new Error('Error renovando token');
     } catch (error) {
       console.error(' Error renovando token:', error);
+      console.log('[DEBUG] localStorage tras error en refreshToken:', {
+        access_token: localStorage.getItem('access_token'),
+        refresh_token: localStorage.getItem('refresh_token')
+      });
       this.logout();
       return null;
     }
@@ -293,19 +343,23 @@ export class OAuthService {
 
   async logout(): Promise<void> {
     console.log('🚪 Iniciando logout...');
+    this.logoutLoading$.next(true);
     try {
       const token = this.getStoredToken();
       if (token) {
         console.log('🔄 Revocando token en el servidor...');
-        await this.http.post(
-          `${this.config.baseUrl}/oauth/revoke`,
-          { token: token, client_id: this.config.clientId }
-        ).toPromise().catch(() => {});
+        await firstValueFrom(
+          this.http.post(
+            `${this.config.baseUrl}/oauth/revoke`,
+            { token: token, client_id: this.config.clientId }
+          )
+        ).catch(() => {});
       }
     } catch (error) {
       console.error('💥 Error en logout:', error);
     } finally {
       this.clearAuthState();
+      this.logoutLoading$.next(false);
       console.log('🔄 Navegando a login...');
       this.router.navigate(['/login']);
     }
@@ -345,6 +399,10 @@ export class OAuthService {
   getToken(): string | null {
     const token = this.getStoredToken();
     console.log('🎫 getToken() llamado:', token ? 'Token presente' : 'Sin token');
+    console.log('[DEBUG] localStorage en getToken:', {
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token')
+    });
     return token;
   }
 
@@ -378,6 +436,10 @@ export class OAuthService {
 
   private clearAuthState(): void {
     console.log('🧹 Limpiando estado de autenticación...');
+    console.log('[DEBUG] localStorage antes de limpiar:', {
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token')
+    });
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     this.cleanupOAuthState();
@@ -388,6 +450,10 @@ export class OAuthService {
       refreshToken: null,
       isLoading: false,
       error: null
+    });
+    console.log('[DEBUG] localStorage después de limpiar:', {
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token')
     });
   }
 

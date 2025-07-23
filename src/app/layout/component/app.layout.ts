@@ -1,11 +1,37 @@
-import { Component, Renderer2, ViewChild } from '@angular/core';
+import { Component, Renderer2, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { filter, Subscription } from 'rxjs';
+import { filter, Subscription, Observable } from 'rxjs';
 import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { AppFooter } from './app.footer';
 import { LayoutService } from '../service/layout.service';
+import { OAuthService } from '../../pages/service/oauth.service';
+
+@Component({
+    selector: 'app-loader',
+    standalone: true,
+    template: `
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+      <div class="loader"></div>
+    </div>
+  `,
+    styles: [`
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+  `]
+})
+export class LoaderComponent {}
 
 @Component({
     selector: 'app-layout',
@@ -23,10 +49,12 @@ import { LayoutService } from '../service/layout.service';
         <div class="layout-mask animate-fadein"></div>
     </div> `
 })
-export class AppLayout {
+export class AppLayout implements OnInit {
     overlayMenuOpenSubscription: Subscription;
 
     menuOutsideClickListener: any;
+
+    isLoading$: Observable<boolean>;
 
     @ViewChild(AppSidebar) appSidebar!: AppSidebar;
 
@@ -35,8 +63,10 @@ export class AppLayout {
     constructor(
         public layoutService: LayoutService,
         public renderer: Renderer2,
-        public router: Router
+        public router: Router,
+        private oauthService: OAuthService
     ) {
+        this.isLoading$ = this.oauthService.isLoading$;
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             if (!this.menuOutsideClickListener) {
                 this.menuOutsideClickListener = this.renderer.listen('document', 'click', (event) => {
@@ -54,6 +84,10 @@ export class AppLayout {
         this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
             this.hideMenu();
         });
+    }
+
+    ngOnInit() {
+        this.oauthService.loadUserInfo();
     }
 
     isOutsideClicked(event: MouseEvent) {
