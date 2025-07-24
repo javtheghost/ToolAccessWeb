@@ -280,10 +280,10 @@ export class OAuthService {
         .set('client_id', this.config.clientId)
         .set('client_secret', this.config.clientSecret);
 
-      console.log(' Enviando petición de refresh a:', this.config.baseUrl + '/oauth/refresh');
+      console.log(' Enviando petición de refresh a:', this.config.baseUrl + '/oauth/refresh-interceptor');
       const response = await firstValueFrom(
         this.http.post<any>(
-          this.config.baseUrl + '/oauth/refresh',
+          this.config.baseUrl + '/oauth/refresh-interceptor',
           body,
           { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }), withCredentials: true }
         )
@@ -291,6 +291,7 @@ export class OAuthService {
 
       // Leer el access token desde response.data.access_token
       const accessToken = response.data?.access_token;
+      console.log('Respuesta de refresh:', response);
       console.log('Access token recibido en refresh:', accessToken);
       if (!accessToken) {
         console.error('No se recibió access token en la respuesta de refresh:', response);
