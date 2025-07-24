@@ -35,12 +35,7 @@ export class OAuthService {
   public logoutLoading$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private router: Router) {
-    console.log('🔧 OAuthService inicializado');
-    console.log('[DEBUG] localStorage al inicializar:', {
-      access_token: localStorage.getItem('access_token'),
-      refresh_token: localStorage.getItem('refresh_token')
-    });
-    // this.initializeAuthState(); // Eliminado para evitar dependencia circular
+
   }
 
   // Método público para inicializar el estado de autenticación manualmente
@@ -49,11 +44,7 @@ export class OAuthService {
   }
 
   private async initializeAuthState(): Promise<void> {
-    console.log('🔄 Inicializando estado de autenticación...');
-    console.log('[DEBUG] localStorage al iniciar initializeAuthState:', {
-      access_token: localStorage.getItem('access_token'),
-      refresh_token: localStorage.getItem('refresh_token')
-    });
+
     this.setLoading(true);
     try {
       const token = this.getStoredToken();
@@ -62,9 +53,7 @@ export class OAuthService {
         hasToken: !!token,
         hasRefreshToken: !!refreshToken
       });
-      console.log('[DEBUG] Token recuperado en initializeAuthState:', token);
       if (token) {
-        console.log(' Token encontrado, actualizando estado...');
         this.updateAuthState({ token, refreshToken, isAuthenticated: true });
         await this.loadUserInfo();
       } else {
@@ -84,7 +73,6 @@ export class OAuthService {
   }
 
   login(): void {
-    console.log(' Iniciando login OAuth...');
     const state = this.generateRandomString(32);
     const nonce = this.generateRandomString(32);
 
@@ -137,7 +125,7 @@ export class OAuthService {
       });
       console.log(' Estado actualizado con isAuthenticated = true');
 
-      // await this.loadUserInfo(); // Eliminado para evitar ciclo de dependencias
+      await this.loadUserInfo(); // Eliminado para evitar ciclo de dependencias
       this.cleanupOAuthState();
       console.log(' Callback completado exitosamente');
       return tokenData;
@@ -242,6 +230,7 @@ export class OAuthService {
         access_token: localStorage.getItem('access_token'),
         refresh_token: localStorage.getItem('refresh_token')
       });
+
       return usuario;
     } catch (error: any) {
       console.error('Error cargando usuario:', error);
@@ -273,6 +262,7 @@ export class OAuthService {
     return null;
   }
 
+
   async refreshToken(): Promise<TokenResponse | null> {
     console.log('🔄 Intentando renovar token...');
     // El refresh token ya no está disponible en el frontend
@@ -290,28 +280,30 @@ export class OAuthService {
         .set('client_id', this.config.clientId)
         .set('client_secret', this.config.clientSecret);
 
-      console.log(' Enviando petición de refresh a:', this.config.tokenUrl);
+      console.log(' Enviando petición de refresh a:', this.config.baseUrl + '/oauth/refresh');
       const response = await firstValueFrom(
         this.http.post<any>(
-          this.config.tokenUrl,
+          this.config.baseUrl + '/oauth/refresh',
           body,
           { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }), withCredentials: true }
         )
       );
 
-      console.log(' Respuesta de refresh:', response);
-
-      let tokenData: TokenResponse;
-      if (response && response.data) {
-        console.log(' Respuesta wrapped detectada en refresh');
-        tokenData = response.data;
-      } else if (response && response.access_token) {
-        console.log(' Respuesta directa detectada en refresh');
-        tokenData = response;
-      } else {
-        console.error(' Formato de respuesta inválido en refresh:', response);
-        throw new Error('Formato de respuesta inválido del servidor');
+      // Leer el access token desde response.data.access_token
+      const accessToken = response.data?.access_token;
+      console.log('Access token recibido en refresh:', accessToken);
+      if (!accessToken) {
+        console.error('No se recibió access token en la respuesta de refresh:', response);
+        throw new Error('No se recibió access token en la respuesta de refresh');
       }
+      // Construir el objeto tokenData para mantener compatibilidad
+      let tokenData: TokenResponse = {
+        access_token: accessToken,
+        token_type: response.data?.token_type || 'Bearer',
+        expires_in: response.data?.expires_in || 3600,
+        refresh_token: response.data?.refresh_token || null,
+        scope: response.data?.scope || null
+      };
 
       if (tokenData && tokenData.access_token) {
         this.storeTokens(tokenData);
@@ -433,11 +425,11 @@ export class OAuthService {
 
   private clearAuthState(): void {
     console.log('🧹 Limpiando estado de autenticación...');
-    console.log('[DEBUG] sessionStorage antes de limpiar:', {
-      access_token: sessionStorage.getItem('access_token')
+    console.log('[DEBUG] localStorage antes de limpiar:', {
+      access_token: localStorage.getItem('access_token')
     });
-    sessionStorage.removeItem('access_token');
-    // sessionStorage.removeItem('refresh_token'); // Ya no se usa
+    localStorage.removeItem('access_token');
+    // localStorage.removeItem('refresh_token'); // Ya no se usa
     this.cleanupOAuthState();
     this.authStateSubject.next({
       isAuthenticated: false,
@@ -447,8 +439,8 @@ export class OAuthService {
       isLoading: false,
       error: null
     });
-    console.log('[DEBUG] sessionStorage después de limpiar:', {
-      access_token: sessionStorage.getItem('access_token')
+    console.log('[DEBUG] localStorage después de limpiar:', {
+      access_token: localStorage.getItem('access_token')
     });
   }
 
@@ -459,17 +451,17 @@ export class OAuthService {
   }
 
   private storeTokens(tokenData: TokenResponse): void {
-    console.log('💾 Guardando access token en sessionStorage...');
-    sessionStorage.setItem('access_token', tokenData.access_token);
+    console.log('💾 Guardando access token en localStorage...');
+    localStorage.setItem('access_token', tokenData.access_token);
     // ADVERTENCIA: No guardar refresh token en el frontend por seguridad
     // Si el backend lo maneja por cookie HttpOnly, no es necesario almacenarlo aquí
     // if (tokenData.refresh_token) {
-    //   sessionStorage.setItem('refresh_token', tokenData.refresh_token);
+    //   localStorage.setItem('refresh_token', tokenData.refresh_token);
     // }
   }
 
   private getStoredToken(): string | null {
-    return sessionStorage.getItem('access_token');
+    return localStorage.getItem('access_token');
   }
 
   private getStoredRefreshToken(): string | null {

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { OAuthService } from '../service/oauth.service';
+import { User } from '../../interfaces/oauth.interfaces';
 
 interface Profile {
     nombres: string;
@@ -80,15 +82,27 @@ interface Profile {
 })
 export class ProfileComponent implements OnInit {
     profile: Profile = {
-        nombres: 'Francisco Javier',
-        apellidoPaterno: 'Mota',
-        apellidoMaterno: 'Ontiveros'
+        nombres: '',
+        apellidoPaterno: '',
+        apellidoMaterno: ''
     };
 
-    constructor() {}
+    user: User | null = null;
+
+    constructor(private oauthService: OAuthService) {}
 
     ngOnInit() {
-        // Cargar datos del perfil actual
+        // Suscribirse al usuario autenticado
+        this.oauthService.user$.subscribe((user) => {
+            this.user = user;
+            if (user) {
+                this.profile = {
+                    nombres: user.nombre || '',
+                    apellidoPaterno: user.apellido_paterno || '',
+                    apellidoMaterno: user.apellido_materno || ''
+                };
+            }
+        });
     }
 
     actualizarPerfil() {
