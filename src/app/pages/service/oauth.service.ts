@@ -263,71 +263,90 @@ export class OAuthService {
   }
 
 
-  async refreshToken(): Promise<TokenResponse | null> {
+ async refreshToken(): Promise<TokenResponse | null> {
     console.log('🔄 Intentando renovar token...');
-    // El refresh token ya no está disponible en el frontend
-    // Si el backend lo maneja por cookie HttpOnly, simplemente haz la petición sin enviarlo
-    // const refreshToken = this.getStoredRefreshToken();
-    // if (!refreshToken) {
-    //   console.log(' No hay refresh token');
-    //   this.logout();
-    //   return null;
-    // }
-    try {
-      // Aquí deberías hacer la petición al backend, que debe leer el refresh token de la cookie
-      const body = new HttpParams()
-        .set('grant_type', 'refresh_token')
-        .set('client_id', this.config.clientId)
-        .set('client_secret', this.config.clientSecret);
 
-      console.log(' Enviando petición de refresh a:', this.config.baseUrl + '/oauth/refresh-interceptor');
-      const response = await firstValueFrom(
-        this.http.post<any>(
-          this.config.baseUrl + '/oauth/refresh-interceptor',
-          body,
-          { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }), withCredentials: true }
-        )
-      );
+      try {
+        // 🔥 OBTENER EL TOKEN EXPIRADO
+        const expiredToken = this.getToken();
+        
+        
+        if (!expiredToken) {
+          console.log('❌ No hay token expirado para enviar');
+          this.logout();
+          return null;
+        }
 
-      // Leer el access token desde response.data.access_token
-      const accessToken = response.data?.access_token;
-      console.log('Respuesta de refresh:', response);
-      console.log('Access token recibido en refresh:', accessToken);
-      if (!accessToken) {
-        console.error('No se recibió access token en la respuesta de refresh:', response);
-        throw new Error('No se recibió access token en la respuesta de refresh');
+        // 🔍 DEBUG: Intentar decodificar el token localmente
+        try {
+          const tokenParts = expiredToken.split('.');
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+          }
+        } catch (e) {
+          console.error('❌ Error decodificando token localmente:', e);
+        }
+        
+        // 🔥 ENVIAR TOKEN EXPIRADO EN EL HEADER
+        const response = await firstValueFrom(
+          this.http.post<any>(
+            this.config.baseUrl + '/oauth/refresh-interceptor',
+            {}, // ← Body vacío
+            { 
+              headers: new HttpHeaders({ 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${expiredToken}` // ← Token expirado aquí
+              }), 
+              withCredentials: true 
+            }
+          )
+        );
+
+        console.log('📥 Respuesta de refresh:', response);
+        
+        const accessToken = response.data?.access_token;
+        if (!accessToken) {
+          console.error('❌ No se recibió access token en la respuesta:', response);
+          throw new Error('No se recibió access token en la respuesta de refresh');
+        }
+
+        // Construir el objeto tokenData
+        let tokenData: TokenResponse = {
+          access_token: accessToken,
+          token_type: response.data?.token_type || 'Bearer',
+          expires_in: response.data?.expires_in || 3600,
+          refresh_token: response.data?.refresh_token || null,
+          scope: response.data?.scope || null
+        };
+
+        if (tokenData && tokenData.access_token) {
+          this.storeTokens(tokenData);
+          this.updateAuthState({
+            token: tokenData.access_token,
+            refreshToken: tokenData.refresh_token,
+          });
+          
+          return tokenData;
+        }
+        
+        throw new Error('Error renovando token');
+      } catch (error) {
+        console.error('❌ Error renovando token:', error);
+        
+        // 🔍 DEBUG: Detalles del error
+        if (error instanceof HttpErrorResponse) {
+          console.error('📊 HTTP Error Details:', {
+            status: error.status,
+            statusText: error.statusText,
+            error: error.error,
+            message: error.message
+          });
+        }
+        
+        this.logout();
+        return null;
       }
-      // Construir el objeto tokenData para mantener compatibilidad
-      let tokenData: TokenResponse = {
-        access_token: accessToken,
-        token_type: response.data?.token_type || 'Bearer',
-        expires_in: response.data?.expires_in || 3600,
-        refresh_token: response.data?.refresh_token || null,
-        scope: response.data?.scope || null
-      };
-
-      if (tokenData && tokenData.access_token) {
-        this.storeTokens(tokenData);
-        this.updateAuthState({
-          token: tokenData.access_token,
-          refreshToken: null // Ya no se maneja en frontend
-        });
-        console.log(' Token renovado exitosamente');
-        console.log('[DEBUG] sessionStorage tras refreshToken exitoso:', {
-          access_token: sessionStorage.getItem('access_token')
-        });
-        return tokenData;
-      }
-      throw new Error('Error renovando token');
-    } catch (error) {
-      console.error(' Error renovando token:', error);
-      console.log('[DEBUG] sessionStorage tras error en refreshToken:', {
-        access_token: sessionStorage.getItem('access_token')
-      });
-      this.logout();
-      return null;
     }
-  }
 
   async logout(redirectToLogin: boolean = true): Promise<void> {
     console.log('🚪 Iniciando logout...');
@@ -452,14 +471,15 @@ export class OAuthService {
   }
 
   private storeTokens(tokenData: TokenResponse): void {
-    console.log('💾 Guardando access token en localStorage...');
-    localStorage.setItem('access_token', tokenData.access_token);
-    // ADVERTENCIA: No guardar refresh token en el frontend por seguridad
-    // Si el backend lo maneja por cookie HttpOnly, no es necesario almacenarlo aquí
-    // if (tokenData.refresh_token) {
-    //   localStorage.setItem('refresh_token', tokenData.refresh_token);
-    // }
+  console.log('💾 Guardando access token en localStorage...');
+  localStorage.setItem('access_token', tokenData.access_token);
+  
+  // 🔥 SOLO GUARDAR REFRESH TOKEN SI VIENE EN LA RESPUESTA
+  if (tokenData.refresh_token) {
+    localStorage.setItem('refresh_token', tokenData.refresh_token);
   }
+
+}
 
   private getStoredToken(): string | null {
     return localStorage.getItem('access_token');
