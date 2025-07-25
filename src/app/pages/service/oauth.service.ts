@@ -137,7 +137,7 @@ export class OAuthService {
     try {
       const savedState = localStorage.getItem('oauth_state');
       if (state !== savedState) {
-        throw new Error('Estado OAuth inválido - posible ataque CSRF');
+        throw new Error('Error de autenticación. Por favor, intenta nuevamente.');
       }
       const tokenData = await this.exchangeCodeForToken(code);
       this.storeTokens(tokenData);
@@ -153,7 +153,7 @@ export class OAuthService {
       const errorMessage = this.getErrorMessage(error);
       this.setError('Error en callback OAuth: ' + errorMessage);
       this.clearAuthState();
-      throw new Error(errorMessage);
+      throw new Error('No se pudo completar la autenticación. Intenta de nuevo.');
     } finally {
       this.setLoading(false);
     }
@@ -187,15 +187,14 @@ export class OAuthService {
       } else if (response && response.access_token) {
         tokenData = response;
       } else {
-        throw new Error('Formato de respuesta inválido del servidor');
+        throw new Error('No se pudo completar la autenticación. Intenta de nuevo.');
       }
       if (tokenData && tokenData.access_token) {
         return tokenData;
       }
-      throw new Error('Error obteniendo tokens');
+      throw new Error('No se pudo completar la autenticación. Intenta de nuevo.');
     } catch (error) {
-      const errorMessage = this.getErrorMessage(error);
-      throw new Error(errorMessage);
+      throw new Error('No se pudo completar la autenticación. Intenta de nuevo.');
     }
   }
 
@@ -207,7 +206,7 @@ export class OAuthService {
   public async loadUserInfo(): Promise<User | null> {
     try {
       const token = this.getStoredToken();
-      if (!token) throw new Error('No hay token');
+      if (!token) throw new Error('No se pudo obtener la información del usuario. Intenta de nuevo.');
       const response = await firstValueFrom(
         this.http.get<ApiResponse<User>>(
           environment.api.profileUrl,
@@ -216,7 +215,7 @@ export class OAuthService {
       );
       const usuario: User | undefined = response?.data ?? response as any as User;
       if (!usuario) {
-        throw new Error('No se pudo obtener la información del usuario del servidor');
+        throw new Error('No se pudo obtener la información del usuario. Intenta de nuevo.');
       }
       this.updateAuthState({ user: usuario });
       return usuario;
@@ -228,14 +227,14 @@ export class OAuthService {
             return await this.loadUserInfo();
           } else {
             this.clearAuthState();
-            this.router.navigate(['/error', '401'], { queryParams: { message: this.getErrorMessage(error) } });
+            this.router.navigate(['/error', '401'], { queryParams: { message: 'Sesión expirada. Por favor, inicia sesión nuevamente.' } });
           }
         } catch (refreshError) {
           this.clearAuthState();
-          this.router.navigate(['/error', '401'], { queryParams: { message: this.getErrorMessage(refreshError) } });
+          this.router.navigate(['/error', '401'], { queryParams: { message: 'Sesión expirada. Por favor, inicia sesión nuevamente.' } });
         }
       } else {
-        throw new Error('Error cargando usuario: ' + this.getErrorMessage(error));
+        throw new Error('No se pudo obtener la información del usuario. Intenta de nuevo.');
       }
     }
     return null;
@@ -267,7 +266,7 @@ export class OAuthService {
       );
       const accessToken = response.data?.access_token;
       if (!accessToken) {
-        throw new Error('No se recibió access token en la respuesta de refresh');
+        throw new Error('No se pudo renovar la sesión. Intenta de nuevo.');
       }
       let tokenData: TokenResponse = {
         access_token: accessToken,
@@ -284,11 +283,8 @@ export class OAuthService {
         });
         return tokenData;
       }
-      throw new Error('Error renovando token');
+      throw new Error('No se pudo renovar la sesión. Intenta de nuevo.');
     } catch (error) {
-      if (error instanceof HttpErrorResponse) {
-        // Manejo específico de errores HTTP si es necesario
-      }
       this.logout();
       return null;
     }
