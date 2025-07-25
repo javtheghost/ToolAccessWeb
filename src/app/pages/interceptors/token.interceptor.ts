@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject, from } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
-import { OAuthService } from '../service/oauth.service';
 import { Router } from '@angular/router';
+import { OAuthService } from '../service/oauth.service';
 
 
 @Injectable()
@@ -36,7 +36,7 @@ export class TokenInterceptor implements HttpInterceptor {
           }
         }
         console.error('[TokenInterceptor] Error en petición HTTP:', error);
-        return throwError(error);
+        return throwError(() => error);
       })
     );
   }
@@ -65,7 +65,7 @@ export class TokenInterceptor implements HttpInterceptor {
           console.error('[TokenInterceptor] No se pudo renovar el token o no se recibió access_token. Haciendo logout.');
           this.oauthService.logout(false);
           this.router.navigate(['/auth/login']);
-          return throwError('No se pudo renovar el token');
+          return throwError(() => 'No se pudo renovar el token');
         }),
         catchError(error => {
           this.isRefreshing = false;
@@ -73,7 +73,8 @@ export class TokenInterceptor implements HttpInterceptor {
           console.log('[TokenInterceptor] Haciendo logout por error de refresh token.');
           this.oauthService.logout(false);
           this.router.navigate(['/auth/login']);
-          return throwError(error);
+          return throwError(() => error);
+
         })
       );
     } else {

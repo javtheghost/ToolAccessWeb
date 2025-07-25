@@ -5,18 +5,21 @@ import { OAuthService } from '../service/oauth.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
-  constructor(private oauthService: OAuthService, private router: Router) {
-    console.log('🔧 AuthGuard inicializado');
+  constructor(
+    // Usar el decorador @Inject para especificar el token de inyección si es necesario
+    // pero aquí asumimos que OAuthService está correctamente registrado como provider
+    private oauthService: OAuthService,
+    private router: Router
+  ) {
   }
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
-    console.log('🛡️ AuthGuard ejecutándose para:', state.url);
-    console.log('📍 Ruta actual:', route.routeConfig?.path);
-    console.log('🔍 Parámetros de ruta:', route.params);
-
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean | UrlTree> {
     // No proteger rutas de OAuth
     if (state.url.includes('/oauth/') || state.url.includes('/auth/')) {
-      console.log('🚫 AuthGuard: Ruta OAuth/Auth detectada, permitiendo acceso');
+      // Acceso permitido a rutas de autenticación
       return of(true);
     }
 
@@ -26,30 +29,14 @@ export class AuthGuard implements CanActivate {
     const currentUser = this.oauthService.getCurrentUser();
     const token = this.oauthService.getToken();
 
-    console.log('🔍 Verificación de autenticación:', {
-      isAuth,
-      hasToken,
-      hasUser: !!currentUser,
-      hasTokenValue: !!token,
-      tokenLength: token?.length || 0
-    });
-
     // Permitir acceso si está autenticado O tiene token válido
     if (isAuth || hasToken) {
-      console.log('✅ AuthGuard: Acceso permitido');
-      console.log('👤 Usuario actual:', currentUser);
       return of(true);
     }
 
-    console.log('❌ AuthGuard: Acceso denegado, redirigiendo a /error/401');
-    console.log('🔍 Estado final:', {
-      isAuth,
-      hasToken,
-      hasUser: !!currentUser,
-      url: state.url
-    });
-
+    // Guardar la URL para redirección tras login
     localStorage.setItem('redirect_url', state.url);
+    // Redirigir a la página de error 401 sin queryParams
     return of(this.router.createUrlTree(['/error', '401']));
   }
 }

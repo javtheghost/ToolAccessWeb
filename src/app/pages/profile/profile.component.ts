@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OAuthService } from '../service/oauth.service';
@@ -93,7 +93,7 @@ export class ProfileComponent implements OnInit {
 
     ngOnInit() {
         // Suscribirse al usuario autenticado
-        this.oauthService.user$.subscribe((user) => {
+        this.oauthService.user$.subscribe((user: User | null) => {
             this.user = user;
             if (user) {
                 this.profile = {
