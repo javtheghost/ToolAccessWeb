@@ -2,10 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OAuthService } from '../../service/oauth.service';
 import { CommonModule } from '@angular/common';
+import { MessageService } from 'primeng/api';
 
 @Component({
   standalone: true,
   imports: [CommonModule],
+  providers: [MessageService],
   selector: 'app-oauth-callback',
   template: `
     <div class="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
@@ -62,7 +64,8 @@ export class OAuthCallbackComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private oauthService: OAuthService,
-    private router: Router
+    private router: Router,
+    private messageService: MessageService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -86,6 +89,12 @@ export class OAuthCallbackComponent implements OnInit {
     if (error) {
       this.error = `Error de autorización: ${error}${errorDescription ? ' - ' + errorDescription : ''}`;
       this.status = 'Error de autorización';
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error de autorización',
+        detail: this.error || '',
+        life: 4000
+      });
       setTimeout(() => this.router.navigate(['/auth/login']), 3000);
       return;
     }
@@ -93,6 +102,12 @@ export class OAuthCallbackComponent implements OnInit {
     if (!code || !state) {
       this.error = 'Faltan parámetros de autenticación.';
       this.status = 'Error: Faltan parámetros';
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: this.error || '',
+        life: 4000
+      });
       setTimeout(() => this.router.navigate(['/auth/login']), 3000);
       return;
     }
@@ -102,29 +117,30 @@ export class OAuthCallbackComponent implements OnInit {
 
 
       // Verificar estado antes del callback
-      console.log('🔍 Estado antes del callback:', {
-        isAuthenticated: this.oauthService.isAuthenticated(),
-        hasToken: this.oauthService.hasValidToken(),
-        currentUser: this.oauthService.getCurrentUser()
-      });
-
       await this.oauthService.handleCallback(code, state);
       await this.oauthService.loadUserInfo();
 
       this.status = 'Autenticación exitosa, navegando...';
-
-      // Verificar token después del callback
-      const token = this.oauthService.getToken();
-      console.log('🎫 Token después del callback:', token ? 'Presente' : 'Ausente');
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Autenticación exitosa',
+        detail: '¡Bienvenido!',
+        life: 3000
+      });
 
       // Esperar un poco más para asegurar que el estado se propague
       setTimeout(() => {
-        console.log('📍 URL actual:', window.location.href);
         this.router.navigate(['/dashboard']);
       }, 500);
     } catch (e: any) {
       this.error = e?.message || 'Error en la autenticación.';
       this.status = 'Error en autenticación';
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: this.error || '',
+        life: 4000
+      });
       setTimeout(() => this.router.navigate(['/auth/login']), 4000);
     }
   }
