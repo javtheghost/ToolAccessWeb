@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AppTopbar } from '../../layout/component/app.topbar';
 import { ButtonModule } from 'primeng/button';
 import { RouterModule } from '@angular/router';
+import { OAuthService } from '../service/oauth.service';
 
 @Component({
   selector: 'app-error-page',
@@ -52,7 +53,10 @@ export class ErrorPageComponent {
   homeLink: string = '/auth/login';
   buttonLabel: string = 'Iniciar sesión';
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private oauthService: OAuthService
+  ) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -78,9 +82,12 @@ export class ErrorPageComponent {
           this.message = 'Ha ocurrido un error inesperado.';
           this.image = 'assets/errors/500_server_error.svg';
       }
-      // Lógica para decidir a dónde redirigir
-      const token = sessionStorage.getItem('access_token');
-      if (token) {
+
+      // Lógica para decidir a dónde redirigir según el estado de autenticación
+      const hasToken = this.oauthService.hasValidToken();
+      // Verificación directa del token como fallback
+      const directTokenCheck = localStorage.getItem('access_token');
+      if (hasToken || directTokenCheck) {
         this.homeLink = '/dashboard';
         this.buttonLabel = 'Ir al dashboard';
       } else {
