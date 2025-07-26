@@ -403,8 +403,15 @@ export class OAuthService {
    * @private
    */
   private clearAuthState(): void {
+    // Borrar todos los tokens del localStorage
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('redirect_url');
+
+    // Limpiar estado de OAuth
     this.cleanupOAuthState();
+
+    // Resetear el estado de autenticación
     this.authStateSubject.next({
       isAuthenticated: false,
       user: null,
@@ -451,7 +458,7 @@ export class OAuthService {
    * @returns {string | null} Refresh token o null si no existe.
    */
   private getStoredRefreshToken(): string | null {
-    return null;
+    return localStorage.getItem('refresh_token');
   }
 
   /**
