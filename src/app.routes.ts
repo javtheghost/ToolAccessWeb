@@ -8,8 +8,8 @@ import { PublicGuard } from './app/pages/guards/public.guard';
 import { ErrorPageComponent } from './app/pages/error/error-page.component';
 
 export const appRoutes: Routes = [
-    // Redireccionar raíz al dashboard (si está logueado, sino AuthGuard redirige al login)
-    { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+    // Redireccionar raíz al login
+    { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
 
     // Ruta del callback OAuth (debe estar fuera del layout)
     {
@@ -41,6 +41,6 @@ export const appRoutes: Routes = [
     // Rutas de error
     { path: 'error/:code', component: ErrorPageComponent },
 
-    // Rutas 404 - redirigir a /error/404 para que el componente reciba el parámetro code
-    { path: '**', redirectTo: '/error/404' }
+    // Rutas 404 - redirigir a login para rutas no válidas
+    { path: '**', redirectTo: '/auth/login' }
 ];
