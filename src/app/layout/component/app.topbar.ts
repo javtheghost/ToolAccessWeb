@@ -43,7 +43,7 @@ import { MessageService } from 'primeng/api';
             </div>
 
             <!-- Botón de notificaciones -->
-            <div class="relative" *ngIf="!minimal && !isAuthRoute">
+            <div class="relative" *ngIf="!minimal && !isAuthRoute && isAuthenticated">
                 <button
                     class="layout-topbar-action relative"
                     pStyleClass="@next"
@@ -188,8 +188,8 @@ import { MessageService } from 'primeng/api';
                 </div>
             </div>
 
-            <!-- Menú de usuario -->
-            <div class="relative" *ngIf="!minimal">
+            <!-- Menú de usuario - Solo mostrar si está autenticado -->
+            <div class="relative" *ngIf="!minimal && isAuthenticated">
                 <button
                     class="layout-topbar-action"
                     pStyleClass="@next"
@@ -301,6 +301,11 @@ export class AppTopbar {
 
     // Verifica si la ruta actual es de autenticación
     isAuthRoute: boolean = window.location.pathname.includes('/login') || window.location.pathname.includes('/register');
+
+    // Verifica si el usuario está autenticado
+    get isAuthenticated(): boolean {
+        return this.oauthService.isAuthenticated();
+    }
 
     toggleNotifications() {
         // La funcionalidad de toggle se maneja automáticamente con pStyleClass
