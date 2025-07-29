@@ -88,11 +88,12 @@ export class OAuthService {
    * @private
    * @returns {Promise<void>}
    */
-  private async initializeAuthState(): Promise<void> {
+    private async initializeAuthState(): Promise<void> {
     this.setLoading(true);
     try {
       const token = this.getStoredToken();
       const refreshToken = this.getStoredRefreshToken();
+
       if (token) {
         this.updateAuthState({ token, refreshToken, isAuthenticated: true });
         await this.loadUserInfo();
@@ -327,11 +328,12 @@ export class OAuthService {
    *
    * @returns {boolean} true si el usuario está autenticado, false en caso contrario.
    */
-  isAuthenticated(): boolean {
+    isAuthenticated(): boolean {
     const hasToken = !!this.getStoredToken();
     const stateAuth = this.authStateSubject.value.isAuthenticated;
     const hasUser = !!this.authStateSubject.value.user;
     const isAuth = hasToken && (stateAuth || hasUser);
+
     return isAuth;
   }
 

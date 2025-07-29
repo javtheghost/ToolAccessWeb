@@ -5,12 +5,19 @@ import { provideRouter, withEnabledBlockingInitialNavigation, withInMemoryScroll
 import Aura from '@primeng/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { appRoutes } from './app.routes';
+import { TokenInterceptor } from './app/pages/interceptors/token.interceptor';
+import { initializeApp } from './app/app.init';
 
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation()),
-        provideHttpClient(withFetch(), ),
+        provideHttpClient(withFetch(), withInterceptors([TokenInterceptor])),
         provideAnimationsAsync(),
-        providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } } })
+        providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } } }),
+        {
+            provide: 'APP_INITIALIZER',
+            useFactory: initializeApp,
+            multi: true
+        }
     ]
 };

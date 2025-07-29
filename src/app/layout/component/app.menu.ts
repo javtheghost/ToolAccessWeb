@@ -107,13 +107,13 @@ export class AppMenu {
                         label: 'Lista Usuarios',
                         icon: 'material-symbols-outlined',
                         iconText: 'groups',
-                        routerLink: ['/pages/users-list']
+                        routerLink: ['/dashboard/pages/users-list']
                     },
                     {
                         label: 'Roles',
                         icon: 'material-symbols-outlined',
                         iconText: 'groups',
-                        routerLink: ['/pages/roles-crud']
+                        routerLink: ['/dashboard/pages/roles-crud']
                     }
                 ]
             },
@@ -124,34 +124,34 @@ export class AppMenu {
                         label: 'Herramientas',
                         icon: 'material-symbols-outlined',
                         iconText: 'construction',
-                        routerLink: ['/pages/tools']
+                        routerLink: ['/dashboard/pages/tools']
                     },
                     {
                         label: 'Categorías',
                         icon: 'material-symbols-outlined',
                         svgIcon: 'assets/icons/categorias.svg',
-                        routerLink: ['/pages/categories-list']
+                        routerLink: ['/dashboard/pages/categories-list']
                     },
                     {
                         label: 'Subcategorías',
                         icon: 'material-symbols-outlined',
                         svgIcon: 'assets/icons/categorias.svg',
-                        routerLink: ['/pages/subcategories-list']
+                        routerLink: ['/dashboard/pages/subcategories-list']
                     },
                     {
                         label: 'Reportes',
                         svgIcon: 'assets/icons/reportes.svg',
-                        routerLink: ['/pages/reports']
+                        routerLink: ['/dashboard/pages/reports']
                     },
                     {
                         label: 'Préstamos',
                         svgIcon: 'assets/icons/prestamos.svg',
-                        routerLink: ['/pages/loans']
+                        routerLink: ['/dashboard/pages/loans']
                     },
                     {
                         label: 'Multas y daños',
                         svgIcon: 'assets/icons/multa_nav.svg',
-                        routerLink: ['/pages/fines-damages'],
+                        routerLink: ['/dashboard/pages/fines-damages'],
                         style: { background: '#fff' }
                     }
                 ]
@@ -163,7 +163,7 @@ export class AppMenu {
                         label: 'Mi Perfil',
                         icon: 'material-symbols-outlined',
                         iconText: 'person',
-                        routerLink: ['/pages/profile']
+                        routerLink: ['/dashboard/pages/profile']
                     }
                 ]
             },

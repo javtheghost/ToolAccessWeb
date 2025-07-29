@@ -19,7 +19,6 @@ export class AuthGuard implements CanActivate {
   ): Observable<boolean | UrlTree> {
     // No proteger rutas de OAuth
     if (state.url.includes('/oauth/') || state.url.includes('/auth/')) {
-      // Acceso permitido a rutas de autenticación
       return of(true);
     }
 
@@ -28,6 +27,12 @@ export class AuthGuard implements CanActivate {
     const hasToken = this.oauthService.hasValidToken();
     const currentUser = this.oauthService.getCurrentUser();
     const token = this.oauthService.getToken();
+
+    // TEMPORAL: Permitir acceso si hay token en localStorage (más permisivo)
+    const localStorageToken = localStorage.getItem('access_token');
+    if (localStorageToken) {
+      return of(true);
+    }
 
     // Permitir acceso si está autenticado O tiene token válido
     if (isAuth || hasToken) {
