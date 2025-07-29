@@ -14,13 +14,8 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-
-interface Category {
-    id?: string;
-    name?: string;
-    description?: string;
-    active?: boolean;
-}
+import { CategoryService } from '../service/category.service';
+import { Category, CategoryCreateRequest, CategoryUpdateRequest } from '../interfaces';
 
 interface Column {
     field: string;
@@ -194,7 +189,8 @@ export class CategoriesCrudComponent implements OnInit {
     confirmAction: (() => void) | null = null;
 
     constructor(
-        private messageService: MessageService
+        private messageService: MessageService,
+        private categoryService: CategoryService
     ) {}
 
     ngOnInit() {
@@ -202,10 +198,20 @@ export class CategoriesCrudComponent implements OnInit {
     }
 
     loadCategories() {
-        this.categories.set([
-            { id: '1', name: 'Eléctrica', description: 'Herramientas eléctricas', active: true },
-            { id: '2', name: 'Manual', description: 'Herramientas manuales', active: true }
-        ]);
+        this.categoryService.getCategories().subscribe({
+            next: (data) => {
+                this.categories.set(data);
+            },
+            error: (error) => {
+                console.error('Error al cargar categorías:', error);
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Error al cargar las categorías',
+                    life: 3000
+                });
+            }
+        });
     }
 
     onGlobalFilter(table: Table, event: Event) {
@@ -228,13 +234,28 @@ export class CategoriesCrudComponent implements OnInit {
         this.confirmIcon = 'delete';
         this.confirmMessage = `¿Estás seguro de eliminar la categoría <span class='text-primary'>${category.name}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
         this.confirmAction = () => {
-            this.categories.set(this.categories().filter((val) => val.id !== category.id));
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Éxito',
-                detail: 'Categoría eliminada',
-                life: 3000
-            });
+            if (category.id) {
+                this.categoryService.deleteCategory(category.id).subscribe({
+                    next: () => {
+                        this.categories.set(this.categories().filter((val) => val.id !== category.id));
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Categoría eliminada',
+                            life: 3000
+                        });
+                    },
+                    error: (error) => {
+                        console.error('Error al eliminar categoría:', error);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al eliminar la categoría',
+                            life: 3000
+                        });
+                    }
+                });
+            }
         };
         this.showCustomConfirm = true;
     }
@@ -257,35 +278,74 @@ export class CategoriesCrudComponent implements OnInit {
     saveCategory() {
         if (this.category.name?.trim()) {
             if (this.category.id) {
+                // Actualizar categoría existente
                 this.confirmIcon = 'warning';
                 this.confirmMessage = `¿Estás seguro que deseas actualizar la categoría <span class='text-primary'>${this.category.name}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
                 this.confirmAction = () => {
-                    const idx = this.categories().findIndex(c => c.id === this.category.id);
-                    if (idx > -1) this.categories().splice(idx, 1, { ...this.category });
-                    this.categories.set([...this.categories()]);
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Categoría actualizada',
-                        life: 3000
-                    });
-                    this.categoryDialog = false;
-                    this.isEditMode = false;
-                    this.category = {};
+                    if (this.category.id) {
+                        const updateData: CategoryUpdateRequest = {
+                            name: this.category.name,
+                            description: this.category.description,
+                            active: this.category.active
+                        };
+                        this.categoryService.updateCategory(this.category.id, updateData).subscribe({
+                            next: (updatedCategory) => {
+                                const idx = this.categories().findIndex(c => c.id === this.category.id);
+                                if (idx > -1) this.categories().splice(idx, 1, updatedCategory);
+                                this.categories.set([...this.categories()]);
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Éxito',
+                                    detail: 'Categoría actualizada',
+                                    life: 3000
+                                });
+                                this.categoryDialog = false;
+                                this.isEditMode = false;
+                                this.category = {};
+                            },
+                            error: (error) => {
+                                console.error('Error al actualizar categoría:', error);
+                                this.messageService.add({
+                                    severity: 'error',
+                                    summary: 'Error',
+                                    detail: 'Error al actualizar la categoría',
+                                    life: 3000
+                                });
+                            }
+                        });
+                    }
                 };
                 this.showCustomConfirm = true;
             } else {
-                this.category.id = this.createId();
-                this.categories.set([...this.categories(), { ...this.category }]);
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Categoría creada',
-                    life: 3000
+                // Crear nueva categoría
+                const createData: CategoryCreateRequest = {
+                    name: this.category.name!,
+                    description: this.category.description,
+                    active: this.category.active
+                };
+                this.categoryService.createCategory(createData).subscribe({
+                    next: (newCategory) => {
+                        this.categories.set([...this.categories(), newCategory]);
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Categoría creada',
+                            life: 3000
+                        });
+                        this.categoryDialog = false;
+                        this.isEditMode = false;
+                        this.category = {};
+                    },
+                    error: (error) => {
+                        console.error('Error al crear categoría:', error);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al crear la categoría',
+                            life: 3000
+                        });
+                    }
                 });
-                this.categoryDialog = false;
-                this.isEditMode = false;
-                this.category = {};
             }
         } else {
             this.messageService.add({

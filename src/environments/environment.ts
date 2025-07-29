@@ -12,5 +12,6 @@ export const environment = {
     profileUrl: 'http://localhost:3000/api/auth/profile',
     refreshUrl: 'http://localhost:3000/oauth/refresh-interceptor',
     revokeUrl: 'http://localhost:3000/oauth/revoke'
-  }
+  },
+  apiUrl: 'http://localhost:3001/api'
 };
