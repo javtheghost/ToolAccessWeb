@@ -39,7 +39,7 @@ export class PublicGuard implements CanActivate {
 
     // Si el usuario está autenticado, redirigir al dashboard
     if (isAuth || hasToken) {
-      return of(this.router.createUrlTree(['/app/dashboard']));
+      return of(this.router.createUrlTree(['/dashboard']));
     }
 
     // Si no está autenticado, permitir acceso a rutas públicas
