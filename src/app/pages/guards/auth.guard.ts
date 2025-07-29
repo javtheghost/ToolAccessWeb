@@ -36,7 +36,7 @@ export class AuthGuard implements CanActivate {
 
     // Guardar la URL para redirección tras login
     localStorage.setItem('redirect_url', state.url);
-    // Redirigir al login en lugar de error 401
-    return of(this.router.createUrlTree(['/auth/login']));
+    // Redirigir a la raíz (login) en lugar de auth/login
+    return of(this.router.createUrlTree(['/']));
   }
 }

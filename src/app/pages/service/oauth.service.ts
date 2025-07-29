@@ -227,7 +227,7 @@ export class OAuthService {
             return await this.loadUserInfo();
           } else {
             this.clearAuthState();
-            this.router.navigate(['/auth/login'], { queryParams: { message: 'Sesión expirada. Por favor, inicia sesión nuevamente.' } });
+            this.router.navigate(['/'], { queryParams: { message: 'Sesión expirada. Por favor, inicia sesión nuevamente.' } });
           }
         } catch (refreshError) {
           this.clearAuthState();
@@ -313,7 +313,7 @@ export class OAuthService {
       this.clearAuthState();
       this.logoutLoading$.next(false);
       if (redirectToLogin) {
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/']);
       }
     }
   }

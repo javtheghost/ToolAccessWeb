@@ -8,18 +8,22 @@ import { PublicGuard } from './app/pages/guards/public.guard';
 import { ErrorPageComponent } from './app/pages/error/error-page.component';
 
 export const appRoutes: Routes = [
-    // Redireccionar raíz al login
-    { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
-
     // Ruta del callback OAuth (debe estar fuera del layout)
     {
         path: 'oauth/callback',
         loadComponent: () => import('./app/pages/auth/login/oauth-callback.component').then(m => m.OAuthCallbackComponent)
     },
 
-    // Estructura general de tu app (rutas protegidas)
+    // Rutas de autenticación (rutas públicas) - Ahora en la raíz
     {
         path: '',
+        loadChildren: () => import('./app/pages/auth/auth.routes'),
+        canActivate: [PublicGuard] // Proteger rutas de auth para que usuarios logueados no puedan acceder
+    },
+
+    // Estructura general de tu app (rutas protegidas) - Ahora en /app
+    {
+        path: 'app',
         component: AppLayout,
         canActivate: [AuthGuard], // Usar AuthGuard para permitir acceso a usuarios logueados
         children: [
@@ -31,16 +35,9 @@ export const appRoutes: Routes = [
         ]
     },
 
-    // Rutas de autenticación (rutas públicas)
-    {
-        path: 'auth',
-        loadChildren: () => import('./app/pages/auth/auth.routes'),
-        canActivate: [PublicGuard] // Proteger rutas de auth para que usuarios logueados no puedan acceder
-    },
-
     // Rutas de error
     { path: 'error/:code', component: ErrorPageComponent },
 
-    // Rutas 404 - redirigir a login para rutas no válidas
-    { path: '**', redirectTo: '/auth/login' }
+    // Rutas 404 - redirigir a la raíz (login) para rutas no válidas
+    { path: '**', redirectTo: '/' }
 ];
