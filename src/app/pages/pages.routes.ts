@@ -1,6 +1,5 @@
 
 import { Routes } from '@angular/router';
-import { Empty } from './empty/empty';
 import { RolesCrudComponent } from './roles/roles-crud.component';
 import { CategoriesCrudComponent } from './categories/categories-crud.component';
 import { UsersCrudComponent } from './users/users-crud';
@@ -14,7 +13,6 @@ import { ErrorPageComponent } from './error/error-page.component';
 export default [
     { path: 'tools', component: ToolsCrudComponent },
     { path: 'loans', component: LoansCrudComponent },
-    { path: 'empty', component: Empty },
     {path: 'categories-list', component:CategoriesCrudComponent},
     {path: 'subcategories-list', component:SubcategoriasCrudComponent},
     {path: 'users-list', component:UsersCrudComponent},

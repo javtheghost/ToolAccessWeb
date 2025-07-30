@@ -5,3 +5,193 @@
 ::ng-deep .p-dialog .p-dialog-content {
   background: #fff !important;
 }
+
+// Estilos para skeletons
+:host ::ng-deep .p-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Estilos para estados vacíos
+.empty-state {
+  transition: all 0.3s ease;
+}
+
+.empty-state:hover {
+  transform: translateY(-2px);
+}
+
+// Estilos para botones con loading nativo de PrimeNG
+:host ::ng-deep .p-button.p-button-loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+  min-width: 6rem; // Mantener ancho mínimo durante loading
+}
+
+// Estilos para botones con iconos
+:host ::ng-deep .p-button .p-button-icon {
+  margin-right: 0.5rem;
+}
+
+:host ::ng-deep .p-button.p-button-loading .p-button-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Estilos para botones de confirmación con loading
+.confirm-button-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+// Animación de fade para transiciones
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Estilos para botones con loading
+.loading-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+// Estilos para skeletons con transparencia
+:host ::ng-deep .p-skeleton.bg-white\/20 {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+// Estilos para toasts según severidad
+:host ::ng-deep .p-toast .p-toast-message {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+:host ::ng-deep .p-toast .p-toast-message.p-toast-message-warn {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+:host ::ng-deep .p-toast .p-toast-message.p-toast-message-error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+:host ::ng-deep .p-toast .p-toast-message.p-toast-message-info {
+  background: #d1ecf1;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
+}
+
+// Estilos responsive para la tabla
+.responsive-table {
+  overflow-x: auto;
+}
+
+:host ::ng-deep .responsive-table .p-datatable {
+  min-width: 100%;
+}
+
+:host ::ng-deep .responsive-table .p-datatable-table {
+  min-width: 100%;
+}
+
+// Estilos para móviles
+@media (max-width: 640px) {
+  :host ::ng-deep .p-datatable .p-datatable-thead > tr > th,
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  :host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  :host ::ng-deep .p-button {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+
+  :host ::ng-deep .p-dialog {
+    margin: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-content {
+    padding: 1rem;
+  }
+
+    :host ::ng-deep .p-paginator {
+    font-size: 0.875rem;
+  }
+
+  :host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
+    min-width: 2rem;
+    height: 2rem;
+  }
+
+  :host ::ng-deep .p-paginator .p-paginator-current {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  :host ::ng-deep .p-paginator .p-dropdown {
+    min-width: 4rem;
+  }
+}
+
+// Estilos para pantallas medianas y grandes
+@media (min-width: 768px) {
+  :host ::ng-deep .p-paginator .p-paginator-current {
+    font-size: 0.875rem;
+  }
+
+  :host ::ng-deep .p-paginator .p-dropdown {
+    min-width: 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :host ::ng-deep .p-paginator .p-paginator-current {
+    font-size: 1rem;
+  }
+}
