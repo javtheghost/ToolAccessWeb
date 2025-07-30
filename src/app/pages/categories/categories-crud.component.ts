@@ -2,7 +2,7 @@ import { Component, OnInit, signal, ViewChild, HostListener } from '@angular/cor
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
@@ -31,6 +31,7 @@ interface Column {
         CommonModule,
         TableModule,
         FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
@@ -88,26 +89,8 @@ interface Column {
 
     <!-- Content when loaded -->
     <div *ngIf="!loading()">
-        <!-- Empty State -->
-        <div *ngIf="categories().length === 0" class="text-center py-12 fade-in">
-            <div class="max-w-md mx-auto empty-state">
-                <div class="mb-6">
-                    <i class="material-symbols-outlined text-6xl text-gray-300">category</i>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay categorías</h3>
-                <p class="text-gray-500 mb-6">Aún no se han creado categorías. Comienza agregando la primera categoría.</p>
-                <p-button
-                    label="Crear Primera Categoría"
-                    icon="pi pi-plus"
-                    (onClick)="openNew()"
-                    styleClass="p-button-primary">
-                </p-button>
-            </div>
-        </div>
-
         <!-- Table with data -->
         <p-table
-            *ngIf="categories().length > 0"
             #dt
             [value]="categories()"
             [rows]="10"
@@ -177,31 +160,100 @@ interface Column {
                 </td>
             </tr>
         </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5" class="text-center py-8">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
+                        <div class="text-center">
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay categorías</h3>
+                            <p class="text-gray-500">Aún no se han creado categorías. Utiliza el botón "Crear Categoría" para agregar la primera.</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
     </p-table>
     <div class="flex justify-center mt-6"></div>
 </div>
 <p-dialog [(visible)]="categoryDialog" [style]="{ width: '90vw', maxWidth: '500px' }" [header]="isEditMode ? 'Editar Categoría' : 'Nueva Categoría'" [modal]="true" [draggable]="false">
     <ng-template pTemplate="content">
-                <div class="grid grid-cols-1 gap-4">
-            <div class="relative py-2 mt-2">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
-                <input type="text" id="nombre" name="nombre" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="category.nombre" />
-                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+        <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Campo Nombre -->
+                <div class="relative py-2 mt-2">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
+                    <input
+                        type="text"
+                        id="nombre"
+                        formControlName="nombre"
+                        class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:border-[var(--primary-color)]"
+                        [class.border-gray-300]="!categoryForm.get('nombre')?.invalid || !categoryForm.get('nombre')?.touched"
+                        [class.border-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
+                        [class.focus:ring-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
+                        [class.focus:border-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
+                        [class.focus:ring-[var(--primary-color)]="categoryForm.get('nombre')?.valid || !categoryForm.get('nombre')?.touched"
+                        placeholder=" "
+                        aria-label="Nombre" />
+                    <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 bg-white px-1"
+                        [class.text-gray-600]="!categoryForm.get('nombre')?.invalid || !categoryForm.get('nombre')?.touched"
+                        [class.text-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
+                        [class.peer-focus:text-[var(--primary-color)]="categoryForm.get('nombre')?.valid || !categoryForm.get('nombre')?.touched"
+                        [class.peer-focus:text-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched">
+                        Nombre *
+                    </label>
+                    <!-- Mensajes de error para nombre -->
+                    <div *ngIf="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched" class="mt-1 text-sm text-red-600">
+                        <div *ngIf="categoryForm.get('nombre')?.errors?.['required']">El nombre es requerido</div>
+                        <div *ngIf="categoryForm.get('nombre')?.errors?.['minlength']">El nombre debe tener al menos 3 caracteres</div>
+                        <div *ngIf="categoryForm.get('nombre')?.errors?.['maxlength']">El nombre no puede exceder 50 caracteres</div>
+                        <div *ngIf="categoryForm.get('nombre')?.errors?.['pattern']">El nombre solo puede contener letras, espacios y guiones</div>
+                    </div>
+                </div>
+
+                <!-- Campo Descripción -->
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
+                    <textarea
+                        id="descripcion"
+                        formControlName="descripcion"
+                        rows="3"
+                        class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:border-[var(--primary-color)]"
+                        [class.border-gray-300]="!categoryForm.get('descripcion')?.invalid || !categoryForm.get('descripcion')?.touched"
+                        [class.border-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
+                        [class.focus:ring-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
+                        [class.focus:border-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
+                        [class.focus:ring-[var(--primary-color)]="categoryForm.get('descripcion')?.valid || !categoryForm.get('descripcion')?.touched"
+                        placeholder=" "
+                        aria-label="Descripción"></textarea>
+                                         <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 bg-white px-1"
+                         [class.text-gray-600]="!categoryForm.get('descripcion')?.invalid || !categoryForm.get('descripcion')?.touched"
+                         [class.text-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
+                         [class.peer-focus:text-[var(--primary-color)]="categoryForm.get('descripcion')?.valid || !categoryForm.get('descripcion')?.touched"
+                         [class.peer-focus:text-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched">
+                         Descripción (Opcional)...
+                     </label>
+                    <!-- Mensajes de error para descripción -->
+                    <div *ngIf="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched" class="mt-1 text-sm text-red-600">
+                        <div *ngIf="categoryForm.get('descripcion')?.errors?.['minlength']">La descripción debe tener al menos 3 caracteres si se proporciona</div>
+                        <div *ngIf="categoryForm.get('descripcion')?.errors?.['maxlength']">La descripción no puede exceder 200 caracteres</div>
+                        <div *ngIf="categoryForm.get('descripcion')?.errors?.['pattern']">La descripción contiene caracteres no permitidos</div>
+                    </div>
+                </div>
+
+                <!-- Campo Activo -->
+                <div class="flex flex-col items-center justify-center py-2">
+                    <label class="mb-2 text-sm font-medium">Activo</label>
+                    <input type="checkbox" class="custom-toggle" formControlName="is_active" />
+                </div>
             </div>
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
-                <textarea id="descripcion" name="descripcion" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="category.descripcion"></textarea>
-                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
-            </div>
-            <div class="flex flex-col items-center justify-center py-2">
-                <label class="mb-2 text-sm font-medium">Activo</label>
-                <input type="checkbox" class="custom-toggle" [(ngModel)]="category.is_active" />
-            </div>
-        </div>
-        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
-            <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()" [disabled]="saving()">Cancelar</button>
-            <button pButton type="button" class="p-button w-full sm:w-24" [label]="saving() ? '' : 'Guardar'" (click)="saveCategory()" [loading]="saving()"></button>
-        </div>
+
+                         <!-- Botones -->
+             <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+                 <button type="button" pButton class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()" [disabled]="saving()">Cancelar</button>
+                 <button type="submit" pButton class="p-button w-full sm:w-24" [loading]="saving()" [disabled]="categoryForm.invalid || saving()">Guardar</button>
+             </div>
+        </form>
     </ng-template>
 </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
@@ -278,13 +330,50 @@ export class CategoriesCrudComponent implements OnInit {
     saving = signal<boolean>(false);
     deleting = signal<boolean>(false);
 
+    // Formulario reactivo
+    categoryForm!: FormGroup;
+
     constructor(
         private messageService: MessageService,
-        private categoryService: CategoryService
-    ) {}
+        private categoryService: CategoryService,
+        private fb: FormBuilder
+    ) {
+        this.initForm();
+    }
 
     ngOnInit() {
         this.loadCategories();
+    }
+
+    /**
+     * Inicializar el formulario reactivo con validaciones
+     */
+    private initForm() {
+        this.categoryForm = this.fb.group({
+            nombre: ['', [
+                Validators.required,
+                Validators.minLength(3),
+                Validators.maxLength(50),
+                Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-]{3,50}$/)
+            ]],
+            descripcion: ['', [
+                Validators.minLength(3),
+                Validators.maxLength(200),
+                Validators.pattern(/^[\wáéíóúÁÉÍÓÚñÑ\s¡!¿?@#$%&*()\-_=+.,:;'"\n\r]{0,200}$/)
+            ]],
+            is_active: [true]
+        });
+    }
+
+    /**
+     * Resetear el formulario
+     */
+    private resetForm() {
+        this.categoryForm.reset({
+            nombre: '',
+            descripcion: '',
+            is_active: true
+        });
     }
 
     loadCategories() {
@@ -317,12 +406,20 @@ export class CategoriesCrudComponent implements OnInit {
         };
         this.isEditMode = false;
         this.categoryDialog = true;
+        this.resetForm();
     }
 
     editCategory(category: Category) {
         this.category = { ...category };
         this.isEditMode = true;
         this.categoryDialog = true;
+
+        // Cargar datos en el formulario
+        this.categoryForm.patchValue({
+            nombre: category.nombre || '',
+            descripcion: category.descripcion || '',
+            is_active: category.is_active !== undefined ? category.is_active : true
+        });
     }
 
     deleteCategory(category: Category) {
@@ -367,6 +464,7 @@ export class CategoriesCrudComponent implements OnInit {
         this.category = {
             is_active: true
         };
+        this.resetForm();
     }
 
     createId(): string {
@@ -379,91 +477,93 @@ export class CategoriesCrudComponent implements OnInit {
     }
 
     saveCategory() {
-        if (this.category.nombre?.trim()) {
-            if (this.category.id) {
-                // Actualizar categoría existente
-                this.confirmIcon = 'warning';
-                this.confirmMessage = `¿Estás seguro que deseas actualizar la categoría <span class='text-primary'>${this.category.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
-                this.confirmAction = () => {
-                    if (this.category.id) {
-                        const updateData: CategoryUpdateRequest = {
-                            name: this.category.nombre,
-                            description: this.category.descripcion,
-                            active: this.category.is_active
-                        };
-                        this.saving.set(true);
-                        this.categoryService.updateCategory(this.category.id, updateData).subscribe({
-                            next: (updatedCategory) => {
-                                const idx = this.categories().findIndex(c => c.id === this.category.id);
-                                if (idx > -1) this.categories().splice(idx, 1, updatedCategory);
-                                this.categories.set([...this.categories()]);
-                                this.messageService.add({
-                                    severity: 'success',
-                                    summary: 'Éxito',
-                                    detail: `Categoría "${this.category.nombre}" actualizada exitosamente`,
-                                    life: 3000
-                                });
-                                this.categoryDialog = false;
-                                this.isEditMode = false;
-                                this.category = {};
-                                this.saving.set(false);
-                            },
-                            error: (error) => {
-                                console.error('Error al actualizar categoría:', error);
-                                const errorData = error as any;
-                                this.messageService.add({
-                                    severity: errorData.severity || 'error',
-                                    summary: errorData.severity === 'warn' ? 'Advertencia' : 'Error',
-                                    detail: errorData.message || `Error al actualizar la categoría "${this.category.nombre}"`,
-                                    life: 5000
-                                });
-                                this.saving.set(false);
-                            }
-                        });
-                    }
-                };
-                this.showCustomConfirm = true;
-            } else {
-                // Crear nueva categoría
-                const createData: CategoryCreateRequest = {
-                    name: this.category.nombre!,
-                    description: this.category.descripcion,
-                    active: this.category.is_active
-                };
-                this.saving.set(true);
-                this.categoryService.createCategory(createData).subscribe({
-                    next: (newCategory) => {
-                        this.categories.set([...this.categories(), newCategory]);
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Éxito',
-                            detail: `Categoría "${this.category.nombre}" creada exitosamente`,
-                            life: 3000
-                        });
-                        this.categoryDialog = false;
-                        this.isEditMode = false;
-                        this.category = {};
-                        this.saving.set(false);
-                    },
-                    error: (error) => {
-                        console.error('Error al crear categoría:', error);
-                        const errorData = error as any;
-                        this.messageService.add({
-                            severity: errorData.severity || 'error',
-                            summary: errorData.severity === 'warn' ? 'Advertencia' : 'Error',
-                            detail: errorData.message || `Error al crear la categoría "${this.category.nombre}"`,
-                            life: 5000
-                        });
-                        this.saving.set(false);
-                    }
-                });
-            }
+        if (this.categoryForm.invalid) {
+            // Marcar todos los campos como touched para mostrar errores
+            Object.keys(this.categoryForm.controls).forEach(key => {
+                const control = this.categoryForm.get(key);
+                control?.markAsTouched();
+            });
+            return;
+        }
+
+        const formValue = this.categoryForm.value;
+
+        if (this.category.id) {
+            // Actualizar categoría existente
+            this.confirmIcon = 'warning';
+            this.confirmMessage = `¿Estás seguro que deseas actualizar la categoría <span class='text-primary'>${formValue.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+            this.confirmAction = () => {
+                if (this.category.id) {
+                    const updateData: CategoryUpdateRequest = {
+                        name: formValue.nombre,
+                        description: formValue.descripcion,
+                        active: formValue.is_active
+                    };
+                    this.saving.set(true);
+                    this.categoryService.updateCategory(this.category.id, updateData).subscribe({
+                        next: (updatedCategory) => {
+                            const idx = this.categories().findIndex(c => c.id === this.category.id);
+                            if (idx > -1) this.categories().splice(idx, 1, updatedCategory);
+                            this.categories.set([...this.categories()]);
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: `Categoría "${formValue.nombre}" actualizada exitosamente`,
+                                life: 3000
+                            });
+                            this.categoryDialog = false;
+                            this.isEditMode = false;
+                            this.category = {};
+                            this.saving.set(false);
+                        },
+                        error: (error) => {
+                            console.error('Error al actualizar categoría:', error);
+                            const errorData = error as any;
+                            this.messageService.add({
+                                severity: errorData.severity || 'error',
+                                summary: errorData.severity === 'warn' ? 'Advertencia' : 'Error',
+                                detail: errorData.message || `Error al actualizar la categoría "${formValue.nombre}"`,
+                                life: 5000
+                            });
+                            this.saving.set(false);
+                        }
+                    });
+                }
+            };
+            this.showCustomConfirm = true;
         } else {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'El nombre es requerido',
-                life: 3000
+            // Crear nueva categoría
+            const createData: CategoryCreateRequest = {
+                name: formValue.nombre,
+                description: formValue.descripcion,
+                active: formValue.is_active
+            };
+            this.saving.set(true);
+            this.categoryService.createCategory(createData).subscribe({
+                next: (newCategory) => {
+                    this.categories.set([...this.categories(), newCategory]);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: `Categoría "${formValue.nombre}" creada exitosamente`,
+                        life: 3000
+                    });
+                    this.categoryDialog = false;
+                    this.isEditMode = false;
+                    this.category = {};
+                    this.saving.set(false);
+                },
+                error: (error) => {
+                    console.error('Error al crear categoría:', error);
+                    const errorData = error as any;
+                    this.messageService.add({
+                        severity: errorData.severity || 'error',
+                        summary: errorData.severity === 'warn' ? 'Advertencia' : 'Error',
+                        detail: errorData.message || `Error al crear la categoría "${formValue.nombre}"`,
+                        life: 5000
+                    });
+                    this.saving.set(false);
+                }
             });
         }
     }

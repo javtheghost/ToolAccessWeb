@@ -117,6 +117,19 @@ interface Tool {
                 </td>
             </tr>
         </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="10" class="text-center py-8">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
+                        <div class="text-center">
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay herramientas</h3>
+                            <p class="text-gray-500">Aún no se han creado herramientas. Utiliza el botón "Crear Herramienta" para agregar la primera.</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
     </p-table>
     <div class="flex justify-center mt-6"></div>
 </div>
