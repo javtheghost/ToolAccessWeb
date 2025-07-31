@@ -156,7 +156,7 @@ import { Category } from './interfaces';
 </div>
 <p-dialog
   [(visible)]="toolDialog"
-  [style]="{ width: '90vw', maxWidth: '600px' }"
+  [style]="{ width: '95vw', maxWidth: '600px' }"
   [modal]="true"
   [draggable]="false"
 >
@@ -167,9 +167,9 @@ import { Category } from './interfaces';
   </ng-template>
   <ng-template pTemplate="content">
     <form [formGroup]="toolForm" (ngSubmit)="saveTool()">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="relative col-span-2 py-2 mt-2">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
+        <div class="grid grid-cols-1 gap-4">
+            <div class="relative col-span-1 py-2 mt-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
                 <input
                     type="text"
                     id="nombre"
@@ -183,8 +183,8 @@ import { Category } from './interfaces';
                 <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
             </div>
 
-            <div class="relative col-span-2">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
                 <textarea
                     id="descripcion"
                     formControlName="descripcion"
@@ -198,8 +198,39 @@ import { Category } from './interfaces';
                 <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
             </div>
 
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">confirmation_number</span>
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
+                <p-dropdown
+                    [options]="subcategories"
+                    formControlName="subcategoria_id"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccionar subcategoría"
+                    [style]="{ width: '100%' }"
+                    class="w-full"
+                    [styleClass]="'h-12 px-10'"
+                    [showClear]="true"
+                    [class.border-red-500]="isFieldInvalid('subcategoria_id')"
+                    [class.border-gray-300]="!isFieldInvalid('subcategoria_id')">
+                    <ng-template pTemplate="selectedItem" let-subcategory>
+                        <div class="flex items-center justify-start h-full w-full">
+                            <span>{{ subcategory.nombre }}</span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="item" let-subcategory>
+                        <div class="flex items-center justify-start h-full w-full">
+                            <div class="flex flex-col">
+                                <span class="font-medium">{{ subcategory.nombre }}</span>
+                                <span class="text-sm text-gray-500">{{ subcategory.categoria_nombre }}</span>
+                            </div>
+                        </div>
+                    </ng-template>
+                </p-dropdown>
+                <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('subcategoria_id') }}</div>
+            </div>
+
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">confirmation_number</span>
                 <input
                     type="text"
                     id="folio"
@@ -214,30 +245,8 @@ import { Category } from './interfaces';
                 <div class="text-xs text-gray-500 mt-1 ml-10">Deja vacío para que se genere automáticamente</div>
             </div>
 
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">category</span>
-                <p-dropdown
-                    [options]="subcategories"
-                    formControlName="subcategoria_id"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    placeholder="Seleccionar subcategoría"
-                    class="w-full"
-                    [showClear]="true"
-                    [class.border-red-500]="isFieldInvalid('subcategoria_id')"
-                    [class.border-gray-300]="!isFieldInvalid('subcategoria_id')">
-                    <ng-template pTemplate="option" let-subcategory>
-                        <div class="flex flex-col">
-                            <span class="font-medium">{{ subcategory.nombre }}</span>
-                            <span class="text-sm text-gray-500">{{ subcategory.categoria_nombre }}</span>
-                        </div>
-                    </ng-template>
-                </p-dropdown>
-                <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('subcategoria_id') }}</div>
-            </div>
-
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">inventory_2</span>
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
                 <input
                     type="number"
                     id="stock"
@@ -253,8 +262,8 @@ import { Category } from './interfaces';
                 <div *ngIf="isFieldInvalid('stock')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('stock') }}</div>
             </div>
 
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none z-10">payments</span>
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-10">payments</span>
                 <p-inputnumber
                     formControlName="valor_reposicion"
                     [minFractionDigits]="2"
@@ -272,12 +281,12 @@ import { Category } from './interfaces';
                 <div *ngIf="isFieldInvalid('valor_reposicion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_reposicion') }}</div>
             </div>
 
-            <div class="flex flex-col items-center justify-center col-span-2">
+            <div class="flex flex-col items-center justify-center col-span-1">
                 <label class="mb-2">Activo</label>
                 <input type="checkbox" class="custom-toggle" formControlName="is_active" />
             </div>
 
-            <div class="col-span-2">
+            <div class="col-span-1">
                 <label class="block mb-2">Selecciona la imagen</label>
                 <div class="flex flex-col items-center">
                     <label class="border-2 border-dashed border-gray-400 rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center hover:border-[var(--primary-color)] transition-colors" style="width: 150px; height: 150px;">
@@ -428,6 +437,39 @@ import { Category } from './interfaces';
 
         :host ::ng-deep .p-table .p-table-content {
             overflow-x: auto !important;
+        }
+
+        /* Estilos para dropdown de subcategoría */
+        :host ::ng-deep .p-dropdown {
+            height: 3rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #d1d5db !important;
+            background-color: transparent !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            padding-left: 2.5rem !important;
+            height: 3rem !important;
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled):hover {
+            border-color: #9ca3af !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled).p-focus {
+            outline: none !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-trigger {
+            width: 2.5rem !important;
+            color: #6b7280 !important;
         }`
     ]
 })
@@ -480,12 +522,35 @@ export class ToolsCrudComponent implements OnInit {
 
     initForm() {
         this.toolForm = this.fb.group({
-            nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-            descripcion: ['', [Validators.maxLength(200)]],
-            folio: ['', [Validators.pattern(/^[A-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(20)]], // Opcional
+            nombre: ['', [
+                Validators.required,
+                Validators.pattern(/^[\wáéíóúÁÉÍÓÚñÑ\s\-.,]{3,100}$/),
+                Validators.minLength(3),
+                Validators.maxLength(100)
+            ]],
+            descripcion: ['', [
+                Validators.pattern(/^[\wáéíóúÁÉÍÓÚñÑ\s¡!¿?@#$%&*()\-_=+.,:;'"\n\r]{3,200}$/),
+                Validators.minLength(3),
+                Validators.maxLength(200)
+            ]],
+            folio: ['', [
+                Validators.pattern(/^[A-Z0-9\-]{3,20}$/),
+                Validators.minLength(3),
+                Validators.maxLength(20)
+            ]], // Opcional
             subcategoria_id: [null, [Validators.required]],
-                         stock: [1, [Validators.required, Validators.min(0), Validators.max(9999)]],
-            valor_reposicion: [0, [Validators.required, Validators.min(0), Validators.max(999999.99)]],
+            stock: [1, [
+                Validators.required,
+                Validators.pattern(/^(0|[1-9]\d{0,3})$/),
+                Validators.min(0),
+                Validators.max(9999)
+            ]],
+            valor_reposicion: [0, [
+                Validators.required,
+                Validators.pattern(/^\d{1,6}(\.\d{1,2})?$/),
+                Validators.min(0),
+                Validators.max(999999.99)
+            ]],
             is_active: [true]
         });
     }
@@ -505,30 +570,66 @@ export class ToolsCrudComponent implements OnInit {
         if (control?.errors && control.touched) {
             if (control.errors['required']) {
                 if (controlName === 'nombre') {
-                    return 'Este campo es requerido (Ej: Martillo de 16 oz, Taladro Eléctrico)';
+                    return 'Este campo es requerido';
+                }
+                if (controlName === 'subcategoria_id') {
+                    return 'Debes seleccionar una subcategoría';
                 }
                 return 'Este campo es requerido';
             }
             if (control.errors['minlength']) {
+                if (controlName === 'nombre') {
+                    return 'Mínimo 3 caracteres';
+                }
+                if (controlName === 'descripcion') {
+                    return 'Mínimo 3 caracteres';
+                }
+                if (controlName === 'folio') {
+                    return 'Mínimo 3 caracteres';
+                }
                 return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
             }
             if (control.errors['maxlength']) {
+                if (controlName === 'nombre') {
+                    return 'Máximo 100 caracteres';
+                }
+                if (controlName === 'descripcion') {
+                    return 'Máximo 200 caracteres';
+                }
+                if (controlName === 'folio') {
+                    return 'Máximo 20 caracteres';
+                }
                 return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
             }
             if (control.errors['pattern']) {
-                return 'Solo letras mayúsculas, números y guiones (Ej: HERR-001, MART-2024)';
+                if (controlName === 'nombre') {
+                    return 'Solo letras, números, guiones y puntos';
+                }
+                if (controlName === 'folio') {
+                    return 'Solo letras mayúsculas, números y guiones';
+                }
+                if (controlName === 'stock') {
+                    return 'Solo números del 0 al 9999';
+                }
+                if (controlName === 'valor_reposicion') {
+                    return 'Solo números con máximo dos decimales';
+                }
+                if (controlName === 'descripcion') {
+                    return 'Solo caracteres permitidos';
+                }
+                return 'Formato no válido';
             }
             if (control.errors['min']) {
                 if (controlName === 'valor_reposicion') {
-                    return `Valor mínimo: ${control.errors['min'].min} (Ej: $1,250.00 MXN)`;
+                    return `Valor mínimo: ${control.errors['min'].min}`;
                 }
-                return `Valor mínimo: ${control.errors['min'].min} (Rango: 0 - 9,999 unidades)`;
+                return `Valor mínimo: ${control.errors['min'].min}`;
             }
             if (control.errors['max']) {
                 if (controlName === 'valor_reposicion') {
-                    return `Valor máximo: ${control.errors['max'].max} (Ej: $1,250.00 MXN)`;
+                    return `Valor máximo: ${control.errors['max'].max}`;
                 }
-                return `Valor máximo: ${control.errors['max'].max} (Rango: 0 - 9,999 unidades)`;
+                return `Valor máximo: ${control.errors['max'].max}`;
             }
         }
         return '';
@@ -819,6 +920,19 @@ export class ToolsCrudComponent implements OnInit {
                     severity: 'error',
                     summary: 'Error',
                     detail: 'Solo se permiten archivos de imagen',
+                    life: 3000
+                });
+                return;
+            }
+
+            // Validar extensión del archivo
+            const fileName = file.name.toLowerCase();
+            const validExtensions = /\.(jpg|png|webp)$/;
+            if (!validExtensions.test(fileName)) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Solo se permiten archivos JPG, PNG y WEBP',
                     life: 3000
                 });
                 return;

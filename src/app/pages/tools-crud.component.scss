@@ -5,3 +5,98 @@
 ::ng-deep .p-dialog .p-dialog-content {
   background: #fff !important;
 }
+
+        /* Estilos para dropdown de subcategoría */
+        :host ::ng-deep .p-dropdown {
+            height: 48px !important;
+            border-radius: 8px !important;
+            border: 1px solid #d1d5db !important;
+            background: transparent !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled):hover {
+            border-color: var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled).p-focus {
+            outline: 0 none !important;
+            outline-offset: 0 !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            padding: 0.75rem 2.5rem 0.75rem 2.5rem !important;
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            line-height: normal !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-trigger {
+            width: 2.5rem !important;
+            color: #6b7280 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        /* Estilos para móviles */
+        @media (max-width: 640px) {
+            :host ::ng-deep .p-dialog {
+                margin: 0.5rem !important;
+                width: calc(100vw - 1rem) !important;
+                max-width: none !important;
+            }
+
+            :host ::ng-deep .p-dialog .p-dialog-content {
+                padding: 1rem !important;
+            }
+
+            :host ::ng-deep .p-dialog .p-dialog-header {
+                padding: 1rem !important;
+            }
+
+            /* Ajustar campos de entrada en móviles */
+            :host ::ng-deep .p-dropdown,
+            :host ::ng-deep .custom-inputnumber .p-inputtext,
+            input[type="text"],
+            input[type="number"],
+            textarea {
+                font-size: 16px !important; /* Evita zoom en iOS */
+            }
+
+            /* Ajustar espaciado en móviles */
+            .grid {
+                gap: 1rem !important;
+            }
+
+            /* Hacer botones más grandes en móviles */
+            button {
+                min-height: 44px !important; /* Tamaño mínimo para touch */
+            }
+
+            /* Ajustar iconos en móviles */
+            .material-symbols-outlined {
+                font-size: 20px !important;
+            }
+
+            /* Ajustar área de imagen en móviles */
+            .border-2 {
+                width: 120px !important;
+                height: 120px !important;
+            }
+
+            /* Ajustar labels en móviles */
+            label {
+                font-size: 0.875rem !important;
+            }
+
+            /* Ajustar espaciado entre campos */
+            .relative {
+                margin-bottom: 0.5rem !important;
+            }
+        }
