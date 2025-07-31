@@ -13,6 +13,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface DamageHistory {
     id: string;
@@ -43,7 +44,8 @@ interface DamageHistory {
         ConfirmDialogModule,
         InputIconModule,
         IconFieldModule,
-        DropdownModule
+        DropdownModule,
+        TooltipModule
     ],
     template: `
 <p-toast></p-toast>
@@ -104,12 +106,20 @@ interface DamageHistory {
                     </span>
                 </td>
                 <td>
-                    <p-button (click)="editDamageHistory(history)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
+                    <p-button
+                        (click)="editDamageHistory(history)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                        pTooltip="Editar historial de daño"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">edit</i>
                         </ng-template>
                     </p-button>
-                    <p-button (click)="deleteDamageHistory(history)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                    <p-button
+                        (click)="deleteDamageHistory(history)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                        pTooltip="Eliminar historial de daño"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">delete</i>
                         </ng-template>

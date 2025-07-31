@@ -13,6 +13,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface FineConfig {
     id: string;
@@ -38,7 +39,8 @@ interface FineConfig {
         ConfirmDialogModule,
         InputIconModule,
         IconFieldModule,
-        InputSwitchModule
+        InputSwitchModule,
+        TooltipModule
     ],
     template: `
 <p-toast></p-toast>
@@ -93,12 +95,20 @@ interface FineConfig {
                     <input type="checkbox" class="custom-toggle" [(ngModel)]="fine.active" disabled />
                 </td>
                 <td>
-                    <p-button (click)="editFineConfig(fine)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
+                    <p-button
+                        (click)="editFineConfig(fine)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                        pTooltip="Editar configuración"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">edit</i>
                         </ng-template>
                     </p-button>
-                    <p-button (click)="deleteFineConfig(fine)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                    <p-button
+                        (click)="deleteFineConfig(fine)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                        pTooltip="Eliminar configuración"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">delete</i>
                         </ng-template>

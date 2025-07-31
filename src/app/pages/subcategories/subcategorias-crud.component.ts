@@ -17,6 +17,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { DropdownModule } from 'primeng/dropdown';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
 import { SubcategoryService, Subcategory, SubcategoryDisplay, SubcategoryCreateRequest, SubcategoryUpdateRequest } from '../service/subcategory.service';
 import { CategoryService } from '../service/category.service';
 import { Category } from '../interfaces';
@@ -41,7 +42,8 @@ import { forkJoin } from 'rxjs';
         InputIconModule,
         DropdownModule,
         SkeletonModule,
-        ProgressSpinnerModule
+        ProgressSpinnerModule,
+        TooltipModule
     ],
     template: `
 <p-toast></p-toast>
@@ -148,12 +150,20 @@ import { forkJoin } from 'rxjs';
                     </td>
                     <td class="text-center p-3">
                         <div class="flex justify-center gap-2">
-                            <p-button (click)="editSubcategory(subcategory)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit">
+                            <p-button
+                                (click)="editSubcategory(subcategory)"
+                                styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
+                                pTooltip="Editar subcategoría"
+                                tooltipPosition="top">
                                 <ng-template pTemplate="icon">
                                     <i class="material-symbols-outlined">edit</i>
                                 </ng-template>
                             </p-button>
-                            <p-button (click)="deleteSubcategory(subcategory)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                            <p-button
+                                (click)="deleteSubcategory(subcategory)"
+                                styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                                pTooltip="Eliminar subcategoría"
+                                tooltipPosition="top">
                                 <ng-template pTemplate="icon">
                                     <i class="material-symbols-outlined">delete</i>
                                 </ng-template>

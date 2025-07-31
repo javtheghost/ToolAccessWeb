@@ -16,6 +16,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
 import { CategoryService } from '../service/category.service';
 import { Category, CategoryCreateRequest, CategoryUpdateRequest } from '../interfaces';
 
@@ -43,7 +44,8 @@ interface Column {
         IconFieldModule,
         InputIconModule,
         SkeletonModule,
-        ProgressSpinnerModule
+        ProgressSpinnerModule,
+        TooltipModule
     ],
     template: `
 <p-toast></p-toast>
@@ -146,12 +148,20 @@ interface Column {
                 </td>
                 <td class="text-center p-3">
                     <div class="flex justify-center gap-2">
-                        <p-button (click)="editCategory(category)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit">
+                        <p-button
+                            (click)="editCategory(category)"
+                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
+                            pTooltip="Editar categoría"
+                            tooltipPosition="top">
                             <ng-template pTemplate="icon">
                                 <i class="material-symbols-outlined">edit</i>
                             </ng-template>
                         </p-button>
-                        <p-button (click)="deleteCategory(category)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                        <p-button
+                            (click)="deleteCategory(category)"
+                            styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                            pTooltip="Eliminar categoría"
+                            tooltipPosition="top">
                             <ng-template pTemplate="icon">
                                 <i class="material-symbols-outlined">delete</i>
                             </ng-template>

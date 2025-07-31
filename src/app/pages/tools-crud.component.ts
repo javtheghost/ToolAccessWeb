@@ -15,6 +15,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { TooltipModule } from 'primeng/tooltip';
 import { ToolsService, Tool, ToolCreateRequest, ToolUpdateRequest } from './service/tools.service';
 import { CategoryService } from './service/category.service';
 import { SubcategoryService, SubcategoryDisplay } from './service/subcategory.service';
@@ -39,7 +40,8 @@ import { Category } from './interfaces';
         InputIconModule,
         IconFieldModule,
         DropdownModule,
-        InputNumberModule
+        InputNumberModule,
+        TooltipModule
     ],
     template: `
 <p-toast></p-toast>
@@ -100,12 +102,20 @@ import { Category } from './interfaces';
                     <input type="checkbox" class="custom-toggle" [(ngModel)]="tool.is_active" disabled />
                 </td>
                 <td>
-                    <p-button (click)="editTool(tool)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
+                    <p-button
+                        (click)="editTool(tool)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                        pTooltip="Editar herramienta"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">edit</i>
                         </ng-template>
                     </p-button>
-                    <p-button (click)="deleteTool(tool)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                    <p-button
+                        (click)="deleteTool(tool)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                        pTooltip="Eliminar herramienta"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">delete</i>
                         </ng-template>

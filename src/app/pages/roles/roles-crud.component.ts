@@ -13,6 +13,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface Role {
     id: string;
@@ -37,7 +38,8 @@ interface Role {
         ConfirmDialogModule,
         InputSwitchModule,
         InputIconModule,
-        IconFieldModule
+        IconFieldModule,
+        TooltipModule
     ],
     template: `
 <p-toast></p-toast>
@@ -86,12 +88,20 @@ interface Role {
                     <input type="checkbox" class="custom-toggle" [(ngModel)]="role.active" disabled />
                 </td>
                 <td>
-                    <p-button (click)="editRole(role)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
+                    <p-button
+                        (click)="editRole(role)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                        pTooltip="Editar rol"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">edit</i>
                         </ng-template>
                     </p-button>
-                    <p-button (click)="deleteRole(role)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                    <p-button
+                        (click)="deleteRole(role)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                        pTooltip="Eliminar rol"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">delete</i>
                         </ng-template>

@@ -12,6 +12,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface DamageType {
     id: string;
@@ -36,7 +37,8 @@ interface DamageType {
         DialogModule,
         ConfirmDialogModule,
         InputIconModule,
-        IconFieldModule
+        IconFieldModule,
+        TooltipModule
     ],
     template: `
 <p-toast></p-toast>
@@ -91,12 +93,20 @@ interface DamageType {
                     <input type="checkbox" class="custom-toggle" [(ngModel)]="damageType.active" disabled />
                 </td>
                 <td>
-                    <p-button (click)="editDamageType(damageType)" styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2">
+                    <p-button
+                        (click)="editDamageType(damageType)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                        pTooltip="Editar tipo de daño"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">edit</i>
                         </ng-template>
                     </p-button>
-                    <p-button (click)="deleteDamageType(damageType)" styleClass="custom-flat-icon-button custom-flat-icon-button-delete">
+                    <p-button
+                        (click)="deleteDamageType(damageType)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                        pTooltip="Eliminar tipo de daño"
+                        tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">delete</i>
                         </ng-template>
