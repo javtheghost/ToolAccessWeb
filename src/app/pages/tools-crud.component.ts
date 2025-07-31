@@ -52,74 +52,89 @@ import { Category } from './interfaces';
         [rows]="10"
         [paginator]="true"
         [globalFilterFields]="['nombre', 'descripcion', 'folio', 'categoria_nombre', 'subcategoria_nombre']"
-        [tableStyle]="{ 'min-width': '75rem' }"
+        [tableStyle]="{ 'min-width': '1200px' }"
         [(selection)]="selectedTools"
         [rowHover]="true"
         dataKey="id"
-        [showCurrentPageReport]="false"
-        [rowsPerPageOptions]="[10, 20, 30]"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} herramientas"
+        [rowsPerPageOptions]="[5, 10, 20]"
         class="shadow-md rounded-lg"
     >
         <ng-template #caption>
-            <div class="flex items-center justify-between">
-                <h5 class="m-0 p-2 text-[var(--primary-color)]">Administrar Herramientas</h5>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Administrar Herramientas</h5>
             </div>
-            <div class="flex items-center justify-between gap-4 mt-2">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mt-4">
                 <p-iconfield class="flex-1">
                     <p-inputicon styleClass="pi pi-search" />
-                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar herramientas..." />
                 </p-iconfield>
-                <div class="flex justify-end">
-                    <p-button label="Crear Herramienta" icon="pi pi-plus" (onClick)="openNew()"></p-button>
-                </div>
+                <p-button
+                    label="Crear Herramienta"
+                    icon="pi pi-plus"
+                    (onClick)="openNew()"
+                    styleClass="w-full sm:w-auto">
+                </p-button>
             </div>
         </ng-template>
         <ng-template pTemplate="header">
             <tr class="bg-[#6ea1cc] text-white">
-                <th>Imagen</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Folio</th>
-                <th>Categoría</th>
-                <th>Subcategoría</th>
-                <th>Stock</th>
-                <th>Valor Reposición</th>
-                <th>Activo</th>
-                <th>Acción</th>
+                <th class="text-center p-3" style="min-width: 80px;">Imagen</th>
+                <th class="text-left p-3" style="min-width: 150px;">Nombre</th>
+                <th class="text-left p-3" style="min-width: 200px;">Descripción</th>
+                <th class="text-center p-3" style="min-width: 120px;">Folio</th>
+                <th class="text-left p-3" style="min-width: 120px;">Categoría</th>
+                <th class="text-left p-3" style="min-width: 120px;">Subcategoría</th>
+                <th class="text-center p-3" style="min-width: 80px;">Stock</th>
+                <th class="text-center p-3" style="min-width: 140px;">Valor Reposición</th>
+                <th class="text-center p-3" style="min-width: 80px;">Activo</th>
+                <th class="text-center p-3" style="min-width: 120px;">Acción</th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-tool>
-            <tr>
-                <td><img *ngIf="tool.foto_url" [src]="tool.foto_url" alt="Imagen" style="width: 48px" class="rounded" /></td>
-                <td>{{ tool.nombre }}</td>
-                <td>{{ tool.descripcion }}</td>
-                <td>{{ tool.folio }}</td>
-                <td>{{ tool.categoria_nombre || 'N/A' }}</td>
-                <td>{{ tool.subcategoria_nombre || 'N/A' }}</td>
-                <td>{{ tool.stock }}</td>
-                <td>{{ tool.valor_reposicion | currency: 'MXN' }}</td>
-                <td>
+            <tr class="hover:bg-gray-50">
+                <td class="text-center p-3">
+                    <img *ngIf="tool.foto_url" [src]="getImageUrl(tool.foto_url)" alt="Imagen" style="width: 48px; height: 48px; object-fit: cover;" class="rounded" />
+                    <div *ngIf="!tool.foto_url" class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                        <span class="material-symbols-outlined text-gray-400">image</span>
+                    </div>
+                </td>
+                <td class="p-3">
+                    <div class="font-medium">{{ tool.nombre }}</div>
+                </td>
+                <td class="p-3">{{ tool.descripcion }}</td>
+                <td class="text-center p-3">
+                    <span class="font-mono text-sm text-gray-600">{{ tool.folio }}</span>
+                </td>
+                <td class="p-3">{{ tool.categoria_nombre || 'N/A' }}</td>
+                <td class="p-3">{{ tool.subcategoria_nombre || 'N/A' }}</td>
+                <td class="text-center p-3">{{ tool.stock }}</td>
+                <td class="text-center p-3">{{ tool.valor_reposicion | currency: 'MXN' }}</td>
+                <td class="text-center p-3">
                     <input type="checkbox" class="custom-toggle" [(ngModel)]="tool.is_active" disabled />
                 </td>
-                <td>
-                    <p-button
-                        (click)="editTool(tool)"
-                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
-                        pTooltip="Editar herramienta"
-                        tooltipPosition="top">
-                        <ng-template pTemplate="icon">
-                            <i class="material-symbols-outlined">edit</i>
-                        </ng-template>
-                    </p-button>
-                    <p-button
-                        (click)="deleteTool(tool)"
-                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
-                        pTooltip="Eliminar herramienta"
-                        tooltipPosition="top">
-                        <ng-template pTemplate="icon">
-                            <i class="material-symbols-outlined">delete</i>
-                        </ng-template>
-                    </p-button>
+                <td class="text-center p-3">
+                    <div class="flex justify-center gap-2">
+                        <p-button
+                            (click)="editTool(tool)"
+                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
+                            pTooltip="Editar herramienta"
+                            tooltipPosition="top">
+                            <ng-template pTemplate="icon">
+                                <i class="material-symbols-outlined">edit</i>
+                            </ng-template>
+                        </p-button>
+                        <p-button
+                            (click)="deleteTool(tool)"
+                            styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                            pTooltip="Eliminar herramienta"
+                            tooltipPosition="top">
+                            <ng-template pTemplate="icon">
+                                <i class="material-symbols-outlined">delete</i>
+                            </ng-template>
+                        </p-button>
+                    </div>
                 </td>
             </tr>
         </ng-template>
@@ -141,7 +156,7 @@ import { Category } from './interfaces';
 </div>
 <p-dialog
   [(visible)]="toolDialog"
-  [style]="{ width: '500px' }"
+  [style]="{ width: '90vw', maxWidth: '600px' }"
   [modal]="true"
   [draggable]="false"
 >
@@ -150,147 +165,148 @@ import { Category } from './interfaces';
       {{ isEditMode ? 'Editar Herramienta' : 'Nueva Herramienta' }}
     </span>
   </ng-template>
-         <ng-template pTemplate="content">
-         <form [formGroup]="toolForm" (ngSubmit)="saveTool()">
-             <div class="grid grid-cols-2 gap-4">
-                 <div class="relative col-span-2 py-2 mt-2">
-                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
-                                           <input
-                          type="text"
-                          id="nombre"
-                          formControlName="nombre"
-                          class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                                                     placeholder=" "
-                          aria-label="Nombre"
-                          [class.border-red-500]="isFieldInvalid('nombre')"
-                          [class.border-gray-300]="!isFieldInvalid('nombre')" />
-                      <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
-                      <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
-                 </div>
+  <ng-template pTemplate="content">
+    <form [formGroup]="toolForm" (ngSubmit)="saveTool()">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="relative col-span-2 py-2 mt-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
+                <input
+                    type="text"
+                    id="nombre"
+                    formControlName="nombre"
+                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Nombre"
+                    [class.border-red-500]="isFieldInvalid('nombre')"
+                    [class.border-gray-300]="!isFieldInvalid('nombre')" />
+                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+                <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
+            </div>
 
-                 <div class="relative col-span-2">
-                     <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
-                     <textarea
-                         id="descripcion"
-                         formControlName="descripcion"
-                         rows="2"
-                         class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                         placeholder=" "
-                         aria-label="Descripción"
-                         [class.border-red-500]="isFieldInvalid('descripcion')"
-                         [class.border-gray-300]="!isFieldInvalid('descripcion')"></textarea>
-                     <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
-                     <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
-                 </div>
+            <div class="relative col-span-2">
+                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
+                <textarea
+                    id="descripcion"
+                    formControlName="descripcion"
+                    rows="2"
+                    class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Descripción"
+                    [class.border-red-500]="isFieldInvalid('descripcion')"
+                    [class.border-gray-300]="!isFieldInvalid('descripcion')"></textarea>
+                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
+                <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
+            </div>
 
-                 <div class="relative">
-                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">confirmation_number</span>
-                                           <input
-                          type="text"
-                          id="folio"
-                          formControlName="folio"
-                          class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                                                     placeholder=" "
-                          aria-label="Folio"
-                          [class.border-red-500]="isFieldInvalid('folio')"
-                          [class.border-gray-300]="!isFieldInvalid('folio')" />
-                      <label for="folio" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Folio</label>
-                      <div *ngIf="isFieldInvalid('folio')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('folio') }}</div>
-                 </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">confirmation_number</span>
+                <input
+                    type="text"
+                    id="folio"
+                    formControlName="folio"
+                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Folio"
+                    [class.border-red-500]="isFieldInvalid('folio')"
+                    [class.border-gray-300]="!isFieldInvalid('folio')" />
+                <label for="folio" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Folio (Opcional)</label>
+                <div *ngIf="isFieldInvalid('folio')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('folio') }}</div>
+                <div class="text-xs text-gray-500 mt-1 ml-10">Deja vacío para que se genere automáticamente</div>
+            </div>
 
-                 <div class="relative">
-                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">category</span>
-                     <p-dropdown
-                         [options]="subcategories"
-                         formControlName="subcategoria_id"
-                         optionLabel="nombre"
-                         optionValue="id"
-                         placeholder="Seleccionar subcategoría"
-                         class="w-full"
-                         [showClear]="true"
-                         [class.border-red-500]="isFieldInvalid('subcategoria_id')"
-                         [class.border-gray-300]="!isFieldInvalid('subcategoria_id')">
-                         <ng-template pTemplate="option" let-subcategory>
-                             <div class="flex flex-col">
-                                 <span class="font-medium">{{ subcategory.nombre }}</span>
-                                 <span class="text-sm text-gray-500">{{ subcategory.categoria_nombre }}</span>
-                             </div>
-                         </ng-template>
-                     </p-dropdown>
-                     <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('subcategoria_id') }}</div>
-                 </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">category</span>
+                <p-dropdown
+                    [options]="subcategories"
+                    formControlName="subcategoria_id"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccionar subcategoría"
+                    class="w-full"
+                    [showClear]="true"
+                    [class.border-red-500]="isFieldInvalid('subcategoria_id')"
+                    [class.border-gray-300]="!isFieldInvalid('subcategoria_id')">
+                    <ng-template pTemplate="option" let-subcategory>
+                        <div class="flex flex-col">
+                            <span class="font-medium">{{ subcategory.nombre }}</span>
+                            <span class="text-sm text-gray-500">{{ subcategory.categoria_nombre }}</span>
+                        </div>
+                    </ng-template>
+                </p-dropdown>
+                <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('subcategoria_id') }}</div>
+            </div>
 
-                 <div class="relative">
-                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">inventory_2</span>
-                                                                 <input
-                          type="number"
-                          id="stock"
-                          formControlName="stock"
-                          min="0"
-                          max="9999"
-                          class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                          placeholder=" "
-                          aria-label="Stock"
-                          [class.border-red-500]="isFieldInvalid('stock')"
-                          [class.border-gray-300]="!isFieldInvalid('stock')" />
-                      <label for="stock" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Stock</label>
-                      <div *ngIf="isFieldInvalid('stock')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('stock') }}</div>
-                 </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">inventory_2</span>
+                <input
+                    type="number"
+                    id="stock"
+                    formControlName="stock"
+                    min="0"
+                    max="9999"
+                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Stock"
+                    [class.border-red-500]="isFieldInvalid('stock')"
+                    [class.border-gray-300]="!isFieldInvalid('stock')" />
+                <label for="stock" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Stock</label>
+                <div *ngIf="isFieldInvalid('stock')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('stock') }}</div>
+            </div>
 
-                 <div class="relative">
-                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none z-10">payments</span>
-                                           <p-inputnumber
-                          formControlName="valor_reposicion"
-                          [minFractionDigits]="2"
-                          [maxFractionDigits]="2"
-                          [min]="0"
-                          [max]="999999.99"
-                          placeholder="$0.00 MXN"
-                          class="w-full"
-                          [showButtons]="false"
-                          [useGrouping]="true"
-                          [locale]="'es-MX'"
-                          styleClass="custom-inputnumber">
-                      </p-inputnumber>
-                      <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Valor Reposición</label>
-                      <div *ngIf="isFieldInvalid('valor_reposicion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_reposicion') }}</div>
-                 </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none z-10">payments</span>
+                <p-inputnumber
+                    formControlName="valor_reposicion"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    [min]="0"
+                    [max]="999999.99"
+                    placeholder="$0.00 MXN"
+                    class="w-full"
+                    [showButtons]="false"
+                    [useGrouping]="true"
+                    [locale]="'es-MX'"
+                    styleClass="custom-inputnumber">
+                </p-inputnumber>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Valor Reposición</label>
+                <div *ngIf="isFieldInvalid('valor_reposicion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_reposicion') }}</div>
+            </div>
 
-                                  <div class="flex flex-col items-center justify-center col-span-2">
-                     <label class="mb-2">Activo</label>
-                     <input type="checkbox" class="custom-toggle" formControlName="is_active" />
-                 </div>
+            <div class="flex flex-col items-center justify-center col-span-2">
+                <label class="mb-2">Activo</label>
+                <input type="checkbox" class="custom-toggle" formControlName="is_active" />
+            </div>
 
-                 <div class="col-span-2">
-                     <label class="block mb-2">Selecciona la imagen</label>
-                     <div class="flex flex-col items-center">
-                         <label class="border-2 border-dashed border-gray-400 rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center hover:border-[var(--primary-color)] transition-colors" style="width: 150px; height: 150px;">
-                             <span class="material-symbols-outlined text-4xl mb-2 text-gray-400">cloud_upload</span>
-                             <span class="text-sm text-gray-500">Click para subir imagen</span>
-                                                           <span class="text-xs text-gray-400 mt-1">Máx. 500KB</span>
-                             <input type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden" />
-                         </label>
+            <div class="col-span-2">
+                <label class="block mb-2">Selecciona la imagen</label>
+                <div class="flex flex-col items-center">
+                    <label class="border-2 border-dashed border-gray-400 rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center hover:border-[var(--primary-color)] transition-colors" style="width: 150px; height: 150px;">
+                        <span class="material-symbols-outlined text-4xl mb-2 text-gray-400">cloud_upload</span>
+                        <span class="text-sm text-gray-500">Click para subir imagen</span>
+                        <span class="text-xs text-gray-400 mt-1">Máx. 5MB</span>
+                        <input type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden" />
+                    </label>
 
-                         <!-- Imagen cargada con botón de eliminar -->
-                         <div *ngIf="tool.foto_url" class="mt-2 relative">
-                             <img [src]="tool.foto_url" alt="Imagen" class="rounded" style="max-width: 120px; max-height: 120px;" />
-                             <button
-                                 type="button"
-                                 (click)="removeImage()"
-                                 class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-                                 title="Eliminar imagen">
-                                 <span class="material-symbols-outlined text-sm">close</span>
-                             </button>
-                         </div>
-                     </div>
-                 </div>
-             </div>
-             <div class="flex justify-end gap-4 mt-6">
-                 <button pButton type="button" class="custom-cancel-btn w-24" (click)="hideDialog()">Cancelar</button>
-                 <button pButton type="submit" class="p-button w-24" [disabled]="toolForm.invalid">Guardar</button>
-             </div>
-         </form>
-    </ng-template>
+                    <!-- Imagen cargada con botón de eliminar -->
+                    <div *ngIf="selectedImage || tool.foto_url" class="mt-2 relative">
+                        <img [src]="getImagePreview()" alt="Imagen" class="rounded" style="max-width: 120px; max-height: 120px; object-fit: cover;" />
+                        <button
+                            type="button"
+                            (click)="removeImage()"
+                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            title="Eliminar imagen">
+                            <span class="material-symbols-outlined text-sm">close</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+            <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="submit" class="p-button w-full sm:w-24" [disabled]="toolForm.invalid">Guardar</button>
+        </div>
+    </form>
+  </ng-template>
 </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
 <div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
@@ -399,6 +415,19 @@ import { Category } from './interfaces';
 
         .ml-10 {
             margin-left: 2.5rem !important;
+        }
+
+        /* Estilos para tabla scrolleable */
+        :host ::ng-deep .p-table {
+            overflow-x: auto !important;
+        }
+
+        :host ::ng-deep .p-table .p-table-wrapper {
+            overflow-x: auto !important;
+        }
+
+        :host ::ng-deep .p-table .p-table-content {
+            overflow-x: auto !important;
         }`
     ]
 })
@@ -429,6 +458,10 @@ export class ToolsCrudComponent implements OnInit {
     loading: boolean = false;
     loadingCategories: boolean = false;
 
+    // Manejo de imágenes
+    selectedImage: File | null = null;
+    imagePreview: string | null = null;
+
     constructor(
         private messageService: MessageService,
         private toolsService: ToolsService,
@@ -449,11 +482,10 @@ export class ToolsCrudComponent implements OnInit {
         this.toolForm = this.fb.group({
             nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
             descripcion: ['', [Validators.maxLength(200)]],
-            folio: ['', [Validators.required, Validators.pattern(/^[A-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(20)]],
+            folio: ['', [Validators.pattern(/^[A-Z0-9-]+$/), Validators.minLength(3), Validators.maxLength(20)]], // Opcional
             subcategoria_id: [null, [Validators.required]],
                          stock: [1, [Validators.required, Validators.min(0), Validators.max(9999)]],
             valor_reposicion: [0, [Validators.required, Validators.min(0), Validators.max(999999.99)]],
-            foto_url: [''],
             is_active: [true]
         });
     }
@@ -465,7 +497,6 @@ export class ToolsCrudComponent implements OnInit {
     get subcategoria_id() { return this.toolForm.get('subcategoria_id'); }
     get stock() { return this.toolForm.get('stock'); }
     get valor_reposicion() { return this.toolForm.get('valor_reposicion'); }
-    get foto_url() { return this.toolForm.get('foto_url'); }
     get is_active() { return this.toolForm.get('is_active'); }
 
     // Métodos de validación personalizados
@@ -565,10 +596,6 @@ export class ToolsCrudComponent implements OnInit {
         });
     }
 
-
-
-
-
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
@@ -577,6 +604,8 @@ export class ToolsCrudComponent implements OnInit {
         this.tool = this.emptyTool();
         this.selectedSubcategory = null;
         this.isEditMode = false;
+        this.selectedImage = null;
+        this.imagePreview = null;
         this.toolForm.reset({
             nombre: '',
             descripcion: '',
@@ -584,7 +613,6 @@ export class ToolsCrudComponent implements OnInit {
             subcategoria_id: null,
             stock: 1,
             valor_reposicion: 0,
-            foto_url: '',
             is_active: true
         });
         this.toolDialog = true;
@@ -605,10 +633,11 @@ export class ToolsCrudComponent implements OnInit {
             subcategoria_id: tool.subcategoria_id,
             stock: tool.stock,
             valor_reposicion: tool.valor_reposicion,
-            foto_url: tool.foto_url,
             is_active: tool.is_active
         });
 
+        this.selectedImage = null;
+        this.imagePreview = null;
         this.isEditMode = true;
         this.toolDialog = true;
     }
@@ -644,6 +673,8 @@ export class ToolsCrudComponent implements OnInit {
         this.toolDialog = false;
         this.isEditMode = false;
         this.selectedSubcategory = null;
+        this.selectedImage = null;
+        this.imagePreview = null;
         this.showCustomConfirm = false;
         this.toolForm.reset();
     }
@@ -652,9 +683,6 @@ export class ToolsCrudComponent implements OnInit {
         if (this.toolForm.valid) {
             const formValue = this.toolForm.value;
             console.log('Form values:', formValue);
-            console.log('subcategoria_id:', formValue.subcategoria_id);
-            console.log('foto_url:', formValue.foto_url);
-            console.log('foto_url length:', formValue.foto_url ? formValue.foto_url.length : 0);
 
             // Validar que subcategoria_id sea un número válido
             if (!formValue.subcategoria_id || formValue.subcategoria_id <= 0) {
@@ -687,11 +715,11 @@ export class ToolsCrudComponent implements OnInit {
                     const updateData: ToolUpdateRequest = {
                         nombre: formValue.nombre,
                         subcategoria_id: subcategoriaId,
-                        folio: formValue.folio,
+                        folio: formValue.folio && formValue.folio.trim().length > 0 ? formValue.folio : undefined,
                         stock: formValue.stock,
                         valor_reposicion: formValue.valor_reposicion,
                         descripcion: formValue.descripcion,
-                        foto_url: formValue.foto_url,
+                        imagen: this.selectedImage || undefined,
                         is_active: formValue.is_active
                     };
 
@@ -709,6 +737,8 @@ export class ToolsCrudComponent implements OnInit {
                             this.isEditMode = false;
                             this.tool = this.emptyTool();
                             this.selectedSubcategory = null;
+                            this.selectedImage = null;
+                            this.imagePreview = null;
                             this.toolForm.reset();
                         },
                         error: (error) => {
@@ -727,11 +757,11 @@ export class ToolsCrudComponent implements OnInit {
                 const createData: ToolCreateRequest = {
                     nombre: formValue.nombre,
                     subcategoria_id: subcategoriaId,
-                    folio: formValue.folio,
+                    folio: formValue.folio && formValue.folio.trim().length > 0 ? formValue.folio : undefined,
                     stock: formValue.stock,
                     valor_reposicion: formValue.valor_reposicion,
                     descripcion: formValue.descripcion,
-                    foto_url: formValue.foto_url,
+                    imagen: this.selectedImage || undefined,
                     is_active: formValue.is_active
                 };
 
@@ -748,6 +778,8 @@ export class ToolsCrudComponent implements OnInit {
                         this.isEditMode = false;
                         this.tool = this.emptyTool();
                         this.selectedSubcategory = null;
+                        this.selectedImage = null;
+                        this.imagePreview = null;
                         this.toolForm.reset();
                     },
                     error: (error) => {
@@ -792,71 +824,61 @@ export class ToolsCrudComponent implements OnInit {
                 return;
             }
 
-            // Validar tamaño (máximo 500KB para Base64)
-            const maxSize = 500 * 1024; // 500KB
+            // Validar tamaño (máximo 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
             if (file.size > maxSize) {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'La imagen no puede exceder 500KB',
+                    detail: 'La imagen no puede exceder 5MB',
                     life: 3000
                 });
                 return;
             }
 
+            this.selectedImage = file;
+
+            // Crear preview
             const reader = new FileReader();
             reader.onload = (e: any) => {
-                const base64String = e.target.result as string;
-
-                // Validar que el base64 no exceda el límite de la BD (TEXT = 1GB)
-                // Pero mantenemos un límite razonable de 1MB para evitar problemas de rendimiento
-                const base64Content = base64String.split(',')[1]; // Obtener solo el contenido Base64
-                if (base64Content && base64Content.length > 1000000) { // 1MB aprox
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'La imagen es demasiado grande. Intenta con una imagen más pequeña (máx. 500KB)',
-                        life: 3000
-                    });
-                    return;
-                }
-
-                this.tool.foto_url = base64String;
-                this.toolForm.patchValue({ foto_url: base64String });
-                console.log('Imagen guardada en formulario:', this.toolForm.get('foto_url')?.value);
-                console.log('Longitud de la imagen:', base64String.length);
-                this.cdr.detectChanges(); // Forzar detección de cambios
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Imagen cargada correctamente',
-                    life: 2000
-                });
+                this.imagePreview = e.target.result;
+                this.cdr.detectChanges();
             };
-
-            reader.onerror = () => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Error al leer la imagen',
-                    life: 3000
-                });
-            };
-
             reader.readAsDataURL(file);
+
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Imagen cargada correctamente',
+                life: 2000
+            });
         }
     }
 
     removeImage() {
-        this.tool.foto_url = '';
-        this.toolForm.patchValue({ foto_url: '' });
-        this.cdr.detectChanges(); // Forzar detección de cambios
+        this.selectedImage = null;
+        this.imagePreview = null;
+        this.cdr.detectChanges();
         this.messageService.add({
             severity: 'info',
             summary: 'Imagen eliminada',
             detail: 'La imagen ha sido removida',
             life: 2000
         });
+    }
+
+    getImagePreview(): string {
+        if (this.imagePreview) {
+            return this.imagePreview;
+        }
+        if (this.tool.foto_url) {
+            return this.toolsService.getImageUrl(this.tool.foto_url);
+        }
+        return '';
+    }
+
+    getImageUrl(imagePath: string): string {
+        return this.toolsService.getImageUrl(imagePath);
     }
 
     onCustomConfirmAccept() {

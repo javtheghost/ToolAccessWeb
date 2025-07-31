@@ -28,7 +28,7 @@ export interface ToolCreateRequest {
     stock?: number;
     valor_reposicion?: number;
     descripcion?: string;
-    foto_url?: string;
+    imagen?: File;
     is_active?: boolean;
 }
 
@@ -39,7 +39,7 @@ export interface ToolUpdateRequest {
     stock?: number;
     valor_reposicion?: number;
     descripcion?: string;
-    foto_url?: string;
+    imagen?: File;
     is_active?: boolean;
 }
 
@@ -102,7 +102,7 @@ export class ToolsService {
         );
     }
 
-    // POST - Crear nueva herramienta
+    // POST - Crear nueva herramienta con imagen
     createTool(tool: ToolCreateRequest): Observable<Tool> {
         // Validar campos requeridos
         if (!tool.nombre || tool.nombre.trim() === '') {
@@ -111,23 +111,26 @@ export class ToolsService {
         if (!tool.subcategoria_id) {
             return throwError(() => new Error('La subcategoría es requerida'));
         }
-        if (!tool.folio || tool.folio.trim() === '') {
-            return throwError(() => new Error('El folio es requerido'));
+
+        // Crear FormData para enviar datos y archivo
+        const formData = new FormData();
+        formData.append('nombre', tool.nombre.trim());
+        formData.append('subcategoria_id', tool.subcategoria_id.toString());
+        // Solo enviar folio si no está vacío (el backend lo genera automáticamente)
+        if (tool.folio && tool.folio.trim().length > 0) {
+            formData.append('folio', tool.folio.trim().toUpperCase());
+        }
+        formData.append('stock', (tool.stock !== undefined ? tool.stock : 1).toString());
+        formData.append('valor_reposicion', (tool.valor_reposicion !== undefined ? tool.valor_reposicion : 0.00).toString());
+        formData.append('descripcion', tool.descripcion?.trim() || '');
+        formData.append('is_active', (tool.is_active !== undefined ? tool.is_active : true).toString());
+
+        // Agregar imagen si existe
+        if (tool.imagen) {
+            formData.append('imagen', tool.imagen);
         }
 
-        // Preparar datos para el backend
-        const requestData = {
-            nombre: tool.nombre.trim(),
-            subcategoria_id: tool.subcategoria_id,
-            folio: tool.folio.trim().toUpperCase(),
-            stock: tool.stock !== undefined ? tool.stock : 1,
-            valor_reposicion: tool.valor_reposicion !== undefined ? tool.valor_reposicion : 0.00,
-            descripcion: tool.descripcion?.trim() || '',
-            foto_url: tool.foto_url || null,
-            is_active: tool.is_active !== undefined ? tool.is_active : true
-        };
-
-        return this.http.post<ToolResponse>(this.apiUrl, requestData).pipe(
+        return this.http.post<ToolResponse>(this.apiUrl, formData).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -139,21 +142,28 @@ export class ToolsService {
         );
     }
 
-    // PUT - Actualizar herramienta
+    // PUT - Actualizar herramienta con imagen
     updateTool(id: number, tool: ToolUpdateRequest): Observable<Tool> {
-        // Preparar datos para el backend
-        const requestData: any = {};
+        // Crear FormData para enviar datos y archivo
+        const formData = new FormData();
 
-        if (tool.nombre !== undefined) requestData.nombre = tool.nombre.trim();
-        if (tool.subcategoria_id !== undefined) requestData.subcategoria_id = tool.subcategoria_id;
-        if (tool.folio !== undefined) requestData.folio = tool.folio.trim().toUpperCase();
-        if (tool.stock !== undefined) requestData.stock = tool.stock;
-        if (tool.valor_reposicion !== undefined) requestData.valor_reposicion = tool.valor_reposicion;
-        if (tool.descripcion !== undefined) requestData.descripcion = tool.descripcion?.trim() || '';
-        if (tool.foto_url !== undefined) requestData.foto_url = tool.foto_url;
-        if (tool.is_active !== undefined) requestData.is_active = tool.is_active;
+        if (tool.nombre !== undefined) formData.append('nombre', tool.nombre.trim());
+        if (tool.subcategoria_id !== undefined) formData.append('subcategoria_id', tool.subcategoria_id.toString());
+        // Solo enviar folio si no está vacío
+        if (tool.folio !== undefined && tool.folio.trim().length > 0) {
+            formData.append('folio', tool.folio.trim().toUpperCase());
+        }
+        if (tool.stock !== undefined) formData.append('stock', tool.stock.toString());
+        if (tool.valor_reposicion !== undefined) formData.append('valor_reposicion', tool.valor_reposicion.toString());
+        if (tool.descripcion !== undefined) formData.append('descripcion', tool.descripcion.trim());
+        if (tool.is_active !== undefined) formData.append('is_active', tool.is_active.toString());
 
-        return this.http.put<ToolResponse>(`${this.apiUrl}/${id}`, requestData).pipe(
+        // Agregar imagen si existe
+        if (tool.imagen) {
+            formData.append('imagen', tool.imagen);
+        }
+
+        return this.http.put<ToolResponse>(`${this.apiUrl}/${id}`, formData).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -195,6 +205,54 @@ export class ToolsService {
                 }
             }),
             catchError(this.handleError)
+        );
+    }
+
+    // Método para obtener la URL completa de la imagen
+    getImageUrl(imagePath: string): string {
+        console.log('[ToolsService] getImageUrl - imagePath recibido:', imagePath);
+
+        if (!imagePath) {
+            console.log('[ToolsService] getImageUrl - imagePath vacío, retornando cadena vacía');
+            return '';
+        }
+
+        // Siempre corregir puerto 3000 a 3001 si existe
+        let correctedPath = imagePath;
+        if (imagePath.includes('localhost:3000')) {
+            correctedPath = imagePath.replace('localhost:3000', 'localhost:3001');
+            console.log('[ToolsService] getImageUrl - URL corregida de 3000 a 3001:', correctedPath);
+        }
+
+        // Si ya es una URL completa, retornarla (ya corregida si era necesario)
+        if (correctedPath.startsWith('http')) {
+            console.log('[ToolsService] getImageUrl - URL final:', correctedPath);
+            return correctedPath;
+        }
+
+        // Construir la URL completa para rutas relativas
+        const baseUrl = 'http://localhost:3001';
+        const fullUrl = `${baseUrl}${correctedPath}`;
+
+        console.log('[ToolsService] getImageUrl - URL construida:', fullUrl);
+        return fullUrl;
+    }
+
+    // Método para verificar si una imagen existe
+    checkImageExists(imagePath: string): Observable<boolean> {
+        const imageUrl = this.getImageUrl(imagePath);
+        if (!imageUrl) return new Observable<boolean>(observer => observer.next(false));
+
+        return this.http.head(imageUrl, { observe: 'response' }).pipe(
+            map(response => {
+                const exists = response.status === 200;
+                console.log('[ToolsService] checkImageExists -', imageUrl, 'existe:', exists);
+                return exists;
+            }),
+            catchError(error => {
+                console.log('[ToolsService] checkImageExists -', imageUrl, 'error:', error);
+                return new Observable<boolean>(observer => observer.next(false));
+            })
         );
     }
 
