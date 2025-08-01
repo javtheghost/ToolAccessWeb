@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { OAuthService } from './oauth.service';
 
 // Interfaces para herramientas
 export interface Tool {
@@ -64,7 +65,7 @@ export interface ToolResponse {
 export class ToolsService {
     private apiUrl = `${environment.apiUrl}/tools`;
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient, private oauthService: OAuthService) {}
 
     // GET - Obtener todas las herramientas
     getTools(search?: string, onlyActive?: boolean): Observable<Tool[]> {
@@ -130,7 +131,15 @@ export class ToolsService {
             formData.append('imagen', tool.imagen);
         }
 
-        return this.http.post<ToolResponse>(this.apiUrl, formData).pipe(
+        // Obtener el token del servicio OAuth y agregarlo manualmente si es necesario
+        const token = this.oauthService.getToken();
+        let headers = new HttpHeaders();
+
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        return this.http.post<ToolResponse>(this.apiUrl, formData, { headers }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -163,7 +172,15 @@ export class ToolsService {
             formData.append('imagen', tool.imagen);
         }
 
-        return this.http.put<ToolResponse>(`${this.apiUrl}/${id}`, formData).pipe(
+        // Obtener el token del servicio OAuth y agregarlo manualmente si es necesario
+        const token = this.oauthService.getToken();
+        let headers = new HttpHeaders();
+
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        return this.http.put<ToolResponse>(`${this.apiUrl}/${id}`, formData, { headers }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -177,7 +194,15 @@ export class ToolsService {
 
     // DELETE - Eliminar herramienta (soft delete)
     deleteTool(id: number): Observable<boolean> {
-        return this.http.delete<ToolResponse>(`${this.apiUrl}/${id}`).pipe(
+        // Obtener el token del servicio OAuth y agregarlo manualmente si es necesario
+        const token = this.oauthService.getToken();
+        let headers = new HttpHeaders();
+
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        return this.http.delete<ToolResponse>(`${this.apiUrl}/${id}`, { headers }).pipe(
             map(response => {
                 if (response.success) {
                     return true;
@@ -258,7 +283,15 @@ export class ToolsService {
 
     // Método para eliminar imagen de herramienta
     deleteToolImage(toolId: number): Observable<boolean> {
-        return this.http.delete<{success: boolean, message: string}>(`${this.apiUrl}/${toolId}/image`).pipe(
+        // Obtener el token del servicio OAuth y agregarlo manualmente si es necesario
+        const token = this.oauthService.getToken();
+        let headers = new HttpHeaders();
+
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        return this.http.delete<{success: boolean, message: string}>(`${this.apiUrl}/${toolId}/image`, { headers }).pipe(
             map(response => {
                 console.log('[ToolsService] deleteToolImage - respuesta:', response);
                 return response.success;

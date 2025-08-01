@@ -16,6 +16,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
+import { SkeletonModule } from 'primeng/skeleton';
 import { ToolsService, Tool, ToolCreateRequest, ToolUpdateRequest } from './service/tools.service';
 import { CategoryService } from './service/category.service';
 import { SubcategoryService, SubcategoryDisplay } from './service/subcategory.service';
@@ -41,26 +42,78 @@ import { Category } from './interfaces';
         IconFieldModule,
         DropdownModule,
         InputNumberModule,
-        TooltipModule
+        TooltipModule,
+        SkeletonModule
     ],
     template: `
 <p-toast></p-toast>
 <div class="p-6">
-    <p-table
-        #dt
-        [value]="tools"
-        [rows]="10"
-        [paginator]="true"
-        [globalFilterFields]="['nombre', 'descripcion', 'folio', 'categoria_nombre', 'subcategoria_nombre']"
-        [tableStyle]="{ 'min-width': '1200px' }"
-        [(selection)]="selectedTools"
-        [rowHover]="true"
-        dataKey="id"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} herramientas"
-        [rowsPerPageOptions]="[5, 10, 20]"
-        class="shadow-md rounded-lg"
-    >
+    <!-- Loading State -->
+    <div *ngIf="loading" class="space-y-4">
+        <!-- Header siempre visible -->
+        <div class="flex items-center justify-between">
+            <h5 class="m-0 p-2 text-[var(--primary-color)]">Administrar Herramientas</h5>
+            <p-button label="Crear Herramienta" icon="pi pi-plus" (onClick)="openNew()" [disabled]="true"></p-button>
+        </div>
+        <div class="flex items-center justify-between gap-4 mt-2">
+            <p-iconfield class="flex-1">
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" placeholder="Buscar..." disabled />
+            </p-iconfield>
+        </div>
+
+        <!-- Skeleton para toda la tabla (headers + datos) -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Header skeleton -->
+            <div class="bg-[#6ea1cc] text-white p-3">
+                <div class="flex items-center space-x-4">
+                    <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="150px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="200px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                </div>
+            </div>
+            <!-- Filas skeleton -->
+            <div class="p-4 space-y-3">
+                <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
+                    <p-skeleton height="1rem" width="80px"></p-skeleton>
+                    <p-skeleton height="1rem" width="150px"></p-skeleton>
+                    <p-skeleton height="1rem" width="200px"></p-skeleton>
+                    <p-skeleton height="1rem" width="120px"></p-skeleton>
+                    <p-skeleton height="1rem" width="120px"></p-skeleton>
+                    <p-skeleton height="1rem" width="120px"></p-skeleton>
+                    <p-skeleton height="1rem" width="80px"></p-skeleton>
+                    <p-skeleton height="1rem" width="140px"></p-skeleton>
+                    <p-skeleton height="1rem" width="80px"></p-skeleton>
+                    <p-skeleton height="1rem" width="120px"></p-skeleton>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content when loaded -->
+    <div *ngIf="!loading">
+        <p-table
+            #dt
+            [value]="tools"
+            [rows]="10"
+            [paginator]="true"
+            [globalFilterFields]="['nombre', 'descripcion', 'folio', 'categoria_nombre', 'subcategoria_nombre']"
+            [tableStyle]="{ 'min-width': '1200px' }"
+            [(selection)]="selectedTools"
+            [rowHover]="true"
+            dataKey="id"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} herramientas"
+            [rowsPerPageOptions]="[5, 10, 20]"
+            class="shadow-md rounded-lg"
+        >
         <ng-template #caption>
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Administrar Herramientas</h5>
@@ -103,7 +156,10 @@ import { Category } from './interfaces';
                 <td class="p-3">
                     <div class="font-medium">{{ tool.nombre }}</div>
                 </td>
-                <td class="p-3">{{ tool.descripcion }}</td>
+                <td class="p-3">
+                    <span *ngIf="tool.descripcion && tool.descripcion.trim()">{{ tool.descripcion }}</span>
+                    <span *ngIf="!tool.descripcion || !tool.descripcion.trim()" class="text-gray-400 font-bold">Sin descripción</span>
+                </td>
                 <td class="text-center p-3">
                     <span class="font-mono text-sm text-gray-600">{{ tool.folio }}</span>
                 </td>
@@ -234,7 +290,7 @@ import { Category } from './interfaces';
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">confirmation_number</span>
                 <input
                     type="text"
-                    [value]="tool.folio"
+                    formControlName="folio"
                     class="peer block w-full h-12 rounded-lg border bg-gray-100 px-10 text-sm text-gray-600 focus:outline-none"
                     placeholder=" "
                     readonly />
@@ -529,6 +585,7 @@ export class ToolsCrudComponent implements OnInit {
     // Manejo de imágenes
     selectedImage: File | null = null;
     imagePreview: string | null = null;
+    hasNewImage: boolean = false; // Para rastrear si se seleccionó una nueva imagen
 
     constructor(
         private messageService: MessageService,
@@ -559,6 +616,7 @@ export class ToolsCrudComponent implements OnInit {
                 Validators.minLength(3),
                 Validators.maxLength(200)
             ]],
+            folio: [''],
             subcategoria_id: [null, [Validators.required]],
             stock: [1, [
                 Validators.required,
@@ -579,6 +637,7 @@ export class ToolsCrudComponent implements OnInit {
     // Getters para acceder fácilmente a los controles del formulario
     get nombre() { return this.toolForm.get('nombre'); }
     get descripcion() { return this.toolForm.get('descripcion'); }
+    get folio() { return this.toolForm.get('folio'); }
     get subcategoria_id() { return this.toolForm.get('subcategoria_id'); }
     get stock() { return this.toolForm.get('stock'); }
     get valor_reposicion() { return this.toolForm.get('valor_reposicion'); }
@@ -718,9 +777,11 @@ export class ToolsCrudComponent implements OnInit {
         this.isEditMode = false;
         this.selectedImage = null;
         this.imagePreview = null;
+        this.hasNewImage = false;
         this.toolForm.reset({
             nombre: '',
             descripcion: '',
+            folio: '',
             subcategoria_id: null,
             stock: 1,
             valor_reposicion: 0,
@@ -749,6 +810,7 @@ export class ToolsCrudComponent implements OnInit {
 
         this.selectedImage = null;
         this.imagePreview = null;
+        this.hasNewImage = false;
         this.isEditMode = true;
         this.toolDialog = true;
     }
@@ -786,6 +848,7 @@ export class ToolsCrudComponent implements OnInit {
         this.selectedSubcategory = null;
         this.selectedImage = null;
         this.imagePreview = null;
+        this.hasNewImage = false;
         this.showCustomConfirm = false;
         this.toolForm.reset();
     }
@@ -793,7 +856,6 @@ export class ToolsCrudComponent implements OnInit {
     saveTool() {
         if (this.toolForm.valid) {
             const formValue = this.toolForm.value;
-            console.log('Form values:', formValue);
 
             // Validar que subcategoria_id sea un número válido
             if (!formValue.subcategoria_id || formValue.subcategoria_id <= 0) {
@@ -821,15 +883,23 @@ export class ToolsCrudComponent implements OnInit {
             if (this.tool.id) {
                 // Modo edición - mostrar confirmación
                 this.confirmIcon = 'warning';
-                this.confirmMessage = `¿Estás seguro que deseas actualizar la herramienta <span class='text-primary'>${formValue.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+                let confirmMessage = `¿Estás seguro que deseas actualizar la herramienta <span class='text-primary'>${formValue.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+
+                // Agregar información sobre la imagen si se seleccionó una nueva
+                if (this.hasNewImage && this.selectedImage) {
+                    confirmMessage += `<br><br><span class='text-info'>📷 Se actualizará la imagen de la herramienta.</span>`;
+                }
+
+                this.confirmMessage = confirmMessage;
                 this.confirmAction = () => {
                     const updateData: ToolUpdateRequest = {
                         nombre: formValue.nombre,
                         subcategoria_id: subcategoriaId,
+                        folio: formValue.folio,
                         stock: formValue.stock,
                         valor_reposicion: formValue.valor_reposicion,
                         descripcion: formValue.descripcion,
-                        imagen: this.selectedImage || undefined,
+                        imagen: this.hasNewImage && this.selectedImage ? this.selectedImage : undefined,
                         is_active: Boolean(formValue.is_active)
                     };
 
@@ -849,6 +919,7 @@ export class ToolsCrudComponent implements OnInit {
                             this.selectedSubcategory = null;
                             this.selectedImage = null;
                             this.imagePreview = null;
+                            this.hasNewImage = false;
                             this.toolForm.reset();
                         },
                         error: (error) => {
@@ -867,6 +938,7 @@ export class ToolsCrudComponent implements OnInit {
                 const createData: ToolCreateRequest = {
                     nombre: formValue.nombre,
                     subcategoria_id: subcategoriaId,
+                    folio: formValue.folio,
                     stock: formValue.stock,
                     valor_reposicion: formValue.valor_reposicion,
                     descripcion: formValue.descripcion,
@@ -889,6 +961,7 @@ export class ToolsCrudComponent implements OnInit {
                         this.selectedSubcategory = null;
                         this.selectedImage = null;
                         this.imagePreview = null;
+                        this.hasNewImage = false;
                         this.toolForm.reset();
                     },
                     error: (error) => {
@@ -959,6 +1032,7 @@ export class ToolsCrudComponent implements OnInit {
             }
 
             this.selectedImage = file;
+            this.hasNewImage = true; // Marcar que se seleccionó una nueva imagen
 
             // Crear preview
             const reader = new FileReader();
@@ -971,7 +1045,7 @@ export class ToolsCrudComponent implements OnInit {
             this.messageService.add({
                 severity: 'success',
                 summary: 'Éxito',
-                detail: 'Imagen cargada correctamente',
+                detail: this.isEditMode ? 'Nueva imagen cargada. Se actualizará al guardar.' : 'Imagen cargada correctamente',
                 life: 2000
             });
         }
@@ -992,6 +1066,7 @@ export class ToolsCrudComponent implements OnInit {
                             this.tool.foto_url = '';
                             this.selectedImage = null;
                             this.imagePreview = null;
+                            this.hasNewImage = false;
                             this.cdr.detectChanges();
 
                             this.messageService.add({
@@ -1027,6 +1102,7 @@ export class ToolsCrudComponent implements OnInit {
             // Si es una nueva herramienta o no hay imagen, solo limpiar variables locales
             this.selectedImage = null;
             this.imagePreview = null;
+            this.hasNewImage = false;
             this.cdr.detectChanges();
 
             this.messageService.add({

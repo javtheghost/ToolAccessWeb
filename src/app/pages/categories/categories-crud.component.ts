@@ -140,9 +140,15 @@ interface Column {
                 </td>
                 <td class="p-3">
                     <div class="font-medium">{{ category.nombre }}</div>
-                    <div class="text-sm text-gray-500 sm:hidden">{{ category.descripcion }}</div>
+                    <div class="text-sm text-gray-500 sm:hidden">
+                        <span *ngIf="category.descripcion && category.descripcion.trim()">{{ category.descripcion }}</span>
+                        <span *ngIf="!category.descripcion || !category.descripcion.trim()" class="text-gray-400 italic">Sin descripción</span>
+                    </div>
                 </td>
-                <td class="hidden sm:table-cell p-3">{{ category.descripcion }}</td>
+                <td class="hidden sm:table-cell p-3">
+                    <span *ngIf="category.descripcion && category.descripcion.trim()">{{ category.descripcion }}</span>
+                    <span *ngIf="!category.descripcion || !category.descripcion.trim()" class="text-gray-400 ">Sin descripción</span>
+                </td>
                 <td class="hidden sm:table-cell text-center p-3">
                     <input type="checkbox" class="custom-toggle" [(ngModel)]="category.is_active" disabled />
                 </td>

@@ -115,10 +115,6 @@ import { forkJoin } from 'rxjs';
                         styleClass="w-full sm:w-auto">
                     </p-button>
                 </div>
-                <!-- Debug info -->
-                <div class="text-xs text-gray-500 mt-2">
-                    Debug: {{ subcategories().length }} subcategorías cargadas | Loading: {{ loading() }}
-                </div>
             </ng-template>
             <ng-template pTemplate="header">
                 <tr class="bg-[#6ea1cc] text-white">
@@ -137,9 +133,15 @@ import { forkJoin } from 'rxjs';
                     </td>
                     <td class="p-3">
                         <div class="font-medium">{{ subcategory.nombre }}</div>
-                        <div class="text-sm text-gray-500 sm:hidden">{{ subcategory.descripcion }}</div>
+                        <div class="text-sm text-gray-500 sm:hidden">
+                            <span *ngIf="subcategory.descripcion && subcategory.descripcion.trim()">{{ subcategory.descripcion }}</span>
+                            <span *ngIf="!subcategory.descripcion || !subcategory.descripcion.trim()" class="text-gray-400 italic">Sin descripción</span>
+                        </div>
                     </td>
-                    <td class="hidden sm:table-cell p-3">{{ subcategory.descripcion }}</td>
+                    <td class="hidden sm:table-cell p-3">
+                        <span *ngIf="subcategory.descripcion && subcategory.descripcion.trim()">{{ subcategory.descripcion }}</span>
+                        <span *ngIf="!subcategory.descripcion || !subcategory.descripcion.trim()" class="text-gray-400">Sin descripción</span>
+                    </td>
                     <td class="hidden sm:table-cell p-3">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {{ subcategory.categoria_nombre }}
@@ -321,7 +323,6 @@ export class SubcategoriasCrudComponent implements OnInit {
     }
 
         loadData() {
-        console.log('🔄 Iniciando loadData()...');
         this.loading.set(true);
 
         // Cargar tanto subcategorías como categorías
@@ -330,21 +331,11 @@ export class SubcategoriasCrudComponent implements OnInit {
             categories: this.categoryService.getCategories()
         }).subscribe({
             next: (data) => {
-                console.log('📊 Subcategorías recibidas:', data.subcategories);
-                console.log('📊 Categorías recibidas:', data.categories);
-                console.log('📊 Número de subcategorías:', data.subcategories.length);
-                console.log('📊 Número de categorías:', data.categories.length);
-
                 this.subcategories.set(data.subcategories);
                 this.categories.set(data.categories);
                 this.loading.set(false);
 
-                console.log('✅ Signals actualizados:');
-                console.log('✅ Subcategorías:', this.subcategories().length);
-                console.log('✅ Categorías:', this.categories().length);
-
                 this.cdr.detectChanges();
-                console.log('✅ Change detection ejecutado');
             },
             error: (error) => {
                 console.error('❌ Error en loadData():', error);
@@ -426,13 +417,10 @@ export class SubcategoriasCrudComponent implements OnInit {
     }
 
     onCategoryChange(event: any) {
-        console.log('🔄 onCategoryChange llamado con:', event);
         if (event.value) {
             this.subcategory.categoria_id = parseInt(event.value.id);
-            console.log('✅ categoria_id actualizado a:', this.subcategory.categoria_id);
         } else {
             this.subcategory.categoria_id = 0;
-            console.log('⚠️ categoria_id reseteado a 0');
         }
     }
 
@@ -484,9 +472,6 @@ export class SubcategoriasCrudComponent implements OnInit {
     saveSubcategory() {
         if (!this.subcategory) return;
 
-        console.log('💾 Iniciando saveSubcategory()...');
-        console.log('💾 Subcategoría a guardar:', this.subcategory);
-
         if (this.subcategory.id) {
             // Actualizar
             const updateData = {
@@ -496,21 +481,9 @@ export class SubcategoriasCrudComponent implements OnInit {
                 is_active: this.subcategory.is_active
             };
 
-            console.log('🔄 Actualizando subcategoría con ID:', this.subcategory.id);
-            console.log('🔄 Datos de actualización:', updateData);
-            console.log('🔄 Tipo de categoria_id original:', typeof this.subcategory.categoria_id);
-            console.log('🔄 Valor de categoria_id original:', this.subcategory.categoria_id);
-            console.log('🔄 Tipo de categoria_id procesado:', typeof updateData.categoria_id);
-            console.log('🔄 Valor de categoria_id procesado:', updateData.categoria_id);
-            console.log('🔄 selectedCategory:', this.selectedCategory);
-
             this.subcategoryService.updateSubcategory(this.subcategory.id, updateData).subscribe({
                 next: (updatedSubcategory: any) => {
-                    console.log('✅ Subcategoría actualizada en backend:', updatedSubcategory);
-                    console.log('✅ Categoria_nombre en respuesta:', (updatedSubcategory as any).categoria_nombre);
-
                     this.loadData(); // Recargar todos los datos para obtener la información actualizada
-                    console.log('🔄 loadData() llamado después de actualizar');
 
                     this.messageService.add({
                         severity: 'success',
@@ -537,16 +510,9 @@ export class SubcategoriasCrudComponent implements OnInit {
                 is_active: this.subcategory.is_active || true
             };
 
-            console.log('➕ Creando nueva subcategoría...');
-            console.log('➕ Datos de creación:', createData);
-
             this.subcategoryService.createSubcategory(createData).subscribe({
                 next: (newSubcategory: any) => {
-                    console.log('✅ Nueva subcategoría creada:', newSubcategory);
-                    console.log('✅ Categoria_nombre en nueva subcategoría:', (newSubcategory as any).categoria_nombre);
-
                     this.loadData(); // Recargar todos los datos para obtener la información actualizada
-                    console.log('🔄 loadData() llamado después de crear');
 
                     this.messageService.add({
                         severity: 'success',
