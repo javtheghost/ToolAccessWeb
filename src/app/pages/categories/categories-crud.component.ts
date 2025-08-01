@@ -198,7 +198,7 @@ interface Column {
             <div class="grid grid-cols-1 gap-4">
                 <!-- Campo Nombre -->
                 <div class="relative py-2 mt-2">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
                     <input
                         type="text"
                         id="nombre"
@@ -229,7 +229,7 @@ interface Column {
 
                 <!-- Campo Descripción -->
                 <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
+                    <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
                     <textarea
                         id="descripcion"
                         formControlName="descripcion"

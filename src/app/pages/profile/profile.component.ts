@@ -21,7 +21,7 @@ interface Profile {
 
         <form class="space-y-4">
             <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">person</span>
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
                 <input
                     type="text"
                     id="nombres"
@@ -36,7 +36,7 @@ interface Profile {
             </div>
 
             <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">person</span>
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
                 <input
                     type="text"
                     id="apellidoPaterno"
@@ -51,7 +51,7 @@ interface Profile {
             </div>
 
             <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">person</span>
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
                 <input
                     type="text"
                     id="apellidoMaterno"

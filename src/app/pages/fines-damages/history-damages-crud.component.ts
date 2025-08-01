@@ -68,7 +68,7 @@ interface DamageHistory {
     >
         <ng-template #caption>
             <div class="flex items-center justify-between">
-                <h5 class="m-0 p-2 text-[var(--primary-color)]">Historial de daños de herramientas</h5>
+                <h5 class="m-0 p-2 text-[var(--primary-color)]">Reportes de daños de herramientas</h5>
             </div>
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
                 <p-iconfield class="flex-1 w-full sm:w-auto">
@@ -268,13 +268,13 @@ interface DamageHistory {
 
             <!-- Descripción detallada -->
             <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
+                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
                 <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Descripción detallada" [(ngModel)]="damageHistoryItem.description"></textarea>
             </div>
 
             <!-- Costo estimado de reparación -->
             <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">payments</span>
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">payments</span>
                 <input type="number" id="repairCost" name="repairCost" class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Costo estimado de reparación" [(ngModel)]="damageHistoryItem.repairCost" />
             </div>
 

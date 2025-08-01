@@ -196,25 +196,41 @@ import { forkJoin } from 'rxjs';
     <ng-template pTemplate="content">
         <div class="grid grid-cols-1 gap-4">
             <div class="relative py-2 mt-2">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
                 <input type="text" id="nombre" name="nombre" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="subcategory.nombre" />
                 <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
             </div>
             <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
+                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
                 <textarea id="descripcion" name="descripcion" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="subcategory.descripcion"></textarea>
                 <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
             </div>
             <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">category</span>
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
                 <p-dropdown
                     [options]="categories()"
                     [(ngModel)]="selectedCategory"
                     optionLabel="nombre"
+                    optionValue="id"
                     placeholder="Seleccionar categoría"
+                    [style]="{ width: '100%' }"
                     class="w-full"
-                    [styleClass]="'peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]'"
+                    [styleClass]="'h-12 px-10'"
+                    [showClear]="true"
                     (onChange)="onCategoryChange($event)">
+                    <ng-template pTemplate="selectedItem" let-category>
+                        <div class="flex items-center justify-start h-full w-full">
+                            <span>{{ category.nombre }}</span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="item" let-category>
+                        <div class="flex items-center justify-start h-full w-full">
+                            <div class="flex flex-col">
+                                <span class="font-medium">{{ category.nombre }}</span>
+                                <span class="text-sm text-gray-500">{{ category.descripcion || 'Sin descripción' }}</span>
+                            </div>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
                 <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría</label>
             </div>
@@ -284,6 +300,37 @@ import { forkJoin } from 'rxjs';
 
         :host ::ng-deep .p-dialog .p-dialog-content {
             border-radius: 0 0 12px 12px !important;
+        }
+
+        /* Estilos para dropdown de categoría */
+        :host ::ng-deep .p-dropdown {
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.5rem !important;
+            background-color: transparent !important;
+            transition: all 0.3s ease !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            padding: 0.75rem 2.5rem 0.75rem 2.5rem !important;
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            background-color: transparent !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled):hover {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled).p-focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+            outline: none !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-trigger {
+            color: var(--primary-color) !important;
+            width: 2.5rem !important;
         }`
     ]
 })
