@@ -24,7 +24,7 @@ export interface Tool {
 export interface ToolCreateRequest {
     nombre: string;
     subcategoria_id: number;
-    folio: string;
+    folio?: string;
     stock?: number;
     valor_reposicion?: number;
     descripcion?: string;
@@ -253,6 +253,17 @@ export class ToolsService {
                 console.log('[ToolsService] checkImageExists -', imageUrl, 'error:', error);
                 return new Observable<boolean>(observer => observer.next(false));
             })
+        );
+    }
+
+    // Método para eliminar imagen de herramienta
+    deleteToolImage(toolId: number): Observable<boolean> {
+        return this.http.delete<{success: boolean, message: string}>(`${this.apiUrl}/${toolId}/image`).pipe(
+            map(response => {
+                console.log('[ToolsService] deleteToolImage - respuesta:', response);
+                return response.success;
+            }),
+            catchError(this.handleError)
         );
     }
 

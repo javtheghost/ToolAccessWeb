@@ -229,20 +229,17 @@ import { Category } from './interfaces';
                 <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('subcategoria_id') }}</div>
             </div>
 
-            <div class="relative col-span-1">
+            <!-- Mostrar folio solo en modo edición como referencia -->
+            <div *ngIf="isEditMode" class="relative col-span-1">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">confirmation_number</span>
                 <input
                     type="text"
-                    id="folio"
-                    formControlName="folio"
-                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    [value]="tool.folio"
+                    class="peer block w-full h-12 rounded-lg border bg-gray-100 px-10 text-sm text-gray-600 focus:outline-none"
                     placeholder=" "
-                    aria-label="Folio"
-                    [class.border-red-500]="isFieldInvalid('folio')"
-                    [class.border-gray-300]="!isFieldInvalid('folio')" />
-                <label for="folio" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Folio (Opcional)</label>
-                <div *ngIf="isFieldInvalid('folio')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('folio') }}</div>
-                <div class="text-xs text-gray-500 mt-1 ml-10">Deja vacío para que se genere automáticamente</div>
+                    readonly />
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-500 duration-300 bg-white px-1">Folio (Solo lectura)</label>
+                <div class="text-xs text-gray-500 mt-1 ml-10">Folio generado automáticamente</div>
             </div>
 
             <div class="relative col-span-1">
@@ -343,6 +340,30 @@ import { Category } from './interfaces';
           class="px-4 py-2 rounded font-semibold w-24 text-center"
           (click)="onCustomConfirmAccept()"
         >Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- MODAL PERSONALIZADO DE CONFIRMACIÓN PARA ELIMINACIÓN DE IMAGEN -->
+<div *ngIf="showImageDeleteConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative" style="background: #fff;">
+    <button type="button" (click)="onImageDeleteConfirmReject()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none text-2xl">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <div class="flex flex-col items-start">
+      <i class="material-symbols-outlined text-6xl mb-4 text-danger">delete</i>
+      <div class="text-left mb-6">
+        <div [innerHTML]="imageDeleteConfirmMessage"></div>
+      </div>
+      <div class="flex gap-4 self-end">
+        <button type="button"
+          class="custom-cancel-btn px-4 py-2 font-semibold w-24 text-center"
+          (click)="onImageDeleteConfirmReject()"
+        >Cancelar</button>
+        <button type="button"
+          class="custom-confirm-accept-danger px-4 py-2 rounded font-semibold w-24 text-center"
+          (click)="onImageDeleteConfirmAccept()"
+        >Eliminar</button>
       </div>
     </div>
   </div>
@@ -490,6 +511,11 @@ export class ToolsCrudComponent implements OnInit {
     confirmMessage: string = '';
     confirmAction: (() => void) | null = null;
 
+    // Variables para confirmación de eliminación de imagen
+    showImageDeleteConfirm: boolean = false;
+    imageDeleteConfirmMessage: string = '';
+    imageDeleteConfirmAction: (() => void) | null = null;
+
     // Datos para dropdowns
     categories: Category[] = [];
     subcategories: SubcategoryDisplay[] = [];
@@ -533,11 +559,6 @@ export class ToolsCrudComponent implements OnInit {
                 Validators.minLength(3),
                 Validators.maxLength(200)
             ]],
-            folio: ['', [
-                Validators.pattern(/^[A-Z0-9\-]{3,20}$/),
-                Validators.minLength(3),
-                Validators.maxLength(20)
-            ]], // Opcional
             subcategoria_id: [null, [Validators.required]],
             stock: [1, [
                 Validators.required,
@@ -558,7 +579,6 @@ export class ToolsCrudComponent implements OnInit {
     // Getters para acceder fácilmente a los controles del formulario
     get nombre() { return this.toolForm.get('nombre'); }
     get descripcion() { return this.toolForm.get('descripcion'); }
-    get folio() { return this.toolForm.get('folio'); }
     get subcategoria_id() { return this.toolForm.get('subcategoria_id'); }
     get stock() { return this.toolForm.get('stock'); }
     get valor_reposicion() { return this.toolForm.get('valor_reposicion'); }
@@ -584,9 +604,6 @@ export class ToolsCrudComponent implements OnInit {
                 if (controlName === 'descripcion') {
                     return 'Mínimo 3 caracteres';
                 }
-                if (controlName === 'folio') {
-                    return 'Mínimo 3 caracteres';
-                }
                 return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
             }
             if (control.errors['maxlength']) {
@@ -596,17 +613,11 @@ export class ToolsCrudComponent implements OnInit {
                 if (controlName === 'descripcion') {
                     return 'Máximo 200 caracteres';
                 }
-                if (controlName === 'folio') {
-                    return 'Máximo 20 caracteres';
-                }
                 return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
             }
             if (control.errors['pattern']) {
                 if (controlName === 'nombre') {
                     return 'Solo letras, números, guiones y puntos';
-                }
-                if (controlName === 'folio') {
-                    return 'Solo letras mayúsculas, números y guiones';
                 }
                 if (controlName === 'stock') {
                     return 'Solo números del 0 al 9999';
@@ -710,7 +721,6 @@ export class ToolsCrudComponent implements OnInit {
         this.toolForm.reset({
             nombre: '',
             descripcion: '',
-            folio: '',
             subcategoria_id: null,
             stock: 1,
             valor_reposicion: 0,
@@ -816,12 +826,11 @@ export class ToolsCrudComponent implements OnInit {
                     const updateData: ToolUpdateRequest = {
                         nombre: formValue.nombre,
                         subcategoria_id: subcategoriaId,
-                        folio: formValue.folio && formValue.folio.trim().length > 0 ? formValue.folio : undefined,
                         stock: formValue.stock,
                         valor_reposicion: formValue.valor_reposicion,
                         descripcion: formValue.descripcion,
                         imagen: this.selectedImage || undefined,
-                        is_active: formValue.is_active
+                        is_active: Boolean(formValue.is_active)
                     };
 
                     this.toolsService.updateTool(this.tool.id, updateData).subscribe({
@@ -858,12 +867,11 @@ export class ToolsCrudComponent implements OnInit {
                 const createData: ToolCreateRequest = {
                     nombre: formValue.nombre,
                     subcategoria_id: subcategoriaId,
-                    folio: formValue.folio && formValue.folio.trim().length > 0 ? formValue.folio : undefined,
                     stock: formValue.stock,
                     valor_reposicion: formValue.valor_reposicion,
                     descripcion: formValue.descripcion,
                     imagen: this.selectedImage || undefined,
-                    is_active: formValue.is_active
+                    is_active: Boolean(formValue.is_active)
                 };
 
                 this.toolsService.createTool(createData).subscribe({
@@ -970,15 +978,64 @@ export class ToolsCrudComponent implements OnInit {
     }
 
     removeImage() {
-        this.selectedImage = null;
-        this.imagePreview = null;
-        this.cdr.detectChanges();
-        this.messageService.add({
-            severity: 'info',
-            summary: 'Imagen eliminada',
-            detail: 'La imagen ha sido removida',
-            life: 2000
-        });
+        // Si estamos editando una herramienta existente y tiene imagen
+        if (this.isEditMode && this.tool.id > 0 && this.tool.foto_url) {
+            // Mostrar confirmación antes de eliminar
+            this.imageDeleteConfirmMessage = `¿Estás seguro que deseas eliminar la imagen de la herramienta <span class='text-primary'>${this.tool.nombre}</span>? Esta acción no se puede deshacer.`;
+            this.imageDeleteConfirmAction = () => {
+                this.loading = true;
+
+                this.toolsService.deleteToolImage(this.tool.id).subscribe({
+                    next: (success: boolean) => {
+                        if (success) {
+                            // Limpiar la imagen en el objeto local
+                            this.tool.foto_url = '';
+                            this.selectedImage = null;
+                            this.imagePreview = null;
+                            this.cdr.detectChanges();
+
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Imagen eliminada del servidor correctamente',
+                                life: 3000
+                            });
+                        } else {
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail: 'No se pudo eliminar la imagen del servidor',
+                                life: 3000
+                            });
+                        }
+                        this.loading = false;
+                    },
+                    error: (error: any) => {
+                        console.error('Error eliminando imagen:', error);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al eliminar la imagen del servidor',
+                            life: 3000
+                        });
+                        this.loading = false;
+                    }
+                });
+            };
+            this.showImageDeleteConfirm = true;
+        } else {
+            // Si es una nueva herramienta o no hay imagen, solo limpiar variables locales
+            this.selectedImage = null;
+            this.imagePreview = null;
+            this.cdr.detectChanges();
+
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Imagen eliminada',
+                detail: 'La imagen ha sido removida',
+                life: 2000
+            });
+        }
     }
 
     getImagePreview(): string {
@@ -1003,6 +1060,15 @@ export class ToolsCrudComponent implements OnInit {
         this.showCustomConfirm = false;
     }
 
+    // Métodos para confirmación de eliminación de imagen
+    onImageDeleteConfirmAccept() {
+        if (this.imageDeleteConfirmAction) this.imageDeleteConfirmAction();
+        this.showImageDeleteConfirm = false;
+    }
+    onImageDeleteConfirmReject() {
+        this.showImageDeleteConfirm = false;
+    }
+
     emptyTool(): Tool {
         return {
             id: 0,
@@ -1021,6 +1087,8 @@ export class ToolsCrudComponent implements OnInit {
     onEscapePress() {
         if (this.showCustomConfirm) {
             this.onCustomConfirmReject();
+        } else if (this.showImageDeleteConfirm) {
+            this.onImageDeleteConfirmReject();
         } else if (this.toolDialog) {
             this.hideDialog();
         }
