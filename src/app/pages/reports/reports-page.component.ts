@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DropdownModule } from 'primeng/dropdown';
-import { CalendarModule } from 'primeng/calendar';
 import { ButtonModule } from 'primeng/button';
+import { CustomDateRangeComponent } from '../utils/custom-date-range.component';
 
 interface Reporte {
   nombre: string;
@@ -15,7 +15,7 @@ interface Reporte {
 @Component({
   selector: 'app-reports-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, DropdownModule, CalendarModule, ButtonModule],
+  imports: [CommonModule, FormsModule, DropdownModule, ButtonModule, CustomDateRangeComponent],
   templateUrl: './reports-page.component.html',
   styleUrls: ['./reports-page.component.scss']
 })
@@ -49,6 +49,7 @@ export class ReportsPageComponent {
   filtroUsuario: string = '';
   filtroFechaInicio: Date | null = null;
   filtroFechaFin: Date | null = null;
+  filtroRangoFechas: { startDate: Date | null; endDate: Date | null } = { startDate: null, endDate: null };
 
   reportes: Reporte[] = [
     {
@@ -73,6 +74,15 @@ export class ReportsPageComponent {
 
   generarReporte() {
     // Lógica para generar reporte
+    console.log('Generando reporte con filtros:', {
+      tipoReporte: this.filtroTipoReporte,
+      estado: this.filtroEstado,
+      categoria: this.filtroCategoria,
+      usuario: this.filtroUsuario,
+      fechaInicio: this.filtroFechaInicio,
+      fechaFin: this.filtroFechaFin,
+      rangoFechas: this.filtroRangoFechas
+    });
   }
 
   descargarReporte(url: string) {

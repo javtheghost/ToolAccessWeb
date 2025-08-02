@@ -17,9 +17,9 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { CalendarModule } from 'primeng/calendar';
 
 import { CardModule } from 'primeng/card';
+import { CustomDatePickerComponent } from '../utils/custom-date-picker.component';
 import { FinesService, Fine, FineCreateRequest, FineUpdateRequest } from '../service/fines.service';
 import { PaginationUtils } from '../utils/pagination.utils';
 import { finalize } from 'rxjs/operators';
@@ -44,7 +44,7 @@ import { finalize } from 'rxjs/operators';
         DropdownModule,
         TooltipModule,
         InputNumberModule,
-        CalendarModule,
+        CustomDatePickerComponent,
         CardModule
     ],
     template: `
@@ -516,19 +516,11 @@ import { finalize } from 'rxjs/operators';
 
             <!-- Fecha Vencimiento -->
             <div class="relative col-span-1">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none w-6 h-6 z-20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3.01 3.9 3.01 5L3 19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V8H19V19ZM7 10H12V15H7V10Z" fill="var(--primary-color)"/>
-                </svg>
-                <p-calendar
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Vencimiento *</label>
+                <app-custom-date-picker
                     formControlName="fecha_vencimiento"
-                    [showIcon]="false"
-                    dateFormat="dd/mm/yy"
-                    placeholder=" "
-                    [style]="{ width: '100%' }"
-                    class="w-full"
-                    [styleClass]="'h-12 px-10'">
-                </p-calendar>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Fecha Vencimiento *</label>
+                    placeholder="Seleccionar fecha de vencimiento">
+                </app-custom-date-picker>
             </div>
 
             <!-- Comentarios -->
@@ -587,6 +579,27 @@ import { finalize } from 'rxjs/operators';
         :host ::ng-deep .custom-inputnumber .p-inputtext:focus {
             border-color: var(--primary-color) !important;
             box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        /* Estilos para el componente de fecha personalizado */
+        :host ::ng-deep app-custom-date-picker {
+            width: 100% !important;
+        }
+
+        :host ::ng-deep app-custom-date-picker .date-input-container {
+            height: 48px !important;
+            border-radius: 8px !important;
+            border: 1px solid #d1d5db !important;
+        }
+
+        :host ::ng-deep app-custom-date-picker .date-input-container:focus-within {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        :host ::ng-deep app-custom-date-picker .date-input {
+            height: 48px !important;
+            font-size: 14px !important;
         }`
     ]
 })

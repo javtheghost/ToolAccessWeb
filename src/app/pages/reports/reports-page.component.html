@@ -10,11 +10,7 @@
         </div>
         <div class="filtro-col rango-fechas">
           <label>Rango de Fechas</label>
-          <div class="fechas-flex">
-            <p-calendar [(ngModel)]="filtroFechaInicio" name="fechaInicio" dateFormat="dd/mm/yy" showIcon="true" placeholder="Desde"></p-calendar>
-            <span class="a-label">a</span>
-            <p-calendar [(ngModel)]="filtroFechaFin" name="fechaFin" dateFormat="dd/mm/yy" showIcon="true" placeholder="Hasta"></p-calendar>
-          </div>
+          <app-custom-date-range [(ngModel)]="filtroRangoFechas" name="rangoFechas"></app-custom-date-range>
         </div>
         <div class="filtro-col">
           <label>Estado</label>

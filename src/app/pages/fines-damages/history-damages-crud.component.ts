@@ -14,6 +14,12 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { TooltipModule } from 'primeng/tooltip';
+import { DamagesService, Damage, DamageCreateRequest, DamageUpdateRequest } from '../service/damages.service';
+import { ToolsService, Tool } from '../service/tools.service';
+import { LoansService, Loan } from '../service/loans.service';
+import { CategoryService } from '../service/category.service';
+import { SubcategoryService } from '../service/subcategory.service';
+import { OAuthService } from '../service/oauth.service';
 
 interface DamageHistory {
     id: string;
@@ -95,14 +101,14 @@ interface DamageHistory {
         <ng-template pTemplate="body" let-history>
             <tr>
                 <td>{{ history.id }}</td>
-                <td>{{ history.tool }}</td>
-                <td>{{ history.order }}</td>
-                <td>{{ history.damageType }}</td>
-                <td>{{ history.description }}</td>
-                <td>{{ history.repairCost | currency: 'USD' }}</td>
+                <td>{{ getToolName(history.herramienta_id) }}</td>
+                <td>{{ getLoanFolio(history.orden_prestamo_id) }}</td>
+                <td>{{ getDamageTypeDisplay(history.tipo_dano_id) }}</td>
+                <td>{{ history.descripcion }}</td>
+                <td>{{ history.costo_reparacion | currency: 'USD' }}</td>
                 <td>
-                    <span class="px-3 py-1 rounded-full text-white" [ngStyle]="{ 'background': history.status === 'Pendiente' ? '#FEE8B9' : '#AAEACA', 'color': '#333' }">
-                        {{ history.status }}
+                    <span class="px-3 py-1 rounded-full text-white" [ngStyle]="{ 'background': history.status === 'reportado' ? '#FEE8B9' : '#AAEACA', 'color': '#333' }">
+                        {{ getStatusDisplay(history.status) }}
                     </span>
                 </td>
                 <td>
@@ -148,8 +154,10 @@ interface DamageHistory {
                     <path d="M20 8.33317H17V6.24984C17 5.104 16.1 4.1665 15 4.1665H9C7.9 4.1665 7 5.104 7 6.24984V8.33317H4C2.9 8.33317 2 9.27067 2 10.4165V20.8332H22V10.4165C22 9.27067 21.1 8.33317 20 8.33317ZM9 6.24984H15V8.33317H9V6.24984ZM20 18.7498H4V15.6248H6V16.6665H8V15.6248H16V16.6665H18V15.6248H20V18.7498ZM18 13.5415V12.4998H16V13.5415H8V12.4998H6V13.5415H4V10.4165H20V13.5415H18Z" fill="var(--primary-color)"/>
                 </svg>
                 <p-dropdown
-                    [options]="herramientas"
-                    [(ngModel)]="damageHistoryItem.tool"
+                    [options]="tools"
+                    [(ngModel)]="damageHistoryItem.herramienta_id"
+                    optionLabel="nombre"
+                    optionValue="id"
                     placeholder="Herramienta dañada..."
                     [style]="{ width: '100%' }"
                     class="w-full"
@@ -157,12 +165,12 @@ interface DamageHistory {
                     [showClear]="false">
                     <ng-template pTemplate="selectedItem" let-herramienta>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ herramienta }}</span>
+                            <span>{{ herramienta.nombre }}</span>
                         </div>
                     </ng-template>
                     <ng-template pTemplate="item" let-herramienta>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ herramienta }}</span>
+                            <span>{{ herramienta.nombre }}</span>
                         </div>
                     </ng-template>
                 </p-dropdown>
@@ -174,8 +182,10 @@ interface DamageHistory {
                     <path d="M19 3C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9.18C9.6 1.84 10.7 1 12 1C13.3 1 14.4 1.84 14.82 3H19ZM12 3C11.7348 3 11.4804 3.10536 11.2929 3.29289C11.1054 3.48043 11 3.73478 11 4C11 4.26522 11.1054 4.51957 11.2929 4.70711C11.4804 4.89464 11.7348 5 12 5C12.2652 5 12.5196 4.89464 12.7071 4.70711C12.8946 4.51957 13 4.26522 13 4C13 3.73478 12.8946 3.48043 12.7071 3.29289C12.5196 3.10536 12.2652 3 12 3ZM7 7V5H5V19H19V5H17V7H7ZM12 9C12.5304 9 13.0391 9.21071 13.4142 9.58579C13.7893 9.96086 14 10.4696 14 11C14 11.5304 13.7893 12.0391 13.4142 12.4142C13.0391 12.7893 12.5304 13 12 13C11.4696 13 10.9609 12.7893 10.5858 12.4142C10.2107 12.0391 10 11.5304 10 11C10 10.4696 10.2107 9.96086 10.5858 9.58579C10.9609 9.21071 11.4696 9 12 9ZM8 17V16C8 14.9 9.79 14 12 14C14.21 14 16 14.9 16 16V17H8Z" fill="var(--primary-color)"/>
                 </svg>
                 <p-dropdown
-                    [options]="prestamos"
-                    [(ngModel)]="damageHistoryItem.order"
+                    [options]="loans"
+                    [(ngModel)]="damageHistoryItem.orden_prestamo_id"
+                    optionLabel="folio"
+                    optionValue="id"
                     placeholder="Préstamo asociado..."
                     [style]="{ width: '100%' }"
                     class="w-full"
@@ -183,12 +193,12 @@ interface DamageHistory {
                     [showClear]="false">
                     <ng-template pTemplate="selectedItem" let-prestamo>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ prestamo }}</span>
+                            <span>{{ prestamo.folio }}</span>
                         </div>
                     </ng-template>
                     <ng-template pTemplate="item" let-prestamo>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ prestamo }}</span>
+                            <span>{{ prestamo.folio }}</span>
                         </div>
                     </ng-template>
                 </p-dropdown>
@@ -202,6 +212,8 @@ interface DamageHistory {
                 <p-dropdown
                     [options]="categories"
                     [(ngModel)]="damageHistoryItem.category"
+                    optionLabel="nombre"
+                    optionValue="id"
                     [filter]="true"
                     placeholder="Categoría..."
                     [style]="{ width: '100%' }"
@@ -209,12 +221,12 @@ interface DamageHistory {
                     [styleClass]="'h-12 px-10'">
                     <ng-template pTemplate="selectedItem" let-category>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ category }}</span>
+                            <span>{{ category.nombre }}</span>
                         </div>
                     </ng-template>
                     <ng-template pTemplate="item" let-category>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ category }}</span>
+                            <span>{{ category.nombre }}</span>
                         </div>
                     </ng-template>
                 </p-dropdown>
@@ -228,6 +240,8 @@ interface DamageHistory {
                 <p-dropdown
                     [options]="subcategories"
                     [(ngModel)]="damageHistoryItem.subcategory"
+                    optionLabel="nombre"
+                    optionValue="id"
                     [filter]="true"
                     placeholder="Subcategoría..."
                     [style]="{ width: '100%' }"
@@ -235,12 +249,12 @@ interface DamageHistory {
                     [styleClass]="'h-12 px-10'">
                     <ng-template pTemplate="selectedItem" let-subcategory>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ subcategory }}</span>
+                            <span>{{ subcategory.nombre }}</span>
                         </div>
                     </ng-template>
                     <ng-template pTemplate="item" let-subcategory>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ subcategory }}</span>
+                            <span>{{ subcategory.nombre }}</span>
                         </div>
                     </ng-template>
                 </p-dropdown>
@@ -253,12 +267,12 @@ interface DamageHistory {
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                         <button type="button"
                                 *ngFor="let damageType of damageTypes"
-                                [style.background-color]="damageHistoryItem.damageType === damageType.name ? damageType.bgColor : 'transparent'"
-                                [style.color]="damageHistoryItem.damageType === damageType.name ? damageType.color : '#374151'"
-                                [style.border-color]="damageHistoryItem.damageType === damageType.name ? damageType.color : '#D1D5DB'"
-                                [style.hover-background-color]="damageHistoryItem.damageType !== damageType.name ? damageType.hoverColor : 'transparent'"
+                                [style.background-color]="isDamageTypeSelected(damageType.name) ? damageType.bgColor : 'transparent'"
+                                [style.color]="isDamageTypeSelected(damageType.name) ? damageType.color : '#374151'"
+                                [style.border-color]="isDamageTypeSelected(damageType.name) ? damageType.color : '#D1D5DB'"
+                                [style.hover-background-color]="!isDamageTypeSelected(damageType.name) ? damageType.hoverColor : 'transparent'"
                                 class="px-3 py-2 rounded-full border text-xs sm:text-sm transition-colors duration-200 truncate"
-                                (click)="damageHistoryItem.damageType = damageType.name"
+                                (click)="damageHistoryItem.tipo_dano_id = mapDamageTypeToId(mapDamageTypeToEnum(damageType.name))"
                                 [title]="damageType.name">
                             {{ damageType.name }}
                         </button>
@@ -269,13 +283,13 @@ interface DamageHistory {
             <!-- Descripción detallada -->
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
-                <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Descripción detallada" [(ngModel)]="damageHistoryItem.description"></textarea>
+                <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Descripción detallada" [(ngModel)]="damageHistoryItem.descripcion"></textarea>
             </div>
 
             <!-- Costo estimado de reparación -->
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">payments</span>
-                <input type="number" id="repairCost" name="repairCost" class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Costo estimado de reparación" [(ngModel)]="damageHistoryItem.repairCost" />
+                <input type="number" id="repairCost" name="repairCost" class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Costo estimado de reparación" [(ngModel)]="damageHistoryItem.costo_reparacion" />
             </div>
 
                         <!-- Tipo de multa -->
@@ -549,16 +563,23 @@ interface DamageHistory {
     `]
 })
 export class HistoryDamagesCrudComponent implements OnInit {
-    damageHistory: DamageHistory[] = [];
+    damageHistory: Damage[] = [];
     damageHistoryDialog: boolean = false;
-    damageHistoryItem: DamageHistory = this.emptyDamageHistory();
-    selectedDamageHistory: DamageHistory[] | null = null;
+    damageHistoryItem: Damage = this.emptyDamageHistory();
+    selectedDamageHistory: Damage[] | null = null;
     isEditMode: boolean = false;
     confirmIcon: string = 'delete';
     @ViewChild('dt') dt!: Table;
 
+    // Datos para los dropdowns
+    tools: Tool[] = [];
+    loans: Loan[] = [];
+    categories: any[] = [];
+    subcategories: any[] = [];
+    loading: boolean = false;
+
     // Arrays para opciones escalables
-    categories: string[] = [
+    categoriesOptions: string[] = [
         'Mecánico',
         'Eléctrico',
         'Hidráulico',
@@ -576,7 +597,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
         'Nuclear'
     ];
 
-    subcategories: string[] = [
+    subcategoriesOptions: string[] = [
         'No tiene',
         'Sierra de calar',
         'Sierra circular',
@@ -658,39 +679,112 @@ export class HistoryDamagesCrudComponent implements OnInit {
     confirmMessage: string = '';
     confirmAction: (() => void) | null = null;
 
-    constructor(private messageService: MessageService) {}
+    constructor(
+        private messageService: MessageService,
+        private damagesService: DamagesService,
+        private toolsService: ToolsService,
+        private loansService: LoansService,
+        private categoryService: CategoryService,
+        private subcategoryService: SubcategoryService,
+        private oauthService: OAuthService
+    ) {}
 
     ngOnInit() {
-        this.loadDemoData();
+        this.loadData();
     }
 
-    loadDemoData() {
-        this.damageHistory = [
-            {
-                id: '1',
-                tool: 'Taladro eléctrico',
-                order: 'ORD-1254',
-                damageType: 'Grave',
-                description: 'Motor quemado',
-                repairCost: 200,
-                status: 'Pendiente',
-                category: 'Eléctrico',
-                subcategory: 'No tiene',
-                fineType: 'Multa por daño'
+    loadData() {
+        // Verificar si el usuario está autenticado
+        if (!this.oauthService.isAuthenticated()) {
+            console.error('Usuario no autenticado');
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Debes iniciar sesión para acceder a esta funcionalidad',
+                life: 3000
+            });
+            // Redirigir al login
+            this.oauthService.login();
+            return;
+        }
+
+        // Verificar si hay un token válido
+        const token = this.oauthService.getToken();
+        if (!token) {
+            console.error('No hay token disponible');
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Token de autenticación no disponible',
+                life: 3000
+            });
+            this.oauthService.login();
+            return;
+        }
+
+        console.log('Token disponible:', !!token);
+        console.log('Usuario autenticado:', this.oauthService.isAuthenticated());
+        console.log('Usuario actual:', this.oauthService.getCurrentUser());
+
+        this.loading = true;
+
+        // Cargar daños
+        this.damagesService.getDamages().subscribe({
+            next: (damages) => {
+                this.damageHistory = damages;
+                this.loading = false;
             },
-            {
-                id: '2',
-                tool: 'Martillo',
-                order: 'ORD-1255',
-                damageType: 'Leve',
-                description: 'Mango rajado',
-                repairCost: 25,
-                status: 'Reparado',
-                category: 'Mecánico',
-                subcategory: 'No tiene',
-                fineType: 'Multa por daño'
+            error: (error) => {
+                console.error('Error cargando daños:', error);
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Error al cargar los daños',
+                    life: 3000
+                });
+                this.loading = false;
             }
-        ];
+        });
+
+        // Cargar herramientas
+        this.toolsService.getTools(undefined, true).subscribe({
+            next: (tools) => {
+                this.tools = tools;
+            },
+            error: (error) => {
+                console.error('Error cargando herramientas:', error);
+            }
+        });
+
+        // Cargar préstamos
+        this.loansService.getLoans().subscribe({
+            next: (loans) => {
+                this.loans = loans;
+            },
+            error: (error) => {
+                console.error('Error cargando préstamos:', error);
+            }
+        });
+
+        // Cargar categorías
+        this.categoryService.getCategories().subscribe({
+            next: (categories) => {
+                this.categories = categories;
+            },
+            error: (error) => {
+                console.error('Error cargando categorías:', error);
+            }
+        });
+
+        // Cargar subcategorías
+        this.subcategoryService.getAllSubcategories().subscribe({
+            next: (subcategories: any[]) => {
+                this.subcategories = subcategories;
+            },
+            error: (error: any) => {
+                console.error('Error cargando subcategorías:', error);
+            }
+        });
     }
 
     onGlobalFilter(table: Table, event: Event) {
@@ -703,22 +797,36 @@ export class HistoryDamagesCrudComponent implements OnInit {
         this.damageHistoryDialog = true;
     }
 
-    editDamageHistory(history: DamageHistory) {
+    editDamageHistory(history: Damage) {
         this.damageHistoryItem = { ...history };
         this.isEditMode = true;
         this.damageHistoryDialog = true;
     }
 
-    deleteDamageHistory(history: DamageHistory) {
+    deleteDamageHistory(history: Damage) {
         this.confirmIcon = 'delete';
-        this.confirmMessage = `¿Estás seguro de eliminar el reporte de daño de <span class='text-primary'>${history.tool}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
+        const toolName = this.tools.find(t => t.id === history.herramienta_id)?.nombre || 'Herramienta';
+        this.confirmMessage = `¿Estás seguro de eliminar el reporte de daño de <span class='text-primary'>${toolName}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
         this.confirmAction = () => {
-            this.damageHistory = this.damageHistory.filter(t => t.id !== history.id);
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Éxito',
-                detail: 'Reporte eliminado',
-                life: 3000
+            this.damagesService.deleteDamage(history.id).subscribe({
+                next: () => {
+                    this.damageHistory = this.damageHistory.filter(t => t.id !== history.id);
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Reporte eliminado',
+                        life: 3000
+                    });
+                },
+                error: (error) => {
+                    console.error('Error eliminando daño:', error);
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al eliminar el reporte',
+                        life: 3000
+                    });
+                }
             });
         };
         this.showCustomConfirm = true;
@@ -731,43 +839,86 @@ export class HistoryDamagesCrudComponent implements OnInit {
     }
 
     saveDamageHistory() {
-        if (this.damageHistoryItem.tool?.trim()) {
+        if (this.damageHistoryItem.herramienta_id && this.damageHistoryItem.descripcion?.trim()) {
             if (this.damageHistoryItem.id) {
                 // Modo edición - mostrar confirmación
                 this.confirmIcon = 'warning';
-                this.confirmMessage = `¿Estás seguro que deseas actualizar el reporte de daño de <span class='text-primary'>${this.damageHistoryItem.tool}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+                const toolName = this.tools.find(t => t.id === this.damageHistoryItem.herramienta_id)?.nombre || 'Herramienta';
+                this.confirmMessage = `¿Estás seguro que deseas actualizar el reporte de daño de <span class='text-primary'>${toolName}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
                 this.confirmAction = () => {
-                    const idx = this.damageHistory.findIndex(t => t.id === this.damageHistoryItem.id);
-                    if (idx > -1) this.damageHistory[idx] = { ...this.damageHistoryItem };
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Reporte actualizado',
-                        life: 3000
+                    const updateData: DamageUpdateRequest = {
+                        herramienta_id: this.damageHistoryItem.herramienta_id,
+                        orden_prestamo_id: this.damageHistoryItem.orden_prestamo_id || 1, // Valor por defecto
+                        tipo_dano_id: this.mapDamageTypeToId(this.damageHistoryItem.tipo_dano_id?.toString() || 'daño_menor'),
+                        descripcion: this.damageHistoryItem.descripcion,
+                        costo_reparacion: this.damageHistoryItem.costo_reparacion || this.damageHistoryItem.repairCost
+                    };
+
+                    this.damagesService.updateDamage(this.damageHistoryItem.id, updateData).subscribe({
+                        next: (updatedDamage) => {
+                            const idx = this.damageHistory.findIndex(t => t.id === this.damageHistoryItem.id);
+                            if (idx > -1) this.damageHistory[idx] = updatedDamage;
+                            this.messageService.add({
+                                severity: 'success',
+                                summary: 'Éxito',
+                                detail: 'Reporte actualizado',
+                                life: 3000
+                            });
+                            this.damageHistoryDialog = false;
+                            this.isEditMode = false;
+                            this.damageHistoryItem = this.emptyDamageHistory();
+                        },
+                        error: (error) => {
+                            console.error('Error actualizando daño:', error);
+                            this.messageService.add({
+                                severity: 'error',
+                                summary: 'Error',
+                                detail: 'Error al actualizar el reporte',
+                                life: 3000
+                            });
+                        }
                     });
-                    this.damageHistoryDialog = false;
-                    this.isEditMode = false;
-                    this.damageHistoryItem = this.emptyDamageHistory();
                 };
                 this.showCustomConfirm = true;
             } else {
-                this.damageHistoryItem.id = this.createId();
-                this.damageHistory.push({ ...this.damageHistoryItem });
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Reporte creado',
-                    life: 3000
+                // Modo creación
+                const createData: DamageCreateRequest = {
+                    herramienta_id: this.damageHistoryItem.herramienta_id,
+                    orden_prestamo_id: this.damageHistoryItem.orden_prestamo_id || 1, // Valor por defecto
+                    tipo_dano_id: this.mapDamageTypeToId(this.damageHistoryItem.tipo_dano_id?.toString() || 'daño_menor'),
+                    descripcion: this.damageHistoryItem.descripcion,
+                    costo_reparacion: this.damageHistoryItem.costo_reparacion || this.damageHistoryItem.repairCost || 0
+                };
+
+                this.damagesService.reportDamage(createData).subscribe({
+                    next: (newDamage) => {
+                        this.damageHistory.push(newDamage);
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Reporte creado',
+                            life: 3000
+                        });
+                        this.damageHistoryDialog = false;
+                        this.isEditMode = false;
+                        this.damageHistoryItem = this.emptyDamageHistory();
+                    },
+                    error: (error) => {
+                        console.error('Error creando daño:', error);
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: 'Error al crear el reporte',
+                            life: 3000
+                        });
+                    }
                 });
-                this.damageHistoryDialog = false;
-                this.isEditMode = false;
-                this.damageHistoryItem = this.emptyDamageHistory();
             }
         } else {
             this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'El nombre de la herramienta es requerido',
+                detail: 'La herramienta y descripción son requeridas',
                 life: 3000
             });
         }
@@ -790,19 +941,99 @@ export class HistoryDamagesCrudComponent implements OnInit {
         return id;
     }
 
-    emptyDamageHistory(): DamageHistory {
+    emptyDamageHistory(): Damage {
         return {
-            id: '',
-            tool: '',
-            order: '',
-            damageType: '',
-            description: '',
+            id: 0,
+            herramienta_id: 0,
+            orden_prestamo_id: 1,
+            tipo_dano_id: 1,
+            descripcion: '',
+            costo_reparacion: 0,
+            report_date: '',
+            status: 'reportado',
+            repair_date: undefined,
+            created_at: '',
+            updated_at: '',
+            herramienta_nombre: undefined,
+            herramienta_folio: undefined,
+            orden_folio: undefined,
+            tipo_dano_nombre: undefined,
+            porcentaje_aplicar: undefined,
+            category: undefined,
+            subcategory: undefined,
             repairCost: 0,
-            status: 'Pendiente',
-            category: '',
-            subcategory: '',
-            fineType: ''
+            fineType: undefined
         };
+    }
+
+    // Métodos auxiliares para el template
+    getToolName(toolId: number): string {
+        const tool = this.tools.find(t => t.id === toolId);
+        return tool?.nombre || 'N/A';
+    }
+
+    getLoanFolio(loanId?: number): string {
+        if (!loanId) return 'N/A';
+        const loan = this.loans.find(l => l.id === loanId);
+        return loan?.folio || 'N/A';
+    }
+
+    getDamageTypeDisplay(damageTypeId: number): string {
+        // Mapeo de IDs a nombres de tipos de daño
+        const damageTypeMap: { [key: number]: string } = {
+            1: 'Leve',
+            2: 'Moderado',
+            3: 'Grave'
+        };
+        return damageTypeMap[damageTypeId] || `Tipo ${damageTypeId}`;
+    }
+
+    getStatusDisplay(status: string): string {
+        const statusMap: { [key: string]: string } = {
+            'reportado': 'Pendiente',
+            'en_reparacion': 'En Reparación',
+            'reparado': 'Reparado',
+            'dado_de_baja': 'Dado de Baja'
+        };
+        return statusMap[status] || status;
+    }
+
+    mapDamageTypeToId(damageType: string): number {
+        const damageTypeMap: { [key: string]: number } = {
+            'daño_menor': 1,
+            'daño_mayor': 2,
+            'perdida_total': 3
+        };
+        return damageTypeMap[damageType] || 1;
+    }
+
+    mapDamageTypeToEnum(damageTypeName: string): 'daño_menor' | 'daño_mayor' | 'perdida_total' {
+        switch (damageTypeName) {
+            case 'Leve':
+            case 'Cosmético':
+            case 'Funcional':
+                return 'daño_menor';
+            case 'Moderado':
+            case 'Estructural':
+            case 'Eléctrico':
+            case 'Mecánico':
+            case 'Hidráulico':
+            case 'Térmico':
+                return 'daño_mayor';
+            case 'Grave':
+            case 'Crítico':
+            case 'Irreparable':
+                return 'perdida_total';
+            default:
+                return 'daño_menor';
+        }
+    }
+
+    isDamageTypeSelected(damageTypeName: string): boolean {
+        const mappedType = this.mapDamageTypeToEnum(damageTypeName);
+        // Convertir el tipo mapeado a ID para comparar
+        const mappedId = this.mapDamageTypeToId(mappedType);
+        return this.damageHistoryItem.tipo_dano_id === mappedId;
     }
 
     @HostListener('document:keydown.escape')
