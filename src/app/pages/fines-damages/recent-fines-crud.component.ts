@@ -758,9 +758,15 @@ export class RecentFinesCrudComponent implements OnInit {
         this.finesService.getUsuarios().subscribe({
             next: (usuarios) => {
                 this.usuarios = usuarios;
+                console.log('Usuarios cargados:', usuarios.length);
             },
             error: (error) => {
                 console.error('Error al cargar usuarios:', error);
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Advertencia',
+                    detail: 'No se pudieron cargar los usuarios. Usando ruta: /api/multas/usuarios'
+                });
             }
         });
 
@@ -768,19 +774,38 @@ export class RecentFinesCrudComponent implements OnInit {
         this.finesService.getOrdenes().subscribe({
             next: (ordenes) => {
                 this.ordenes = ordenes;
+                console.log('Órdenes cargadas:', ordenes.length);
             },
             error: (error) => {
                 console.error('Error al cargar órdenes:', error);
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Advertencia',
+                    detail: 'No se pudieron cargar las órdenes. Usando ruta: /api/loan-orders'
+                });
             }
         });
 
-        // Cargar configuraciones
+        // Cargar configuraciones (temporalmente vacío)
         this.finesService.getConfiguraciones().subscribe({
             next: (configuraciones) => {
                 this.configuraciones = configuraciones;
+                console.log('Configuraciones cargadas:', configuraciones.length);
+                if (configuraciones.length === 0) {
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Información',
+                        detail: 'No hay configuraciones disponibles. Se implementará cuando se cree el CRUD específico.'
+                    });
+                }
             },
             error: (error) => {
                 console.error('Error al cargar configuraciones:', error);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: 'Información',
+                    detail: 'Configuraciones no disponibles temporalmente.'
+                });
             }
         });
     }

@@ -174,7 +174,7 @@ export class FinesService {
         );
     }
 
-    // GET - Obtener usuarios para dropdown
+    // GET - Obtener usuarios para dropdown (usando ruta temporal de multas)
     getUsuarios(): Observable<any[]> {
         return this.http.get<any>(`${this.apiUrl}/usuarios`).pipe(
             map(response => {
@@ -191,9 +191,9 @@ export class FinesService {
         );
     }
 
-    // GET - Obtener órdenes para dropdown
+    // GET - Obtener órdenes para dropdown (usando ruta existente de órdenes)
     getOrdenes(): Observable<any[]> {
-        return this.http.get<any>(`${this.apiUrl}/ordenes`).pipe(
+        return this.http.get<any>(`${environment.apiUrl}/loan-orders`).pipe(
             map(response => {
                 if (response.success && Array.isArray(response.data)) {
                     return response.data;
@@ -208,21 +208,14 @@ export class FinesService {
         );
     }
 
-    // GET - Obtener configuraciones de multas para dropdown
+    // GET - Obtener configuraciones de multas para dropdown (TEMPORAL - eliminar cuando se implemente CRUD específico)
     getConfiguraciones(): Observable<any[]> {
-        return this.http.get<any>(`${this.apiUrl}/configuraciones`).pipe(
-            map(response => {
-                if (response.success && Array.isArray(response.data)) {
-                    return response.data;
-                } else if (Array.isArray(response)) {
-                    return response;
-                } else {
-                    console.warn('Formato de respuesta inesperado para configuraciones:', response);
-                    return [];
-                }
-            }),
-            catchError(this.handleError)
-        );
+        // Por ahora retornamos un array vacío ya que no hay CRUD específico
+        // TODO: Implementar cuando se cree el CRUD específico de configuraciones
+        return new Observable(observer => {
+            observer.next([]);
+            observer.complete();
+        });
     }
 
     private handleError(error: any): Observable<never> {
