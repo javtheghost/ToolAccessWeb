@@ -730,11 +730,11 @@ export class HistoryDamagesCrudComponent implements OnInit {
 
         // Cargar daños
         this.damagesService.getDamages().subscribe({
-            next: (damages) => {
+            next: (damages: Damage[]) => {
                 this.damageHistory = damages;
                 this.loading = false;
             },
-            error: (error) => {
+            error: (error: any) => {
                 console.error('Error cargando daños:', error);
                 this.messageService.add({
                     severity: 'error',
@@ -748,30 +748,30 @@ export class HistoryDamagesCrudComponent implements OnInit {
 
         // Cargar herramientas
         this.toolsService.getTools(undefined, true).subscribe({
-            next: (tools) => {
+            next: (tools: Tool[]) => {
                 this.tools = tools;
             },
-            error: (error) => {
+            error: (error: any) => {
                 console.error('Error cargando herramientas:', error);
             }
         });
 
         // Cargar préstamos
         this.loansService.getLoans().subscribe({
-            next: (loans) => {
+            next: (loans: Loan[]) => {
                 this.loans = loans;
             },
-            error: (error) => {
+            error: (error: any) => {
                 console.error('Error cargando préstamos:', error);
             }
         });
 
         // Cargar categorías
         this.categoryService.getCategories().subscribe({
-            next: (categories) => {
+            next: (categories: any[]) => {
                 this.categories = categories;
             },
-            error: (error) => {
+            error: (error: any) => {
                 console.error('Error cargando categorías:', error);
             }
         });
@@ -818,7 +818,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
                         life: 3000
                     });
                 },
-                error: (error) => {
+                error: (error: any) => {
                     console.error('Error eliminando daño:', error);
                     this.messageService.add({
                         severity: 'error',
@@ -855,7 +855,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
                     };
 
                     this.damagesService.updateDamage(this.damageHistoryItem.id, updateData).subscribe({
-                        next: (updatedDamage) => {
+                        next: (updatedDamage: Damage) => {
                             const idx = this.damageHistory.findIndex(t => t.id === this.damageHistoryItem.id);
                             if (idx > -1) this.damageHistory[idx] = updatedDamage;
                             this.messageService.add({
@@ -868,7 +868,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
                             this.isEditMode = false;
                             this.damageHistoryItem = this.emptyDamageHistory();
                         },
-                        error: (error) => {
+                        error: (error: any) => {
                             console.error('Error actualizando daño:', error);
                             this.messageService.add({
                                 severity: 'error',
@@ -891,7 +891,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
                 };
 
                 this.damagesService.reportDamage(createData).subscribe({
-                    next: (newDamage) => {
+                    next: (newDamage: Damage) => {
                         this.damageHistory.push(newDamage);
                         this.messageService.add({
                             severity: 'success',
@@ -903,7 +903,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
                         this.isEditMode = false;
                         this.damageHistoryItem = this.emptyDamageHistory();
                     },
-                    error: (error) => {
+                    error: (error: any) => {
                         console.error('Error creando daño:', error);
                         this.messageService.add({
                             severity: 'error',

@@ -1,5 +1,3 @@
-// TEMPORALMENTE DESHABILITADO - Error 500 en el endpoint /api/damage-reports
-/*
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -252,18 +250,5 @@ export class DamagesService {
 
         console.error('Error en DamagesService:', error);
         return throwError(() => new Error(errorMessage));
-    }
-}
-*/
-
-// Servicio temporal deshabilitado
-import { Injectable } from '@angular/core';
-
-@Injectable({
-    providedIn: 'root'
-})
-export class DamagesService {
-    constructor() {
-        console.warn('⚠️ DamagesService está temporalmente deshabilitado debido a errores en el endpoint /api/damage-reports');
     }
 }

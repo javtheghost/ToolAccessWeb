@@ -26,8 +26,9 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
           (focus)="onInputFocus()"
           (blur)="onInputBlur()"
           (input)="onInputChange($event)"
-          readonly
+          (keydown)="onInputKeydown($event)"
           class="date-input"
+          [readonly]="false"
         />
         <svg class="dropdown-icon" [class.rotated]="isOpen" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M7 10l5 5 5-5z" fill="currentColor"/>
@@ -35,48 +36,48 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       </div>
 
       <div class="calendar-dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
-                 <div class="calendar-header">
-           <button class="nav-btn" (click)="previousMonth()" type="button">
-             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-               <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
-             </svg>
-           </button>
-           <div class="current-month" (click)="toggleYearPicker()">
-             <span class="month-text">{{ getMonthText() }}</span>
-             <span class="year-text">{{ getYearText() }}</span>
-           </div>
-           <button class="nav-btn" (click)="nextMonth()" type="button">
-             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-               <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" fill="currentColor"/>
-             </svg>
-           </button>
-         </div>
+        <div class="calendar-header">
+          <button class="nav-btn" (click)="previousMonth()" type="button">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
+            </svg>
+          </button>
+          <div class="current-month" (click)="toggleYearPicker()">
+            <span class="month-text">{{ getMonthText() }}</span>
+            <span class="year-text">{{ getYearText() }}</span>
+          </div>
+          <button class="nav-btn" (click)="nextMonth()" type="button">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
 
-         <div class="year-picker" *ngIf="showYearPicker">
-           <div class="year-picker-header">
-             <button class="nav-btn" (click)="previousYearRange()" type="button">
-               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                 <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
-               </svg>
-             </button>
-             <div class="year-range">{{ getYearRangeText() }}</div>
-             <button class="nav-btn" (click)="nextYearRange()" type="button">
-               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                 <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" fill="currentColor"/>
-               </svg>
-             </button>
-           </div>
-           <div class="year-grid">
-             <div
-               *ngFor="let year of yearOptions"
-               class="year-option"
-               [class.selected]="year === currentMonth.getFullYear()"
-               [class.current-year]="year === getCurrentYear()"
-               (click)="selectYear(year)">
-               {{ year }}
-             </div>
-           </div>
-         </div>
+        <div class="year-picker" *ngIf="showYearPicker">
+          <div class="year-picker-header">
+            <button class="nav-btn" (click)="previousYearRange()" type="button">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
+              </svg>
+            </button>
+            <div class="year-range">{{ getYearRangeText() }}</div>
+            <button class="nav-btn" (click)="nextYearRange()" type="button">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+          <div class="year-grid">
+            <div
+              *ngFor="let year of yearOptions"
+              class="year-option"
+              [class.selected]="year === currentMonth.getFullYear()"
+              [class.current-year]="year === getCurrentYear()"
+              (click)="selectYear(year)">
+              {{ year }}
+            </div>
+          </div>
+        </div>
 
         <div class="calendar-weekdays">
           <div class="weekday" *ngFor="let day of weekdays">{{ day }}</div>
@@ -132,6 +133,10 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       box-shadow: 0 0 0 3px rgba(23, 78, 166, 0.1);
     }
 
+    .date-input-container.focused .date-input {
+      cursor: text;
+    }
+
     .calendar-icon {
       width: 20px;
       height: 20px;
@@ -147,7 +152,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       background: transparent;
       font-size: 14px;
       color: #374151;
-      cursor: pointer;
+      cursor: text;
     }
 
     .date-input::placeholder {
@@ -212,6 +217,30 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       font-weight: 600;
       color: #374151;
       font-size: 14px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .current-month:hover {
+      background: #f3f4f6;
+    }
+
+    .month-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .year-text {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
     }
 
     .calendar-weekdays {
@@ -306,93 +335,66 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       background: #e5e7eb;
     }
 
-         .has-value .date-input {
-       color: #374151;
-     }
+    .has-value .date-input {
+      color: #374151;
+    }
 
-     .current-month {
-       cursor: pointer;
-       padding: 8px 12px;
-       border-radius: 6px;
-       transition: background-color 0.2s ease;
-       display: flex;
-       flex-direction: column;
-       align-items: center;
-       gap: 2px;
-     }
+    .year-picker {
+      border-bottom: 1px solid #f3f4f6;
+      padding: 16px;
+    }
 
-     .current-month:hover {
-       background: #f3f4f6;
-     }
+    .year-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
 
-     .month-text {
-       font-size: 14px;
-       font-weight: 600;
-       color: #374151;
-     }
+    .year-range {
+      font-weight: 600;
+      color: #374151;
+      font-size: 14px;
+    }
 
-     .year-text {
-       font-size: 12px;
-       color: #6b7280;
-       font-weight: 500;
-     }
+    .year-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
 
-     .year-picker {
-       border-bottom: 1px solid #f3f4f6;
-       padding: 16px;
-     }
+    .year-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #374151;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
 
-     .year-picker-header {
-       display: flex;
-       align-items: center;
-       justify-content: space-between;
-       margin-bottom: 16px;
-     }
+    .year-option:hover {
+      background: #f3f4f6;
+    }
 
-     .year-range {
-       font-weight: 600;
-       color: #374151;
-       font-size: 14px;
-     }
+    .year-option.selected {
+      background: #174ea6;
+      color: #ffffff;
+      border-color: #174ea6;
+    }
 
-     .year-grid {
-       display: grid;
-       grid-template-columns: repeat(4, 1fr);
-       gap: 8px;
-     }
+    .year-option.current-year {
+      border-color: #174ea6;
+      font-weight: 600;
+    }
 
-     .year-option {
-       display: flex;
-       align-items: center;
-       justify-content: center;
-       height: 36px;
-       border-radius: 6px;
-       cursor: pointer;
-       font-size: 14px;
-       color: #374151;
-       transition: all 0.2s ease;
-       border: 1px solid transparent;
-     }
-
-     .year-option:hover {
-       background: #f3f4f6;
-     }
-
-     .year-option.selected {
-       background: #174ea6;
-       color: #ffffff;
-       border-color: #174ea6;
-     }
-
-     .year-option.current-year {
-       border-color: #174ea6;
-       font-weight: 600;
-     }
-
-     .year-option.current-year:not(.selected) {
-       color: #174ea6;
-     }
-   `]
+    .year-option.current-year:not(.selected) {
+      color: #174ea6;
+    }
+  `]
 })
 export class CustomDatePickerComponent implements OnInit, ControlValueAccessor {
   @Input() placeholder: string = 'Seleccionar fecha';
@@ -403,7 +405,7 @@ export class CustomDatePickerComponent implements OnInit, ControlValueAccessor {
 
   constructor(private elementRef: ElementRef) {}
 
-    isOpen = false;
+  isOpen = false;
   isFocused = false;
   hasValue = false;
   displayValue = '';
@@ -456,10 +458,60 @@ export class CustomDatePickerComponent implements OnInit, ControlValueAccessor {
 
   onInputBlur() {
     this.isFocused = false;
+
+    // Validar y aplicar la fecha escrita cuando el input pierde el foco
+    if (this.displayValue.trim()) {
+      const parsedDate = this.parseDateFromInput(this.displayValue);
+      if (parsedDate) {
+        this.selectedDate = parsedDate;
+        this.updateDisplayValue(); // Formatear correctamente la fecha
+        this.onChange(this.selectedDate);
+        this.dateChange.emit(this.selectedDate);
+        this.generateCalendar();
+      } else {
+        // Si la fecha no es válida, restaurar el valor anterior o limpiar
+        this.updateDisplayValue();
+      }
+    }
   }
 
   onInputChange(event: any) {
-    // Input is readonly, so this won't be called
+    const value = event.target.value;
+    this.displayValue = value;
+
+    // Si el input está vacío, limpiar la fecha seleccionada
+    if (!value.trim()) {
+      this.selectedDate = null;
+      this.hasValue = false;
+      this.onChange(null);
+      this.dateChange.emit(null);
+      return;
+    }
+
+    // Intentar parsear la fecha escrita
+    const parsedDate = this.parseDateFromInput(value);
+    if (parsedDate) {
+      this.selectedDate = parsedDate;
+      this.hasValue = true;
+      this.onChange(this.selectedDate);
+      this.dateChange.emit(this.selectedDate);
+      this.generateCalendar();
+    }
+  }
+
+  onInputKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.isOpen = false;
+      this.showYearPicker = false;
+      // Validar y aplicar la fecha escrita
+      const parsedDate = this.parseDateFromInput(this.displayValue);
+      if (parsedDate) {
+        this.selectedDate = parsedDate;
+        this.onChange(this.selectedDate);
+        this.dateChange.emit(this.selectedDate);
+        this.generateCalendar();
+      }
+    }
   }
 
   generateCalendar() {
@@ -497,7 +549,7 @@ export class CustomDatePickerComponent implements OnInit, ControlValueAccessor {
     }
   }
 
-    selectDate(day: any) {
+  selectDate(day: any) {
     if (day.isDisabled) return;
 
     this.selectedDate = day.date;
@@ -630,6 +682,76 @@ export class CustomDatePickerComponent implements OnInit, ControlValueAccessor {
     if (this.minDate && date < this.minDate) return true;
     if (this.maxDate && date > this.maxDate) return true;
     return false;
+  }
+
+  private parseDateFromInput(inputValue: string): Date | null {
+    if (!inputValue || !inputValue.trim()) {
+      return null;
+    }
+
+    // Remover espacios y caracteres extra
+    const cleanValue = inputValue.trim().replace(/\s+/g, '');
+
+    // Patrones de fecha soportados
+    const patterns = [
+      // DD/MM/YYYY
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+      // DD-MM-YYYY
+      /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
+      // DD.MM.YYYY
+      /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/,
+      // YYYY-MM-DD
+      /^(\d{4})-(\d{1,2})-(\d{1,2})$/,
+      // DD/MM/YY (año de 2 dígitos)
+      /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/,
+      // DD-MM-YY
+      /^(\d{1,2})-(\d{1,2})-(\d{2})$/
+    ];
+
+    for (const pattern of patterns) {
+      const match = cleanValue.match(pattern);
+      if (match) {
+        let day, month, year;
+
+        if (pattern.source.includes('YYYY')) {
+          // Formato con año de 4 dígitos
+          [, day, month, year] = match;
+        } else {
+          // Formato con año de 2 dígitos
+          [, day, month, year] = match;
+          // Convertir año de 2 dígitos a 4 dígitos
+          const currentYear = new Date().getFullYear();
+          const yearPrefix = Math.floor(currentYear / 100);
+          year = parseInt(year.toString()) + (parseInt(year.toString()) < 50 ? yearPrefix * 100 : (yearPrefix - 1) * 100);
+        }
+
+        day = parseInt(day.toString());
+        month = parseInt(month.toString()) - 1; // Los meses en JavaScript van de 0-11
+        year = parseInt(year.toString());
+
+        // Validar rangos
+        if (day < 1 || day > 31 || month < 0 || month > 11 || year < 1900 || year > 2100) {
+          continue;
+        }
+
+        // Crear la fecha
+        const date = new Date(year, month, day);
+
+        // Verificar que la fecha sea válida (por ejemplo, 31/02/2024 no es válida)
+        if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
+          continue;
+        }
+
+        // Verificar restricciones de fecha mínima y máxima
+        if (this.isDateDisabled(date)) {
+          continue;
+        }
+
+        return date;
+      }
+    }
+
+    return null;
   }
 
   @HostListener('document:click', ['$event'])
