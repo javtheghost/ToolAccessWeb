@@ -13,6 +13,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
+import { MobileDetectionService } from '../service/mobile-detection.service';
 
 interface DamageType {
     id: string;
@@ -46,7 +47,7 @@ interface DamageType {
     <p-table
         #dt
         [value]="damageTypes"
-        [rows]="10"
+        [rows]="isMobile ? 3 : 5"
         [paginator]="true"
         [globalFilterFields]="['name', 'description']"
         [tableStyle]="{ 'min-width': '100%' }"
@@ -54,7 +55,7 @@ interface DamageType {
         [rowHover]="true"
         dataKey="id"
         [showCurrentPageReport]="false"
-        [rowsPerPageOptions]="[5, 10, 15]"
+        [rowsPerPageOptions]="isMobile ? [3, 5, 10] : [5, 10, 15, 25]"
         [scrollable]="true"
         scrollHeight="300px"
         class="shadow-md rounded-lg"
@@ -223,15 +224,29 @@ export class DamageTypesCrudComponent implements OnInit {
     confirmIcon: string = 'delete';
     @ViewChild('dt') dt!: Table;
 
+    // Detección de dispositivo móvil
+    isMobile = false;
+
     // Modal personalizado
     showCustomConfirm: boolean = false;
     confirmMessage: string = '';
     confirmAction: (() => void) | null = null;
 
-    constructor(private messageService: MessageService) {}
+    constructor(
+        private messageService: MessageService,
+        private mobileDetectionService: MobileDetectionService
+    ) {}
 
     ngOnInit() {
         this.loadDemoData();
+        this.setupMobileDetection();
+    }
+
+    private setupMobileDetection() {
+        // Suscribirse a los cambios de detección móvil
+        this.mobileDetectionService.isMobile$.subscribe(isMobile => {
+            this.isMobile = isMobile;
+        });
     }
 
     loadDemoData() {

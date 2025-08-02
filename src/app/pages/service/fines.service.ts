@@ -8,37 +8,44 @@ import { environment } from '../../../environments/environment';
 export interface Fine {
     id: number;
     usuario_id: number;
-    prestamo_id: number;
-    tipo: string;
-    monto: number;
-    descripcion: string;
-    fecha_multa: string;
-    estado: string;
-    fecha_pago?: string;
-    usuario_creacion: number;
-    fecha_creacion: string;
-    // Campos adicionales para compatibilidad
-    folio_prestamo?: string;
     usuario_nombre?: string;
-    motivo?: string;
-    created_at?: string;
-    updated_at?: string;
+    usuario_email?: string;
+    orden_id: number;
+    configuracion_multa_id: number;
+    dano_id?: number;
+    monto_total: number;
+    estado: 'pendiente' | 'pagado' | 'exonerada';
+    fecha_aplicacion: string;
+    fecha_vencimiento: string;
+    fecha_pago?: string;
+    comentarios?: string;
+    created_at: string;
+    updated_at: string;
+
+    // Campos adicionales para UI
+    orden_folio?: string;
+    configuracion_nombre?: string;
+    dano_descripcion?: string;
 }
 
 export interface FineCreateRequest {
-    prestamo_id: number;
-    monto: number;
-    motivo: string;
-    descripcion?: string;
+    usuario_id: number;
+    orden_id: number;
+    configuracion_multa_id: number;
+    dano_id?: number;
+    monto_total: number;
+    comentarios?: string;
+    fecha_vencimiento?: string;
 }
 
 export interface FineUpdateRequest {
-    prestamo_id?: number;
-    monto?: number;
-    motivo?: string;
-    estado?: string;
-    fecha_pago?: string;
-    descripcion?: string;
+    usuario_id?: number;
+    orden_id?: number;
+    configuracion_multa_id?: number;
+    monto_total?: number;
+    estado?: 'pendiente' | 'pagado' | 'exonerada';
+    fecha_vencimiento?: string;
+    comentarios?: string;
 }
 
 export interface FineResponse {
@@ -97,21 +104,21 @@ export class FinesService {
         );
     }
 
-    // GET - Multas por usuario
+    // GET - Obtener multas por usuario
     getFinesByUser(usuarioId: number): Observable<Fine[]> {
         return this.http.get<FineResponse>(`${this.apiUrl}/usuario/${usuarioId}`).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data : [response.data];
                 } else {
-                    throw new Error(response.message || 'Error al obtener las multas del usuario');
+                    throw new Error(response.message || 'Error al obtener multas del usuario');
                 }
             }),
             catchError(this.handleError)
         );
     }
 
-    // POST - Crear multa (Solo ADMIN)
+    // POST - Crear nueva multa
     createFine(fine: FineCreateRequest): Observable<Fine> {
         return this.http.post<FineResponse>(this.apiUrl, fine).pipe(
             map(response => {
@@ -125,7 +132,7 @@ export class FinesService {
         );
     }
 
-    // PUT - Actualizar multa (Solo ADMIN)
+    // PUT - Actualizar multa
     updateFine(id: number, fine: FineUpdateRequest): Observable<Fine> {
         return this.http.put<FineResponse>(`${this.apiUrl}/${id}`, fine).pipe(
             map(response => {
@@ -161,6 +168,57 @@ export class FinesService {
                     return true;
                 } else {
                     throw new Error(response.message || 'Error al eliminar la multa');
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
+    // GET - Obtener usuarios para dropdown
+    getUsuarios(): Observable<any[]> {
+        return this.http.get<any>(`${this.apiUrl}/usuarios`).pipe(
+            map(response => {
+                if (response.success && Array.isArray(response.data)) {
+                    return response.data;
+                } else if (Array.isArray(response)) {
+                    return response;
+                } else {
+                    console.warn('Formato de respuesta inesperado para usuarios:', response);
+                    return [];
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
+    // GET - Obtener órdenes para dropdown
+    getOrdenes(): Observable<any[]> {
+        return this.http.get<any>(`${this.apiUrl}/ordenes`).pipe(
+            map(response => {
+                if (response.success && Array.isArray(response.data)) {
+                    return response.data;
+                } else if (Array.isArray(response)) {
+                    return response;
+                } else {
+                    console.warn('Formato de respuesta inesperado para órdenes:', response);
+                    return [];
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
+    // GET - Obtener configuraciones de multas para dropdown
+    getConfiguraciones(): Observable<any[]> {
+        return this.http.get<any>(`${this.apiUrl}/configuraciones`).pipe(
+            map(response => {
+                if (response.success && Array.isArray(response.data)) {
+                    return response.data;
+                } else if (Array.isArray(response)) {
+                    return response;
+                } else {
+                    console.warn('Formato de respuesta inesperado para configuraciones:', response);
+                    return [];
                 }
             }),
             catchError(this.handleError)

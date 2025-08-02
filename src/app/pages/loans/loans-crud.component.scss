@@ -5,3 +5,67 @@
 ::ng-deep .p-dialog .p-dialog-content {
   background: #fff !important;
 }
+
+/* Estilos para hacer el modal más suave y sin aspecto cuadrado */
+:host ::ng-deep .p-dialog {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header {
+    border-radius: 12px 12px 0 0 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+    border-radius: 0 0 12px 12px !important;
+}
+
+/* Estilos para móviles */
+@media (max-width: 768px) {
+    :host ::ng-deep .p-dialog {
+        margin: 0.5rem !important;
+        width: calc(100vw - 1rem) !important;
+        max-width: calc(100vw - 1rem) !important;
+    }
+
+    :host ::ng-deep .p-dialog .p-dialog-content {
+        padding: 1rem !important;
+    }
+
+    /* Hacer la tabla responsive en móviles */
+    :host ::ng-deep .p-table {
+        font-size: 0.875rem !important;
+    }
+
+    :host ::ng-deep .p-table th,
+    :host ::ng-deep .p-table td {
+        padding: 0.5rem 0.25rem !important;
+    }
+
+    /* Ocultar columnas menos importantes en móviles */
+    :host ::ng-deep .p-table th:nth-child(3),
+    :host ::ng-deep .p-table td:nth-child(3),
+    :host ::ng-deep .p-table th:nth-child(4),
+    :host ::ng-deep .p-table td:nth-child(4) {
+        display: none !important;
+    }
+}
+
+/* Estilos para el icono de visibility */
+.custom-flat-icon-button {
+    background: transparent !important;
+    border: none !important;
+    color: #6b7280 !important;
+    transition: color 0.2s ease !important;
+}
+
+.custom-flat-icon-button:hover {
+    color: #374151 !important;
+    background: #f3f4f6 !important;
+}
+
+.custom-flat-icon-button-edit:hover {
+    color: #1f2937 !important;
+    background: #dbeafe !important;
+}

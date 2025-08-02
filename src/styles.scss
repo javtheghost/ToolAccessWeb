@@ -54,6 +54,10 @@
   color: var(--primary-color) !important; /* azul para editar, opcional */
 }
 
+.custom-flat-icon-button-pay {
+  color: #10b981 !important; /* verde para pagar, similar al estado pagado */
+}
+
 // hover buttons dialogs confirms
 .custom-confirm-button-delete {
     background-color: #d9534f !important;
@@ -89,6 +93,8 @@
 .p-dialog .p-dialog-content {
     background: #f8fafc;
 }
+
+
 
 /* ===== BOTONES ===== */
 .custom-cancel-btn {
@@ -128,6 +134,17 @@
 .custom-confirm-accept-warning:hover {
     background-color: #fb8c00 !important;
     border-color: #fb8c00 !important;
+}
+
+.custom-confirm-accept-success {
+    background-color: #10b981 !important;
+    border-color: #10b981 !important;
+    color: white !important;
+}
+
+.custom-confirm-accept-success:hover {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
 }
 
 /* ===== COLORES DE TEXTO ===== */

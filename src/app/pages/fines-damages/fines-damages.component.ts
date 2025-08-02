@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
 import { DamageTypesCrudComponent } from './damage-types-crud.component';
 import { HistoryDamagesCrudComponent } from './history-damages-crud.component';
 import { FinesConfigCrudComponent } from './fines-config-crud.component';
@@ -8,10 +9,12 @@ import { RecentFinesCrudComponent } from './recent-fines-crud.component';
 @Component({
   selector: 'app-fines-damages',
   standalone: true,
-  imports: [CommonModule, DamageTypesCrudComponent, HistoryDamagesCrudComponent, FinesConfigCrudComponent, RecentFinesCrudComponent],
+  imports: [CommonModule, ButtonModule, DamageTypesCrudComponent, HistoryDamagesCrudComponent, FinesConfigCrudComponent, RecentFinesCrudComponent],
   template: `
     <div class="p-4 sm:p-6 lg:p-8">
-      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--primary-color)] mb-6">Configuración de Multas y Daños</h1>
+            <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl sm:text-3xl font-bold text-[var(--primary-color)]">Configuración de Multas y Daños</h1>
+      </div>
 
       <section class="mb-8">
         <app-damage-types-crud></app-damage-types-crud>
@@ -31,4 +34,6 @@ import { RecentFinesCrudComponent } from './recent-fines-crud.component';
     </div>
   `
 })
-export class FinesDamagesComponent {}
+export class FinesDamagesComponent {
+  constructor() {}
+}

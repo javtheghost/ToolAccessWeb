@@ -1,0 +1,187 @@
+<p-toast></p-toast>
+<div class="p-6">
+    <p-table
+        #dt
+        [value]="loans"
+        [rows]="10"
+        [paginator]="true"
+        [globalFilterFields]="['id', 'folio', 'usuario_nombre', 'estado']"
+        [tableStyle]="{ 'min-width': '75rem' }"
+        [rowHover]="true"
+        dataKey="id"
+        [showCurrentPageReport]="false"
+        [rowsPerPageOptions]="[10, 20, 30]"
+        class="shadow-md rounded-lg"
+        [loading]="loading"
+    >
+        <ng-template #caption>
+            <div class="flex items-center justify-between">
+                <h5 class="m-0 p-2 text-[var(--primary-color)]">Consulta de Órdenes de Préstamo</h5>
+                <div class="flex gap-2">
+                    <p-button
+                        icon="pi pi-refresh"
+                        (click)="loadLoans()"
+                        [loading]="loading"
+                        styleClass="p-button-outlined p-button-sm"
+                        pTooltip="Actualizar lista"
+                        tooltipPosition="top">
+                    </p-button>
+                </div>
+            </div>
+            <div class="flex items-center justify-between gap-4 mt-2">
+                <p-iconfield class="flex-1">
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, folio, usuario o estado..." />
+                </p-iconfield>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr class="bg-[#6ea1cc] text-white">
+                <th>ID</th>
+                <th>Folio</th>
+                <th>Usuario</th>
+                <th>Estado</th>
+                <th>Fecha Solicitud</th>
+                <th>Fecha Aprobación</th>
+                <th>Fecha Devolución Estimada</th>
+                <th>Fecha Devolución Real</th>
+                <th>Tiempo Solicitado</th>
+                <th>Tiempo Aprobado</th>
+                <th>Acción</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-loan>
+            <tr>
+                <td>{{ loan.id }}</td>
+                <td>{{ loan.folio }}</td>
+                <td>
+                    <div class="flex flex-col">
+                        <span class="font-semibold text-gray-900">{{ loan.usuario_nombre }}</span>
+                        <span class="text-xs text-gray-500">ID: {{ loan.usuario_id }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium"
+                          [ngClass]="{
+                              'bg-[#AAEACA] text-green-800': loan.estado === 'aprobado',
+                              'bg-[#FEE8B9] text-orange-800': loan.estado === 'pendiente',
+                              'bg-[#FF6B6B] text-red-800': loan.estado === 'rechazado',
+                              'bg-[#CEDEFO] text-blue-800': loan.estado === 'terminado',
+                              'bg-[#FFABAB] text-red-800': loan.estado === 'vencido'
+                          }">
+                        {{ loan.estado | titlecase }}
+                    </span>
+                </td>
+                <td>{{ loan.fecha_solicitud ? (loan.fecha_solicitud | date:'dd/MM/yy') : '-' }}</td>
+                <td>{{ loan.fecha_aprobacion ? (loan.fecha_aprobacion | date:'dd/MM/yy') : '-' }}</td>
+                <td>{{ loan.fecha_devolucion_estimada ? (loan.fecha_devolucion_estimada | date:'dd/MM/yy') : '-' }}</td>
+                <td>{{ loan.fecha_devolucion_real ? (loan.fecha_devolucion_real | date:'dd/MM/yy') : '-' }}</td>
+                <td>{{ loan.tiempo_solicitado }} min</td>
+                <td>{{ loan.tiempo_aprobado ? loan.tiempo_aprobado + ' min' : '-' }}</td>
+                <td>
+                    <p-button
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                        (click)="viewDetails(loan)"
+                        pTooltip="Ver detalles"
+                        tooltipPosition="top">
+                        <ng-template pTemplate="icon">
+                            <i class="material-symbols-outlined">visibility</i>
+                        </ng-template>
+                    </p-button>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="11" class="text-center py-8">
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="pi pi-inbox text-4xl text-gray-400"></i>
+                        <span class="text-gray-500">No se encontraron órdenes de préstamo</span>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Modal de Detalles -->
+<p-dialog
+    [(visible)]="showDetailModal"
+    header="Detalles de la Orden de Préstamo"
+    [modal]="true"
+    [style]="{ width: isMobile ? '95vw' : '90rem', maxWidth: '95vw' }"
+    [draggable]="false"
+    [resizable]="false"
+    (onHide)="closeDetailModal()"
+>
+    <div *ngIf="loadingDetails" class="flex justify-center py-8">
+        <i class="pi pi-spin pi-spinner text-2xl"></i>
+    </div>
+
+    <div *ngIf="!loadingDetails">
+        <p-table
+            [value]="selectedLoanDetails"
+            [tableStyle]="{ 'min-width': isMobile ? '100%' : '80rem' }"
+            [rowHover]="true"
+            class="shadow-sm rounded-lg"
+        >
+            <ng-template pTemplate="header">
+                <tr class="bg-gray-50">
+                    <th>Herramienta</th>
+                    <th>Folio</th>
+                    <th>Categoría</th>
+                    <th>Subcategoría</th>
+                    <th>Cantidad</th>
+                    <th>Stock Actual</th>
+                    <th>Valor Reposición</th>
+                    <th>Fecha Registro</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-detail>
+                <tr>
+                    <td>
+                        <div class="font-medium">{{ detail.herramienta_nombre }}</div>
+                    </td>
+                    <td>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                            {{ detail.herramienta_folio }}
+                        </span>
+                    </td>
+                    <td>{{ detail.categoria_nombre || '-' }}</td>
+                    <td>{{ detail.subcategoria_nombre || '-' }}</td>
+                    <td>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
+                            {{ detail.cantidad }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="px-2 py-1 rounded text-xs font-medium"
+                              [ngClass]="{
+                                  'bg-red-100 text-red-800': detail.herramienta_stock <= 0,
+                                  'bg-yellow-100 text-yellow-800': detail.herramienta_stock <= 5 && detail.herramienta_stock > 0,
+                                  'bg-green-100 text-green-800': detail.herramienta_stock > 5
+                              }">
+                            {{ detail.herramienta_stock }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-sm font-bold text-gray-700">
+                            ${{ detail.valor_reposicion ? detail.valor_reposicion.toLocaleString() : '0' }}
+                        </span>
+                    </td>
+                    <td>{{ detail.created_at ? (detail.created_at | date:'dd/MM/yy h:mm a') : '-' }}</td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="pi pi-tools text-2xl text-gray-400"></i>
+                            <span class="text-gray-500">No hay herramientas registradas</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</p-dialog>

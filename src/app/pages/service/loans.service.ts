@@ -99,6 +99,23 @@ export class LoansService {
         );
     }
 
+
+
+    // GET - Obtener usuarios para dropdown
+    getUsuarios(): Observable<any[]> {
+        return this.http.get<any>(`${environment.apiUrl}/usuarios`).pipe(
+            map(response => {
+                if (response.success && response.data) {
+                    return Array.isArray(response.data) ? response.data : [response.data];
+                } else {
+                    console.warn('Formato de respuesta inesperado para usuarios:', response);
+                    return [];
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
     private handleError(error: any): Observable<never> {
         let errorMessage = 'Error desconocido';
 

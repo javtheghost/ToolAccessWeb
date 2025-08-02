@@ -30,6 +30,7 @@ export default [
       path: 'fines-damages',
       component: FinesDamagesComponent
     },
+
     {
       path: 'profile',
       component: ProfileComponent
