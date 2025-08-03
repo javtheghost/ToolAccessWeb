@@ -258,9 +258,10 @@ export class ToolsService {
         // Construir la URL completa para rutas relativas
         const baseUrl = environment.apiServiceGeneralUrl;
         // Asegurar que hay un slash entre la base URL y la ruta de la imagen
+        // Y agregar /uploads/ para acceder a los archivos estáticos
         const fullUrl = correctedPath.startsWith('/')
             ? `${baseUrl}${correctedPath}`
-            : `${baseUrl}/${correctedPath}`;
+            : `${baseUrl}/uploads/${correctedPath}`;
 
         console.log('[ToolsService] getImageUrl - URL construida:', fullUrl);
         return fullUrl;
