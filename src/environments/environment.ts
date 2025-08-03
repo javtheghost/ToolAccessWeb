@@ -4,14 +4,17 @@ export const environment = {
     clientId: 'web-app-angular',
     clientSecret: 'angular-secret-key-2025',
     redirectUri: 'http://localhost:4200/oauth/callback',  // Localhost para development
-    baseUrl: 'http://159.223.203.247',                    // Servidor remoto
-    authUrl: 'http://159.223.203.247/oauth/authorize',
-    tokenUrl: 'http://159.223.203.247/oauth/token',
-    userinfoUrl: 'http://159.223.203.247/oauth/userinfo',
-    unifiedApiUrl: 'http://159.223.203.247/api/unified',
-    profileUrl: 'http://159.223.203.247/api/auth/profile',
-    refreshUrl: 'http://159.223.203.247/oauth/refresh-interceptor',
-    revokeUrl: 'http://159.223.203.247/oauth/revoke'
+    baseUrl: 'https://oauth.toolaccess.tech',                    // Servidor remoto
+    authUrl: 'https://oauth.toolaccess.tech/oauth/authorize',
+    tokenUrl: 'https://oauth.toolaccess.tech/oauth/token',
+    userinfoUrl: 'https://oauth.toolaccess.tech/oauth/userinfo',
+    unifiedApiUrl: 'https://oauth.toolaccess.tech/api/unified',
+    profileUrl: 'https://oauth.toolaccess.tech/api/auth/profile',
+    refreshUrl: 'https://oauth.toolaccess.tech/oauth/refresh-interceptor',
+    revokeUrl: 'https://oauth.toolaccess.tech/oauth/revoke'
   },
-  apiUrl: 'http://159.223.203.247/api'
+  // OAuth API (autenticación)
+  apiUrl: 'https://oauth.toolaccess.tech/api',
+  // API Service General (servicios principales)
+  apiServiceGeneralUrl: 'http://localhost:3001'
 };

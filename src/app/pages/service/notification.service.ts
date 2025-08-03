@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { OAuthService } from './oauth.service';
 
 export interface Notification {
   id: number;
@@ -42,11 +43,23 @@ export interface NotificationResponse {
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = `${environment.apiUrl}/notificaciones`;
+  private apiUrl = `${environment.apiServiceGeneralUrl}/api/notificaciones`;
   private unreadCountSubject = new BehaviorSubject<number>(0);
   public unreadCount$ = this.unreadCountSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private oauthService: OAuthService) {}
+
+  // Método privado para obtener headers con token
+  private getHeaders(): HttpHeaders {
+    const token = this.oauthService.getToken();
+    let headers = new HttpHeaders();
+
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    return headers;
+  }
 
   /**
    * Obtener notificaciones del usuario
@@ -71,7 +84,9 @@ export class NotificationService {
       }
     }
 
-    return this.http.get<NotificationResponse>(url);
+    return this.http.get<NotificationResponse>(url, {
+      headers: this.getHeaders()
+    });
   }
 
   /**
@@ -80,7 +95,8 @@ export class NotificationService {
   markAsRead(notificationId: number): Observable<{ data: Notification; message: string }> {
     return this.http.put<{ data: Notification; message: string }>(
       `${this.apiUrl}/${notificationId}/leer`,
-      {}
+      {},
+      { headers: this.getHeaders() }
     );
   }
 
@@ -90,7 +106,8 @@ export class NotificationService {
   markAllAsRead(): Observable<{ data: any; message: string }> {
     return this.http.put<{ data: any; message: string }>(
       `${this.apiUrl}/leer-todas`,
-      {}
+      {},
+      { headers: this.getHeaders() }
     );
   }
 

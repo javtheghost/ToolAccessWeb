@@ -9,7 +9,7 @@ import { Category, CategoryResponse, CategoryCreateRequest, CategoryUpdateReques
     providedIn: 'root'
 })
 export class CategoryService {
-    private apiUrl = `${environment.apiUrl}/categories`;
+    private apiUrl = `${environment.apiServiceGeneralUrl}/api/categories`;
 
     constructor(private http: HttpClient) {}
 

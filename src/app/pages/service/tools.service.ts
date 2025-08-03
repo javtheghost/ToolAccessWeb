@@ -63,7 +63,7 @@ export interface ToolResponse {
     providedIn: 'root'
 })
 export class ToolsService {
-    private apiUrl = `${environment.apiUrl}/tools`;
+    private apiUrl = `${environment.apiServiceGeneralUrl}/api/tools`;
 
     constructor(private http: HttpClient, private oauthService: OAuthService) {}
 
@@ -221,7 +221,7 @@ export class ToolsService {
             params = params.set('only_active', onlyActive.toString());
         }
 
-        return this.http.get<ToolResponse>(`${environment.apiUrl}/subcategories/${subcategoryId}/tools`, { params }).pipe(
+        return this.http.get<ToolResponse>(`${environment.apiServiceGeneralUrl}/api/subcategories/${subcategoryId}/tools`, { params }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data : [response.data];
@@ -235,18 +235,18 @@ export class ToolsService {
 
     // Método para obtener la URL completa de la imagen
     getImageUrl(imagePath: string): string {
-        console.log('[ToolsService] getImageUrl - imagePath recibido:', imagePath);
-
         if (!imagePath) {
-            console.log('[ToolsService] getImageUrl - imagePath vacío, retornando cadena vacía');
+            console.log('[ToolsService] getImageUrl - No imagePath provided');
             return '';
         }
 
-        // Siempre corregir puerto 3000 a 3001 si existe
+        console.log('[ToolsService] getImageUrl - Original path:', imagePath);
+
+        // Corregir rutas que usan el puerto incorrecto
         let correctedPath = imagePath;
         if (imagePath.includes('localhost:3000')) {
             correctedPath = imagePath.replace('localhost:3000', 'localhost:3001');
-            console.log('[ToolsService] getImageUrl - URL corregida de 3000 a 3001:', correctedPath);
+            console.log('[ToolsService] getImageUrl - Corregida ruta de puerto:', correctedPath);
         }
 
         // Si ya es una URL completa, retornarla (ya corregida si era necesario)
@@ -256,7 +256,7 @@ export class ToolsService {
         }
 
         // Construir la URL completa para rutas relativas
-        const baseUrl = 'http://localhost:3001';
+        const baseUrl = environment.apiServiceGeneralUrl;
         const fullUrl = `${baseUrl}${correctedPath}`;
 
         console.log('[ToolsService] getImageUrl - URL construida:', fullUrl);

@@ -13,5 +13,8 @@ export const environment = {
     refreshUrl: 'https://oauth.toolaccess.tech/oauth/refresh-interceptor',
     revokeUrl: 'https://oauth.toolaccess.tech/oauth/revoke'
   },
-  apiUrl: 'https://oauth.toolaccess.tech/api'
+  // OAuth API (autenticación)
+  apiUrl: 'https://oauth.toolaccess.tech/api',
+  // API Service General (servicios principales)
+  apiServiceGeneralUrl: 'https://api.toolaccess.tech'
 };

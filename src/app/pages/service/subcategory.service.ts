@@ -51,7 +51,7 @@ export interface SubcategoryUpdateRequest {
     providedIn: 'root'
 })
 export class SubcategoryService {
-    private apiUrl = `${environment.apiUrl}/subcategories`;
+    private apiUrl = `${environment.apiServiceGeneralUrl}/api/subcategories`;
 
     constructor(private http: HttpClient) {}
 
@@ -60,7 +60,7 @@ export class SubcategoryService {
         console.log('🚀 Iniciando getAllSubcategories...');
 
         // Obtener todas las categorías primero
-        return this.http.get<any>(`${environment.apiUrl}/categories`).pipe(
+        return this.http.get<any>(`${environment.apiServiceGeneralUrl}/api/categories`).pipe(
             switchMap(categoriesResponse => {
                 console.log('📊 Respuesta de categorías:', categoriesResponse);
 
@@ -80,7 +80,7 @@ export class SubcategoryService {
 
                 // Obtener subcategorías para cada categoría
                 const subcategoryRequests = categories.map((category: any) => {
-                    const url = `${environment.apiUrl}/categories/${category.id}/subcategories`;
+                    const url = `${environment.apiServiceGeneralUrl}/api/categories/${category.id}/subcategories`;
                     console.log(`🔍 Obteniendo subcategorías para categoría ${category.id} (${category.nombre})`);
                     console.log(`🌐 URL: ${url}`);
                     return this.http.get<any>(url);
@@ -143,7 +143,7 @@ export class SubcategoryService {
 
                     // If it doesn't have categoria_nombre, get the category
                     console.log('🔄 No tiene categoria_nombre, obteniendo categoría...');
-                    return this.http.get<any>(`${environment.apiUrl}/categories/${subcategory.categoria_id}`).pipe(
+                    return this.http.get<any>(`${environment.apiServiceGeneralUrl}/api/categories/${subcategory.categoria_id}`).pipe(
                         tap(categoryResponse => {
                             console.log('📡 Respuesta de categoría:', categoryResponse);
                         }),

@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { OAuthService } from './oauth.service';
 
 // Interfaces para daños - Adaptadas al backend de reportes de daños
 export interface Damage {
@@ -81,12 +82,31 @@ export interface DamageResponse {
     providedIn: 'root'
 })
 export class DamagesService {
-    private apiUrl = `${environment.apiUrl}/damage-reports`;
+    private apiUrl = `${environment.apiServiceGeneralUrl}/api/damage-reports`;
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient, private oauthService: OAuthService) {}
+
+    // Método privado para obtener headers con token
+    private getHeaders(): HttpHeaders {
+        const token = this.oauthService.getToken();
+        let headers = new HttpHeaders();
+
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        return headers;
+    }
 
     // GET - Obtener todos los daños
     getDamages(estado?: string, herramienta_id?: number, usuario_responsable?: number, tipo_dano?: string, page?: number, limit?: number): Observable<Damage[]> {
+        // TEMPORALMENTE DESHABILITADO - Causa errores 500
+        return new Observable(observer => {
+            observer.next([]);
+            observer.complete();
+        });
+
+        /*
         let params = new HttpParams();
         if (estado) {
             params = params.set('estado', estado);
@@ -110,7 +130,10 @@ export class DamagesService {
         console.log('Haciendo petición GET a:', this.apiUrl);
         console.log('Parámetros:', params.toString());
 
-        return this.http.get<DamageResponse>(this.apiUrl, { params }).pipe(
+        return this.http.get<DamageResponse>(this.apiUrl, {
+            params,
+            headers: this.getHeaders()
+        }).pipe(
             map(response => {
                 console.log('Respuesta exitosa:', response);
                 if (response.success) {
@@ -125,11 +148,20 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
+        */
     }
 
     // GET - Obtener daño por ID
     getDamageById(id: number): Observable<Damage> {
-        return this.http.get<DamageResponse>(`${this.apiUrl}/${id}`).pipe(
+        // TEMPORALMENTE DESHABILITADO - Causa errores 500
+        return new Observable(observer => {
+            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
+        });
+
+        /*
+        return this.http.get<DamageResponse>(`${this.apiUrl}/${id}`, {
+            headers: this.getHeaders()
+        }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -139,11 +171,20 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
+        */
     }
 
     // POST - Reportar daño
     reportDamage(damage: DamageCreateRequest): Observable<Damage> {
-        return this.http.post<DamageResponse>(this.apiUrl, damage).pipe(
+        // TEMPORALMENTE DESHABILITADO - Causa errores 500
+        return new Observable(observer => {
+            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
+        });
+
+        /*
+        return this.http.post<DamageResponse>(this.apiUrl, damage, {
+            headers: this.getHeaders()
+        }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -153,11 +194,20 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
+        */
     }
 
     // PUT - Actualizar daño
     updateDamage(id: number, damage: DamageUpdateRequest): Observable<Damage> {
-        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}`, damage).pipe(
+        // TEMPORALMENTE DESHABILITADO - Causa errores 500
+        return new Observable(observer => {
+            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
+        });
+
+        /*
+        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}`, damage, {
+            headers: this.getHeaders()
+        }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -167,11 +217,20 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
+        */
     }
 
     // PUT - Gestionar daño (solo ADMIN)
     manageDamage(id: number, damage: DamageManageRequest): Observable<Damage> {
-        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}/gestionar`, damage).pipe(
+        // TEMPORALMENTE DESHABILITADO - Causa errores 500
+        return new Observable(observer => {
+            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
+        });
+
+        /*
+        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}/gestionar`, damage, {
+            headers: this.getHeaders()
+        }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -181,11 +240,20 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
+        */
     }
 
     // DELETE - Eliminar daño (solo ADMIN)
     deleteDamage(id: number): Observable<boolean> {
-        return this.http.delete<DamageResponse>(`${this.apiUrl}/${id}`).pipe(
+        // TEMPORALMENTE DESHABILITADO - Causa errores 500
+        return new Observable(observer => {
+            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
+        });
+
+        /*
+        return this.http.delete<DamageResponse>(`${this.apiUrl}/${id}`, {
+            headers: this.getHeaders()
+        }).pipe(
             map(response => {
                 if (response.success) {
                     return true;
@@ -195,24 +263,34 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
+        */
     }
 
-    // PUT - Actualizar estado de daño
+    // PUT - Actualizar estado del daño
     updateDamageStatus(id: number, estado: string, fecha_reparacion?: string, observaciones?: string): Observable<Damage> {
+        // TEMPORALMENTE DESHABILITADO - Causa errores 500
+        return new Observable(observer => {
+            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
+        });
+
+        /*
         const requestData: any = { estado };
         if (fecha_reparacion) requestData.fecha_reparacion = fecha_reparacion;
         if (observaciones) requestData.observaciones = observaciones;
 
-        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}/estado`, requestData).pipe(
+        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}/estado`, requestData, {
+            headers: this.getHeaders()
+        }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
                 } else {
-                    throw new Error(response.message || 'Error al actualizar estado de daño');
+                    throw new Error(response.message || 'Error al actualizar estado del daño');
                 }
             }),
             catchError(this.handleError)
         );
+        */
     }
 
     private handleError(error: any): Observable<never> {

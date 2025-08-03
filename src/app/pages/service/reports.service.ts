@@ -2,29 +2,23 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { OAuthService } from './oauth.service';
 
 export interface Estadisticas {
-  herramientas: {
-    total_herramientas: number;
-    herramientas_activas: number;
-    disponibles: number;
-    prestadas: number;
-    danadas: number;
-  };
-  prestamos: {
-    total_prestamos: number;
-    activos: number;
-    devueltos: number;
-    vencidos: number;
-  };
-  multas: {
-    total_multas: number;
-    pendientes: number;
-    pagadas: number;
-    monto_pendiente: number;
-    monto_cobrado: number;
-  };
-  fecha_reporte: string;
+  total_herramientas: number;
+  herramientas_activas: number;
+  herramientas_inactivas: number;
+  herramientas_sin_stock: number;
+  total_categorias: number;
+  total_subcategorias: number;
+  prestamos_activos: number;
+  prestamos_vencidos: number;
+  multas_pendientes: number;
+  multas_pagadas: number;
+  danos_reportados: number;
+  danos_reparados: number;
+  valor_total_inventario: number;
+  valor_promedio_herramienta: number;
 }
 
 export interface Prestamo {
@@ -81,19 +75,39 @@ export interface ReporteHerramientasPopulares {
   limite: number;
 }
 
+export interface ReporteResponse {
+  success: boolean;
+  data: any;
+  message: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ReportsService {
-  private baseUrl = `${environment.apiUrl}/reportes`;
+  private baseUrl = `${environment.apiServiceGeneralUrl}/api/reportes`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private oauthService: OAuthService) { }
+
+  // Método privado para obtener headers con token
+  private getHeaders(): any {
+    const token = this.oauthService.getToken();
+    let headers: any = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
+  }
 
   /**
    * Obtener estadísticas completas del sistema (Solo ADMIN)
    */
   getEstadisticas(): Observable<Estadisticas> {
-    return this.http.get<Estadisticas>(`${this.baseUrl}/estadisticas`);
+    return this.http.get<Estadisticas>(`${this.baseUrl}/estadisticas`, {
+      headers: this.getHeaders()
+    });
   }
 
   /**
@@ -112,7 +126,10 @@ export class ReportsService {
       params = params.set('estado', estado);
     }
 
-    return this.http.get<ReportePrestamos>(`${this.baseUrl}/prestamos`, { params });
+    return this.http.get<ReportePrestamos>(`${this.baseUrl}/prestamos`, {
+      params,
+      headers: this.getHeaders()
+    });
   }
 
   /**
@@ -120,7 +137,10 @@ export class ReportsService {
    */
   getHerramientasPopulares(limite: number = 10): Observable<ReporteHerramientasPopulares> {
     const params = new HttpParams().set('limite', limite.toString());
-    return this.http.get<ReporteHerramientasPopulares>(`${this.baseUrl}/herramientas-populares`, { params });
+    return this.http.get<ReporteHerramientasPopulares>(`${this.baseUrl}/herramientas-populares`, {
+      params,
+      headers: this.getHeaders()
+    });
   }
 
   /**
@@ -139,6 +159,9 @@ export class ReportsService {
       params = params.set('estado', estado);
     }
 
-    return this.http.get<ReporteMultas>(`${this.baseUrl}/multas`, { params });
+    return this.http.get<ReporteMultas>(`${this.baseUrl}/multas`, {
+      params,
+      headers: this.getHeaders()
+    });
   }
 }
