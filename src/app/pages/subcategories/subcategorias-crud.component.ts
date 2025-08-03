@@ -38,6 +38,7 @@ import { forkJoin } from 'rxjs';
         TextareaModule,
         DialogModule,
         InputSwitchModule,
+        ConfirmDialogModule,
         IconFieldModule,
         InputIconModule,
         DropdownModule,
@@ -108,12 +109,15 @@ import { forkJoin } from 'rxjs';
                         <p-inputicon styleClass="pi pi-search" />
                         <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar subcategorías..." />
                     </p-iconfield>
-                    <p-button
-                        label="Crear Subcategoría"
-                        icon="pi pi-plus"
-                        (onClick)="openNew()"
-                        styleClass="w-full sm:w-auto">
-                    </p-button>
+                                    <p-button
+                    label="Crear Subcategoría"
+                    icon="pi pi-plus"
+                    (onClick)="openNew()"
+                    [disabled]="categories().length === 0"
+                    styleClass="w-full sm:w-auto"
+                    pTooltip="Primero debes crear al menos una categoría"
+                    tooltipPosition="top">
+                </p-button>
                 </div>
             </ng-template>
             <ng-template pTemplate="header">
@@ -181,7 +185,12 @@ import { forkJoin } from 'rxjs';
                             <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
                             <div class="text-center">
                                 <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay subcategorías</h3>
-                                <p class="text-gray-500">Aún no se han creado subcategorías. Utiliza el botón "Crear Subcategoría" para agregar la primera.</p>
+                                <p class="text-gray-500" *ngIf="categories().length > 0">
+                                    Aún no se han creado subcategorías. Utiliza el botón "Crear Subcategoría" para agregar la primera.
+                                </p>
+                                <p class="text-gray-500" *ngIf="categories().length === 0">
+                                    No hay categorías disponibles. Primero debes crear al menos una categoría antes de poder crear subcategorías.
+                                </p>
                             </div>
                         </div>
                     </td>
@@ -386,7 +395,18 @@ export class SubcategoriasCrudComponent implements OnInit {
             },
             error: (error) => {
                 console.error('❌ Error en loadData():', error);
+                // En caso de error, establecer arrays vacíos y continuar
+                this.subcategories.set([]);
+                this.categories.set([]);
                 this.loading.set(false);
+
+                // Mostrar mensaje de error al usuario
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Error al cargar los datos. Por favor, intenta de nuevo.',
+                    life: 5000
+                });
             }
         });
     }

@@ -3,8 +3,8 @@ export const environment = {
   api: {
     clientId: 'web-app-angular',
     clientSecret: 'angular-secret-key-2025',
-    redirectUri: 'http://localhost:4200/oauth/callback',  // Localhost para development
-    baseUrl: 'https://oauth.toolaccess.tech',                    // Servidor remoto
+    redirectUri: 'http://localhost:4200/oauth/callback',
+    baseUrl: 'https://oauth.toolaccess.tech',
     authUrl: 'https://oauth.toolaccess.tech/oauth/authorize',
     tokenUrl: 'https://oauth.toolaccess.tech/oauth/token',
     userinfoUrl: 'https://oauth.toolaccess.tech/oauth/userinfo',
@@ -15,6 +15,12 @@ export const environment = {
   },
   // OAuth API (autenticación)
   apiUrl: 'https://oauth.toolaccess.tech/api',
-  // API Service General (servicios principales)
-  apiServiceGeneralUrl: 'http://localhost:3001'
+  // API Service General - PRODUCCIÓN
+  apiServiceGeneralUrl: 'https://apigeneral.toolaccess.tech'
 };
+
+// Log solo en desarrollo
+if (!environment.production) {
+  console.log(`🚀 API Service General: ${environment.apiServiceGeneralUrl}`);
+  console.log(`📍 Usando API de PRODUCCIÓN desde desarrollo local`);
+}

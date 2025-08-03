@@ -20,6 +20,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 
 import { CardModule } from 'primeng/card';
 import { CustomDatePickerComponent } from '../utils/custom-date-picker.component';
+// Servicios
 import { FinesService, Fine, FineCreateRequest, FineUpdateRequest } from '../service/fines.service';
 import { PaginationUtils } from '../utils/pagination.utils';
 import { finalize } from 'rxjs/operators';
@@ -50,137 +51,157 @@ import { finalize } from 'rxjs/operators';
     template: `
 <p-toast></p-toast>
 <div class="p-4">
-    <p-table
-        #dt
-        [value]="fines"
-        [rows]="paginationUtils.getPaginationConfig().defaultRows"
-        [paginator]="true"
-        [globalFilterFields]="['orden_id', 'usuario_id', 'configuracion_nombre', 'estado']"
-        [tableStyle]="{ 'min-width': '100%' }"
-        [(selection)]="selectedFines"
-        [rowHover]="true"
-        dataKey="id"
-        [showCurrentPageReport]="false"
-        [rowsPerPageOptions]="paginationUtils.getPaginationConfig().options"
-        [scrollable]="true"
-        scrollHeight="300px"
-        class="shadow-md rounded-lg"
-        [loading]="loading"
-    >
-        <ng-template #caption>
-            <div class="flex items-center justify-between">
-                <h5 class="m-0 p-2 text-[var(--primary-color)]">Multas Recientes</h5>
-                <div class="flex gap-2">
-                    <p-button
-                        label="Nueva Multa"
-                        icon="pi pi-plus"
-                        (onClick)="openNew()"
-                        pTooltip="Crear nueva multa"
-                        tooltipPosition="top">
-                    </p-button>
-                </div>
-            </div>
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
-                <p-iconfield class="flex-1 w-full sm:w-auto">
-                    <p-inputicon styleClass="pi pi-search" />
-                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
-                </p-iconfield>
-            </div>
-        </ng-template>
-        <ng-template pTemplate="header">
-            <tr class="bg-[#6ea1cc] text-white">
-                <th>ID</th>
-                <th>Usuario</th>
-                <th>Orden</th>
-                <th>Configuración</th>
-                <th>Monto</th>
-                <th>Estado</th>
-                <th>Fecha Aplicación</th>
-                <th>Acciones</th>
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-fine>
-            <tr>
-                <td>{{ fine.id }}</td>
-                <td>
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-gray-900">{{ fine.usuario_nombre || 'Usuario #' + fine.usuario_id }}</span>
-                        <span class="text-xs text-gray-500">{{ fine.usuario_email || 'Sin email' }}</span>
+    <div class="card">
+        <h5 class="m-0 p-2 text-[var(--primary-color)]">Multas Recientes</h5>
+
+        <!-- Estado de carga -->
+        <div *ngIf="loading" class="p-4 text-center">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+            <p class="mt-2">Cargando multas...</p>
+        </div>
+
+        <!-- Sin datos -->
+        <div *ngIf="!loading && fines.length === 0" class="p-4 text-center">
+            <i class="pi pi-info-circle" style="font-size: 2rem; color: var(--primary-color)"></i>
+            <h6 class="mt-2 mb-1">No hay multas registradas</h6>
+            <p class="text-gray-500 text-sm">Cuando se registren multas, aparecerán aquí.</p>
+        </div>
+
+        <!-- Tabla de multas -->
+        <div *ngIf="!loading && fines.length > 0">
+            <p-table
+                #dt
+                [value]="fines"
+                [rows]="paginationUtils.getPaginationConfig().defaultRows"
+                [paginator]="true"
+                [globalFilterFields]="['orden_id', 'usuario_id', 'configuracion_nombre', 'estado']"
+                [tableStyle]="{ 'min-width': '100%' }"
+                [(selection)]="selectedFines"
+                [rowHover]="true"
+                dataKey="id"
+                [showCurrentPageReport]="false"
+                [rowsPerPageOptions]="paginationUtils.getPaginationConfig().options"
+                [scrollable]="true"
+                scrollHeight="300px"
+                class="shadow-md rounded-lg"
+                [loading]="loading"
+            >
+                <ng-template #caption>
+                    <div class="flex items-center justify-between">
+                        <h5 class="m-0 p-2 text-[var(--primary-color)]">Multas Recientes</h5>
+                        <div class="flex gap-2">
+                            <p-button
+                                label="Nueva Multa"
+                                icon="pi pi-plus"
+                                (onClick)="openNew()"
+                                pTooltip="Crear nueva multa"
+                                tooltipPosition="top">
+                            </p-button>
+                        </div>
                     </div>
-                </td>
-                <td>
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-blue-600">{{ fine.orden_folio || 'Orden #' + fine.orden_id }}</span>
-                        <span class="text-xs text-gray-500">ID: {{ fine.orden_id }}</span>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
+                        <p-iconfield class="flex-1 w-full sm:w-auto">
+                            <p-inputicon styleClass="pi pi-search" />
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
+                        </p-iconfield>
                     </div>
-                </td>
-                <td>
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-gray-900">{{ fine.configuracion_nombre || 'Config #' + fine.configuracion_multa_id }}</span>
-                        <span class="text-xs text-gray-500">ID: {{ fine.configuracion_multa_id }}</span>
-                    </div>
-                </td>
-                <td class="font-semibold">{{ fine.monto_total | currency:'MXN' }}</td>
-                <td>
-                    <span [class]="getEstadoClass(fine.estado)">
-                        {{ fine.estado | titlecase }}
-                    </span>
-                </td>
-                <td>{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</td>
-                <td>
-                    <div class="flex gap-1">
-                        <p-button
-                            (onClick)="viewFineDetails(fine)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
-                            pTooltip="Ver detalles"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">visibility</i>
-                            </ng-template>
-                        </p-button>
-                        <p-button
-                            (onClick)="editFine(fine)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
-                            pTooltip="Editar"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">edit</i>
-                            </ng-template>
-                        </p-button>
-                        <p-button
-                            *ngIf="fine.estado === 'pendiente'"
-                            (onClick)="payFine(fine)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-pay mr-2"
-                            pTooltip="Marcar como pagada"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">payments</i>
-                            </ng-template>
-                        </p-button>
-                        <p-button
-                            (onClick)="deleteFine(fine)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
-                            pTooltip="Eliminar"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">delete</i>
-                            </ng-template>
-                        </p-button>
-                    </div>
-                </td>
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-            <tr>
-                <td colspan="8" class="text-center py-8">
-                    <div class="flex flex-col items-center gap-2">
-                        <i class="pi pi-inbox text-4xl text-gray-400"></i>
-                        <span class="text-gray-500">No se encontraron multas</span>
-                    </div>
-                </td>
-            </tr>
-        </ng-template>
-    </p-table>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr class="bg-[#6ea1cc] text-white">
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Orden</th>
+                        <th>Configuración</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                        <th>Fecha Aplicación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-fine>
+                    <tr>
+                        <td>{{ fine.id }}</td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-gray-900">{{ fine.usuario_nombre || 'Usuario #' + fine.usuario_id }}</span>
+                                <span class="text-xs text-gray-500">{{ fine.usuario_email || 'Sin email' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-blue-600">{{ fine.orden_folio || 'Orden #' + fine.orden_id }}</span>
+                                <span class="text-xs text-gray-500">ID: {{ fine.orden_id }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span class="font-semibold text-gray-900">{{ fine.configuracion_nombre || 'Config #' + fine.configuracion_multa_id }}</span>
+                                <span class="text-xs text-gray-500">ID: {{ fine.configuracion_multa_id }}</span>
+                            </div>
+                        </td>
+                        <td class="font-semibold">{{ fine.monto_total | currency:'MXN' }}</td>
+                        <td>
+                            <span [class]="getEstadoClass(fine.estado)">
+                                {{ fine.estado | titlecase }}
+                            </span>
+                        </td>
+                        <td>{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</td>
+                        <td>
+                            <div class="flex gap-1">
+                                <p-button
+                                    (onClick)="viewFineDetails(fine)"
+                                    styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                                    pTooltip="Ver detalles"
+                                    tooltipPosition="top">
+                                    <ng-template pTemplate="icon">
+                                        <i class="material-symbols-outlined">visibility</i>
+                                    </ng-template>
+                                </p-button>
+                                <p-button
+                                    (onClick)="editFine(fine)"
+                                    styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                                    pTooltip="Editar"
+                                    tooltipPosition="top">
+                                    <ng-template pTemplate="icon">
+                                        <i class="material-symbols-outlined">edit</i>
+                                    </ng-template>
+                                </p-button>
+                                <p-button
+                                    *ngIf="fine.estado === 'pendiente'"
+                                    (onClick)="payFine(fine)"
+                                    styleClass="custom-flat-icon-button custom-flat-icon-button-pay mr-2"
+                                    pTooltip="Marcar como pagada"
+                                    tooltipPosition="top">
+                                    <ng-template pTemplate="icon">
+                                        <i class="material-symbols-outlined">payments</i>
+                                    </ng-template>
+                                </p-button>
+                                <p-button
+                                    (onClick)="deleteFine(fine)"
+                                    styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
+                                    pTooltip="Eliminar"
+                                    tooltipPosition="top">
+                                    <ng-template pTemplate="icon">
+                                        <i class="material-symbols-outlined">delete</i>
+                                    </ng-template>
+                                </p-button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="8" class="text-center py-8">
+                            <div class="flex flex-col items-center gap-2">
+                                <i class="pi pi-inbox text-4xl text-gray-400"></i>
+                                <span class="text-gray-500">No se encontraron multas</span>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
 </div>
 
 <!-- Modal de Detalles Mejorado -->
@@ -643,7 +664,7 @@ export class RecentFinesCrudComponent implements OnInit {
         private confirmationService: ConfirmationService,
         private finesService: FinesService,
         public paginationUtils: PaginationUtils,
-        private fb: FormBuilder
+        private fb: FormBuilder,
     ) {
         this.initForm();
     }
@@ -668,19 +689,29 @@ export class RecentFinesCrudComponent implements OnInit {
             .subscribe({
                 next: (fines) => {
                     this.fines = fines;
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: `Se cargaron ${fines.length} multas`
-                    });
+                    if (fines.length > 0) {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: `Se cargaron ${fines.length} multas`
+                        });
+                    } else {
+                        this.messageService.add({
+                            severity: 'info',
+                            summary: 'Información',
+                            detail: 'No se encontraron multas. Esto puede ser normal si no hay multas registradas.'
+                        });
+                    }
                 },
                 error: (error) => {
                     console.error('Error al cargar multas:', error);
                     this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al cargar las multas'
+                        severity: 'warn',
+                        summary: 'Advertencia',
+                        detail: 'No se pudieron cargar las multas. Verificando conexión con el servidor...'
                     });
+                    // Establecer array vacío para evitar errores en el template
+                    this.fines = [];
                 }
             });
     }

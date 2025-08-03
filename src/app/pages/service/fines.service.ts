@@ -91,14 +91,23 @@ export class FinesService {
             params,
             headers: this.getHeaders()
         }).pipe(
-            map(response => {
+            map((response: FineResponse): Fine[] => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data : [response.data];
                 } else {
-                    throw new Error(response.message || 'Error al obtener multas');
+                    // En lugar de lanzar error, retornar array vacío
+                    console.warn('API retornó success: false:', response.message);
+                    return [];
                 }
             }),
-            catchError(this.handleError)
+            catchError(error => {
+                console.error('Error en getFines:', error);
+                // Retornar array vacío en lugar de fallar
+                return new Observable<Fine[]>(observer => {
+                    observer.next([]);
+                    observer.complete();
+                });
+            })
         );
     }
 
@@ -111,24 +120,37 @@ export class FinesService {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
                 } else {
+                    console.warn('API retornó success: false para getFineById:', response.message);
                     throw new Error(response.message || 'Error al obtener la multa');
                 }
             }),
-            catchError(this.handleError)
+            catchError(error => {
+                console.error('Error en getFineById:', error);
+                return throwError(() => error);
+            })
         );
     }
 
     // GET - Obtener multas por usuario
     getFinesByUser(usuarioId: number): Observable<Fine[]> {
-        return this.http.get<FineResponse>(`${this.apiUrl}/usuario/${usuarioId}`).pipe(
-            map(response => {
+        return this.http.get<FineResponse>(`${this.apiUrl}/usuario/${usuarioId}`, {
+            headers: this.getHeaders()
+        }).pipe(
+            map((response: FineResponse): Fine[] => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data : [response.data];
                 } else {
-                    throw new Error(response.message || 'Error al obtener multas del usuario');
+                    console.warn('API retornó success: false para getFinesByUser:', response.message);
+                    return [];
                 }
             }),
-            catchError(this.handleError)
+            catchError(error => {
+                console.error('Error en getFinesByUser:', error);
+                return new Observable<Fine[]>(observer => {
+                    observer.next([]);
+                    observer.complete();
+                });
+            })
         );
     }
 
@@ -280,15 +302,35 @@ export class FinesService {
     private handleError(error: any): Observable<never> {
         let errorMessage = 'Error desconocido';
 
-        if (error.error instanceof ErrorEvent) {
-            // Error del cliente
-            errorMessage = `Error: ${error.error.message}`;
-        } else {
-            // Error del servidor
-            errorMessage = error.error?.message || error.message || `Error ${error.status}: ${error.statusText}`;
+        // Si el error ya fue procesado por el interceptor, solo logear
+        if (error.message && error.message !== 'Error desconocido') {
+            console.error('Error en FinesService (ya procesado):', error.message);
+            return throwError(() => error);
         }
 
-        console.error('Error en FinesService:', errorMessage);
+        if (error.error instanceof ErrorEvent) {
+            // Error del cliente
+            errorMessage = `Error de conexión: ${error.error.message}`;
+        } else if (error.status === 0) {
+            errorMessage = 'No se puede conectar con el servidor. Verifica tu conexión.';
+        } else if (error.status === 500) {
+            // Manejar errores 500 específicamente
+            if (error.error && error.error.message) {
+                errorMessage = error.error.message;
+            } else {
+                errorMessage = 'Error interno del servidor. Intenta más tarde.';
+            }
+        } else if (error.error && error.error.message) {
+            errorMessage = error.error.message;
+        } else {
+            errorMessage = `Error ${error.status}: ${error.statusText}`;
+        }
+
+        console.error('Error en FinesService:', {
+            message: errorMessage,
+            originalError: error
+        });
+
         return throwError(() => new Error(errorMessage));
     }
 }

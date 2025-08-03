@@ -17,7 +17,7 @@ interface Profile {
     template: `
 <div class="p-6">
     <div class="max-w-md">
-        <h1 class="text-2xl font-bold text-[var(--primary-color)] mb-6">Perfil</h1>
+        <h1 class="text-2xl font-bold text-[var(--primary-color)] mb-6">Perfil de usuario</h1>
 
         <form class="space-y-4">
             <div class="relative">
@@ -65,15 +65,7 @@ interface Profile {
                 <label for="apellidoMaterno" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Materno</label>
             </div>
 
-            <div class="pt-4">
-                <button
-                    type="button"
-                    (click)="actualizarPerfil()"
-                    class="bg-[var(--primary-color)] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#1e3a8a] transition-colors duration-200"
-                >
-                    Actualizar
-                </button>
-            </div>
+
         </form>
     </div>
 </div>
@@ -105,8 +97,4 @@ export class ProfileComponent implements OnInit {
         });
     }
 
-    actualizarPerfil() {
-        // Lógica para actualizar el perfil
-        console.log('Perfil actualizado:', this.profile);
-    }
 }
