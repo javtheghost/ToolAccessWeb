@@ -3,7 +3,7 @@ export const environment = {
   api: {
     clientId: 'web-app-angular',
     clientSecret: 'angular-secret-key-2025',
-    redirectUri: 'https://oauth.toolaccess.tech/oauth/callback',
+    redirectUri: 'https://toolaccess.tech/oauth/callback',
     baseUrl: 'https://oauth.toolaccess.tech',
     authUrl: 'https://oauth.toolaccess.tech/oauth/authorize',
     tokenUrl: 'https://oauth.toolaccess.tech/oauth/token',
