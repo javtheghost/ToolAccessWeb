@@ -66,7 +66,8 @@ export class SubcategoryService {
 
                 if (!categoriesResponse.success || !categoriesResponse.data) {
                     console.error('❌ Error en respuesta de categorías:', categoriesResponse);
-                    return throwError(() => new Error('Error al obtener categorías'));
+                    // Si no hay categorías, devolver array vacío
+                    return of([]);
                 }
 
                 const categories = Array.isArray(categoriesResponse.data) ? categoriesResponse.data : [categoriesResponse.data];
@@ -75,7 +76,7 @@ export class SubcategoryService {
                 // Si no hay categorías, devolver array vacío
                 if (categories.length === 0) {
                     console.log('⚠️ No hay categorías disponibles');
-                    return [];
+                    return of([]);
                 }
 
                 // Obtener subcategorías para cada categoría
@@ -83,7 +84,13 @@ export class SubcategoryService {
                     const url = `${environment.apiServiceGeneralUrl}/api/categories/${category.id}/subcategories`;
                     console.log(`🔍 Obteniendo subcategorías para categoría ${category.id} (${category.nombre})`);
                     console.log(`🌐 URL: ${url}`);
-                    return this.http.get<any>(url);
+                    return this.http.get<any>(url).pipe(
+                        catchError(error => {
+                            console.warn(`⚠️ Error obteniendo subcategorías para categoría ${category.id}:`, error);
+                            // Retornar un observable que emite un array vacío en caso de error
+                            return of({ success: true, data: [] });
+                        })
+                    );
                 });
 
                 return forkJoin(subcategoryRequests).pipe(
@@ -114,10 +121,18 @@ export class SubcategoryService {
 
                         console.log('🎯 Total de subcategorías combinadas:', allSubcategories.length);
                         return allSubcategories;
+                    }),
+                    catchError(error => {
+                        console.error('❌ Error procesando subcategorías:', error);
+                        return of([]);
                     })
                 );
             }),
-            catchError(this.handleError)
+            catchError(error => {
+                console.error('❌ Error en getAllSubcategories:', error);
+                // En caso de error, devolver un array vacío en lugar de fallar completamente
+                return of([]);
+            })
         );
     }
 

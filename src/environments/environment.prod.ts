@@ -15,6 +15,6 @@ export const environment = {
   },
   // OAuth API (autenticación)
   apiUrl: 'https://oauth.toolaccess.tech/api',
-  // API Service General (servicios principales)
-  apiServiceGeneralUrl: 'https://api.toolaccess.tech'
+  // API Service General - PRODUCCIÓN
+  apiServiceGeneralUrl: 'https://apigeneral.toolaccess.tech'
 };
