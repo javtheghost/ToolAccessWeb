@@ -1,8 +1,8 @@
-import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
@@ -12,16 +12,12 @@ import { DialogModule } from 'primeng/dialog';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
+import { SkeletonModule } from 'primeng/skeleton';
 import { MobileDetectionService } from '../service/mobile-detection.service';
-
-interface DamageType {
-    id: string;
-    name: string;
-    description: string;
-    percentage: number;
-    active: boolean;
-}
+import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpdateRequest } from '../service/damage-types.service';
 
 @Component({
     selector: 'app-damage-types-crud',
@@ -30,6 +26,7 @@ interface DamageType {
         CommonModule,
         TableModule,
         FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
@@ -37,9 +34,12 @@ interface DamageType {
         InputTextModule,
         DialogModule,
         ConfirmDialogModule,
+        InputSwitchModule,
         InputIconModule,
         IconFieldModule,
-        TooltipModule
+        InputNumberModule,
+        TooltipModule,
+        SkeletonModule
     ],
     template: `
 <p-toast></p-toast>
@@ -49,7 +49,7 @@ interface DamageType {
         [value]="damageTypes"
         [rows]="isMobile ? 3 : 5"
         [paginator]="true"
-        [globalFilterFields]="['name', 'description']"
+                    [globalFilterFields]="['nombre', 'descripcion']"
         [tableStyle]="{ 'min-width': '100%' }"
         [(selection)]="selectedDamageTypes"
         [rowHover]="true"
@@ -90,13 +90,24 @@ interface DamageType {
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-damageType>
-            <tr>
-                <td>{{ damageType.id }}</td>
-                <td>{{ damageType.name }}</td>
-                <td>{{ damageType.description }}</td>
-                <td>{{ damageType.percentage }}%</td>
-                <td>
-                    <input type="checkbox" class="custom-toggle" [(ngModel)]="damageType.active" disabled />
+            <tr class="hover:bg-gray-50" [ngClass]="{'opacity-60 bg-gray-100': !damageType.is_active}">
+                <td class="text-center p-3">
+                    <span class="font-mono text-sm text-gray-600" [ngClass]="{'text-gray-400': !damageType.is_active}">{{ damageType.id }}</span>
+                </td>
+                <td class="p-3">
+                    <div class="font-medium" [ngClass]="{'text-gray-500': !damageType.is_active}">{{ damageType.nombre }}</div>
+                    <div *ngIf="damageType.is_active" class="text-xs text-green-600 mt-1">Activo</div>
+                    <div *ngIf="!damageType.is_active" class="text-xs text-red-500 mt-1">Inactivo</div>
+                </td>
+                <td class="p-3">
+                    <span *ngIf="damageType.descripcion && damageType.descripcion.trim()" [ngClass]="{'text-gray-500': !damageType.is_active}">{{ damageType.descripcion }}</span>
+                    <span *ngIf="!damageType.descripcion || !damageType.descripcion.trim()" class="text-gray-400 font-bold">Sin descripción</span>
+                </td>
+                <td class="text-center p-3" [ngClass]="{'text-gray-500': !damageType.is_active}">
+                    <span class="font-medium">{{ damageType.porcentaje_aplicar }}%</span>
+                </td>
+                <td class="text-center p-3">
+                    <input type="checkbox" class="custom-toggle" [(ngModel)]="damageType.is_active" disabled />
                 </td>
                 <td>
                     <p-button
@@ -146,32 +157,69 @@ interface DamageType {
     </span>
   </ng-template>
     <ng-template pTemplate="content">
-        <div class="space-y-4">
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
-                <input type="text" id="name" name="name" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="damageType.name" />
-                <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-4 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+        <form [formGroup]="damageTypeForm" (ngSubmit)="saveDamageType()" class="space-y-4">
+            <div class="field">
+                <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre <span class="text-red-500">*</span>
+                </label>
+                <input
+                    id="nombre"
+                    type="text"
+                    pInputText
+                    formControlName="nombre"
+                    placeholder="Ej: Daño por uso normal"
+                    [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('nombre')}"
+                    class="w-full" />
+                <small *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1">
+                    {{ getErrorMessage('nombre') }}
+                </small>
             </div>
 
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-gray-600 pointer-events-none">edit_document</span>
-                <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="damageType.description"></textarea>
-                <label for="description" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-4 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
+            <div class="field">
+                <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-2">
+                    Descripción
+                </label>
+                <textarea
+                    id="descripcion"
+                    pInputText
+                    formControlName="descripcion"
+                    placeholder="Descripción del tipo de daño..."
+                    rows="3"
+                    class="w-full resize-none"></textarea>
+                <small *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1">
+                    {{ getErrorMessage('descripcion') }}
+                </small>
             </div>
 
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">percent</span>
-                <input type="number" id="percentage" name="percentage" min="0" max="100" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Porcentaje" [(ngModel)]="damageType.percentage" />
-                <label for="percentage" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-4 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Porcentaje (%)</label>
+            <div class="field">
+                <label for="porcentaje_aplicar" class="block text-sm font-medium text-gray-700 mb-2">
+                    Porcentaje a Aplicar <span class="text-red-500">*</span>
+                </label>
+                <p-inputNumber
+                    id="porcentaje_aplicar"
+                    formControlName="porcentaje_aplicar"
+                    placeholder="0.00"
+                    [min]="0"
+                    [max]="100"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    suffix="%"
+                    [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('porcentaje_aplicar')}"
+                    class="w-full" />
+                <small *ngIf="isFieldInvalid('porcentaje_aplicar')" class="text-red-500 text-xs mt-1">
+                    {{ getErrorMessage('porcentaje_aplicar') }}
+                </small>
             </div>
 
-            <div class="flex items-center justify-center pt-2">
+            <div class="field">
                 <div class="flex items-center space-x-3">
-                    <label class="text-sm font-medium text-gray-700">Estado activo</label>
-                    <input type="checkbox" class="custom-toggle" [(ngModel)]="damageType.active" />
+                    <p-inputSwitch formControlName="is_active" />
+                    <label for="is_active" class="text-sm font-medium text-gray-700">
+                        Tipo de daño activo
+                    </label>
                 </div>
             </div>
-        </div>
+        </form>
         <div class="flex justify-end gap-3 mt-6">
             <button pButton type="button" class="custom-cancel-btn px-6 py-2" (click)="hideDialog()">Cancelar</button>
             <button pButton type="button" class="p-button px-6 py-2" (click)="saveDamageType()">Guardar</button>
@@ -240,6 +288,9 @@ export class DamageTypesCrudComponent implements OnInit {
     confirmIcon: string = 'delete';
     @ViewChild('dt') dt!: Table;
 
+    // Formulario
+    damageTypeForm!: FormGroup;
+
     // Detección de dispositivo móvil
     isMobile = false;
 
@@ -248,14 +299,92 @@ export class DamageTypesCrudComponent implements OnInit {
     confirmMessage: string = '';
     confirmAction: (() => void) | null = null;
 
+    // Estados
+    loading: boolean = false;
+    saving: boolean = false;
+    showOnlyActive: boolean = true;
+
     constructor(
         private messageService: MessageService,
-        private mobileDetectionService: MobileDetectionService
-    ) {}
+        private mobileDetectionService: MobileDetectionService,
+        private damageTypesService: DamageTypesService,
+        private fb: FormBuilder,
+        private cdr: ChangeDetectorRef
+    ) {
+        this.initForm();
+    }
 
     ngOnInit() {
-        this.loadDemoData();
+        this.loadDamageTypes();
         this.setupMobileDetection();
+    }
+
+    initForm() {
+        this.damageTypeForm = this.fb.group({
+            nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+            descripcion: ['', [Validators.maxLength(300)]],
+            porcentaje_aplicar: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+            is_active: [true]
+        });
+    }
+
+    // Getters para validación
+    get nombre() { return this.damageTypeForm.get('nombre'); }
+    get descripcion() { return this.damageTypeForm.get('descripcion'); }
+    get porcentaje_aplicar() { return this.damageTypeForm.get('porcentaje_aplicar'); }
+    get is_active() { return this.damageTypeForm.get('is_active'); }
+
+    getErrorMessage(controlName: string): string {
+        const control = this.damageTypeForm.get(controlName);
+        if (control?.errors) {
+            if (control.errors['required']) {
+                return 'Este campo es obligatorio';
+            }
+            if (control.errors['minlength']) {
+                return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+            }
+            if (control.errors['maxlength']) {
+                return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
+            }
+            if (control.errors['min']) {
+                return `Valor mínimo: ${control.errors['min'].min}`;
+            }
+            if (control.errors['max']) {
+                return `Valor máximo: ${control.errors['max'].max}`;
+            }
+            if (control.errors['pattern']) {
+                return 'Formato inválido';
+            }
+        }
+        return '';
+    }
+
+    isFieldInvalid(controlName: string): boolean {
+        const control = this.damageTypeForm.get(controlName);
+        return !!(control?.invalid && control?.touched);
+    }
+
+    loadDamageTypes() {
+        this.loading = true;
+        this.damageTypesService.getDamageTypes(undefined, this.showOnlyActive).subscribe({
+            next: (data) => {
+                this.damageTypes = data;
+                this.loading = false;
+            },
+            error: (error) => {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: error.message || 'Error al cargar tipos de daño'
+                });
+                this.loading = false;
+            }
+        });
+    }
+
+    toggleActiveView() {
+        this.showOnlyActive = !this.showOnlyActive;
+        this.loadDamageTypes();
     }
 
     private setupMobileDetection() {
@@ -265,25 +394,6 @@ export class DamageTypesCrudComponent implements OnInit {
         });
     }
 
-    loadDemoData() {
-        this.damageTypes = [
-            {
-                id: '1',
-                name: 'Daño grave',
-                description: 'Inutiliza la herramienta',
-                percentage: 70,
-                active: true
-            },
-            {
-                id: '2',
-                name: 'Daño moderado',
-                description: 'Requiere reparación',
-                percentage: 40,
-                active: true
-            }
-        ];
-    }
-
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
@@ -291,25 +401,47 @@ export class DamageTypesCrudComponent implements OnInit {
     openNew() {
         this.damageType = this.emptyDamageType();
         this.isEditMode = false;
+        this.damageTypeForm.reset({
+            nombre: '',
+            descripcion: '',
+            porcentaje_aplicar: 0,
+            is_active: true
+        });
         this.damageTypeDialog = true;
     }
 
     editDamageType(damageType: DamageType) {
         this.damageType = { ...damageType };
         this.isEditMode = true;
+        this.damageTypeForm.patchValue({
+            nombre: damageType.nombre,
+            descripcion: damageType.descripcion || '',
+            porcentaje_aplicar: damageType.porcentaje_aplicar,
+            is_active: damageType.is_active
+        });
         this.damageTypeDialog = true;
     }
 
     deleteDamageType(damageType: DamageType) {
+        this.confirmMessage = `¿Estás seguro de que deseas eliminar el tipo de daño "${damageType.nombre}"? Esta acción no se puede deshacer.`;
         this.confirmIcon = 'delete';
-        this.confirmMessage = `¿Estás seguro de eliminar el tipo de daño <span class='text-primary'>${damageType.name}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
         this.confirmAction = () => {
-            this.damageTypes = this.damageTypes.filter(t => t.id !== damageType.id);
-            this.messageService.add({
-                severity: 'success',
-                summary: 'Éxito',
-                detail: 'Tipo de daño eliminado',
-                life: 3000
+            this.damageTypesService.deleteDamageType(damageType.id).subscribe({
+                next: () => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Tipo de daño eliminado correctamente'
+                    });
+                    this.loadDamageTypes();
+                },
+                error: (error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al eliminar tipo de daño'
+                    });
+                }
             });
         };
         this.showCustomConfirm = true;
@@ -317,51 +449,82 @@ export class DamageTypesCrudComponent implements OnInit {
 
     hideDialog() {
         this.damageTypeDialog = false;
-        this.isEditMode = false;
-        this.showCustomConfirm = false;
+        this.damageTypeForm.reset();
     }
 
     saveDamageType() {
-        if (this.damageType.name?.trim()) {
-            if (this.damageType.id) {
-                // Modo edición - mostrar confirmación
-                this.confirmIcon = 'warning';
-                this.confirmMessage = `¿Estás seguro que deseas actualizar el tipo de daño <span class='text-primary'>${this.damageType.name}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
-                this.confirmAction = () => {
-                    const idx = this.damageTypes.findIndex(t => t.id === this.damageType.id);
-                    if (idx > -1) this.damageTypes[idx] = { ...this.damageType };
+        if (this.damageTypeForm.invalid) {
+            this.markFormGroupTouched();
+            return;
+        }
+
+        this.saving = true;
+        const formValue = this.damageTypeForm.value;
+
+        if (this.isEditMode) {
+            const updateRequest: DamageTypeUpdateRequest = {
+                nombre: formValue.nombre,
+                descripcion: formValue.descripcion,
+                porcentaje_aplicar: formValue.porcentaje_aplicar,
+                is_active: formValue.is_active
+            };
+
+            this.damageTypesService.updateDamageType(this.damageType.id, updateRequest).subscribe({
+                next: (updatedDamageType) => {
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
-                        detail: 'Tipo de daño actualizado',
-                        life: 3000
+                        detail: 'Tipo de daño actualizado correctamente'
                     });
-                    this.damageTypeDialog = false;
-                    this.isEditMode = false;
-                    this.damageType = this.emptyDamageType();
-                };
-                this.showCustomConfirm = true;
-            } else {
-                this.damageType.id = this.createId();
-                this.damageTypes.push({ ...this.damageType });
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Tipo de daño creado',
-                    life: 3000
-                });
-                this.damageTypeDialog = false;
-                this.isEditMode = false;
-                this.damageType = this.emptyDamageType();
-            }
+                    this.hideDialog();
+                    this.loadDamageTypes();
+                    this.saving = false;
+                },
+                error: (error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al actualizar tipo de daño'
+                    });
+                    this.saving = false;
+                }
+            });
         } else {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'El nombre es requerido',
-                life: 3000
+            const createRequest: DamageTypeCreateRequest = {
+                nombre: formValue.nombre,
+                descripcion: formValue.descripcion,
+                porcentaje_aplicar: formValue.porcentaje_aplicar,
+                is_active: formValue.is_active
+            };
+
+            this.damageTypesService.createDamageType(createRequest).subscribe({
+                next: (newDamageType) => {
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Tipo de daño creado correctamente'
+                    });
+                    this.hideDialog();
+                    this.loadDamageTypes();
+                    this.saving = false;
+                },
+                error: (error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al crear tipo de daño'
+                    });
+                    this.saving = false;
+                }
             });
         }
+    }
+
+    markFormGroupTouched() {
+        Object.keys(this.damageTypeForm.controls).forEach(key => {
+            const control = this.damageTypeForm.get(key);
+            control?.markAsTouched();
+        });
     }
 
     onCustomConfirmAccept() {
@@ -383,11 +546,11 @@ export class DamageTypesCrudComponent implements OnInit {
 
     emptyDamageType(): DamageType {
         return {
-            id: '',
-            name: '',
-            description: '',
-            percentage: 0,
-            active: true
+            id: 0,
+            nombre: '',
+            descripcion: '',
+            porcentaje_aplicar: 0,
+            is_active: true
         };
     }
 
