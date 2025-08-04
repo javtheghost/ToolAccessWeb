@@ -48,7 +48,7 @@ export interface FinesConfigResponse {
     providedIn: 'root'
 })
 export class FinesConfigService {
-    private apiUrl = `${environment.apiServiceGeneralUrl}/api/fines-config`;
+    private apiUrl = `${environment.apiServiceGeneralUrl}/api/fine-configs`;
 
     constructor(private http: HttpClient, private oauthService: OAuthService) {}
 
