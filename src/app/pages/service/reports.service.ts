@@ -24,36 +24,45 @@ export interface Estadisticas {
     monto_pendiente: number;
     monto_cobrado: number;
   };
+  usuarios: {
+    total_usuarios: number;
+    activos: number;
+  };
   fecha_reporte?: string;
 }
 
 export interface Prestamo {
   id: number;
-  herramienta_nombre: string;
-  username: string;
-  categoria_nombre: string;
-  subcategoria_nombre: string;
-  fecha_prestamo: string;
-  fecha_devolucion_estimada: string;
+  folio: string;
   estado: string;
+  fecha_solicitud: string;
+  fecha_devolucion_estimada: string;
+  tiempo_aprobado: number;
+  usuario_nombre: string;
+  usuario_email: string;
+  recepcionista_nombre?: string;
+  recepcionista_email?: string;
 }
 
 export interface Multa {
   id: number;
-  prestamo_id: number;
   monto: number;
   motivo: string;
   estado: string;
   fecha_creacion: string;
-  fecha_pago?: string;
+  usuario_nombre: string;
+  usuario_email: string;
 }
 
 export interface HerramientaPopular {
   id: number;
   nombre: string;
+  folio: string;
   categoria: string;
   subcategoria: string;
   veces_prestada: number;
+  stock: number;
+  estado: boolean;
 }
 
 @Injectable({

@@ -203,10 +203,21 @@ export class ReportsPageComponent implements OnInit {
         });
       },
       error: (error: any) => {
+        console.error('Error al obtener estadísticas:', error);
+        
+        let mensaje = 'Error al obtener estadísticas';
+        if (error.status === 500) {
+          mensaje = 'Los endpoints de reportes no están disponibles en la API. Contacta al administrador.';
+        } else if (error.status === 401) {
+          mensaje = 'No tienes permisos para acceder a los reportes.';
+        } else if (error.status === 403) {
+          mensaje = 'Acceso denegado. Necesitas permisos de administrador.';
+        }
+        
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Error al obtener estadísticas: ' + (error.message || 'Error desconocido')
+          detail: mensaje
         });
       }
     });
@@ -235,15 +246,15 @@ export class ReportsPageComponent implements OnInit {
           // Tabla de préstamos
           const tableData = data.map((prestamo: any) => [
             prestamo.id || '',
-            prestamo.herramienta?.nombre || prestamo.nombre_herramienta || '',
-            prestamo.usuario?.nombre || prestamo.nombre_usuario || '',
-            prestamo.fecha_prestamo ? new Date(prestamo.fecha_prestamo).toLocaleDateString() : '',
+            prestamo.folio || '',
+            prestamo.usuario_nombre || '',
+            prestamo.fecha_solicitud ? new Date(prestamo.fecha_solicitud).toLocaleDateString() : '',
             prestamo.fecha_devolucion_estimada ? new Date(prestamo.fecha_devolucion_estimada).toLocaleDateString() : '',
             prestamo.estado || ''
           ]);
           
           autoTable(doc, {
-            head: [['ID', 'Herramienta', 'Usuario', 'Fecha Préstamo', 'Fecha Devolución', 'Estado']],
+            head: [['ID', 'Folio', 'Usuario', 'Fecha Solicitud', 'Fecha Devolución', 'Estado']],
             body: tableData,
             startY: 60,
             styles: { fontSize: 8 },
@@ -266,10 +277,21 @@ export class ReportsPageComponent implements OnInit {
         });
       },
       error: (error: any) => {
+        console.error('Error al obtener préstamos:', error);
+        
+        let mensaje = 'Error al obtener préstamos';
+        if (error.status === 500) {
+          mensaje = 'Los endpoints de reportes no están disponibles en la API. Contacta al administrador.';
+        } else if (error.status === 401) {
+          mensaje = 'No tienes permisos para acceder a los reportes.';
+        } else if (error.status === 403) {
+          mensaje = 'Acceso denegado. Necesitas permisos de administrador.';
+        }
+        
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Error al obtener préstamos: ' + (error.message || 'Error desconocido')
+          detail: mensaje
         });
       }
     });
@@ -298,15 +320,15 @@ export class ReportsPageComponent implements OnInit {
           // Tabla de multas
           const tableData = data.map((multa: any) => [
             multa.id || '',
-            multa.usuario?.nombre || multa.nombre_usuario || '',
-            multa.herramienta?.nombre || multa.nombre_herramienta || '',
+            multa.usuario_nombre || '',
             multa.monto ? `$${multa.monto}` : '',
+            multa.motivo || '',
             multa.fecha_creacion ? new Date(multa.fecha_creacion).toLocaleDateString() : '',
             multa.estado || ''
           ]);
           
           autoTable(doc, {
-            head: [['ID', 'Usuario', 'Herramienta', 'Monto', 'Fecha', 'Estado']],
+            head: [['ID', 'Usuario', 'Monto', 'Motivo', 'Fecha', 'Estado']],
             body: tableData,
             startY: 60,
             styles: { fontSize: 8 },
@@ -329,10 +351,21 @@ export class ReportsPageComponent implements OnInit {
         });
       },
       error: (error: any) => {
+        console.error('Error al obtener multas:', error);
+        
+        let mensaje = 'Error al obtener multas';
+        if (error.status === 500) {
+          mensaje = 'Los endpoints de reportes no están disponibles en la API. Contacta al administrador.';
+        } else if (error.status === 401) {
+          mensaje = 'No tienes permisos para acceder a los reportes.';
+        } else if (error.status === 403) {
+          mensaje = 'Acceso denegado. Necesitas permisos de administrador.';
+        }
+        
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Error al obtener multas: ' + (error.message || 'Error desconocido')
+          detail: mensaje
         });
       }
     });
@@ -359,13 +392,15 @@ export class ReportsPageComponent implements OnInit {
           // Tabla de herramientas populares
           const tableData = data.map((herramienta: any) => [
             herramienta.nombre || '',
-            herramienta.categoria?.nombre || herramienta.nombre_categoria || '',
+            herramienta.folio || '',
+            herramienta.categoria || '',
+            herramienta.subcategoria || '',
             herramienta.veces_prestada || 0,
-            herramienta.estado || ''
+            herramienta.stock || 0
           ]);
           
           autoTable(doc, {
-            head: [['Herramienta', 'Categoría', 'Veces Prestada', 'Estado']],
+            head: [['Herramienta', 'Folio', 'Categoría', 'Subcategoría', 'Veces Prestada', 'Stock']],
             body: tableData,
             startY: 60,
             styles: { fontSize: 8 },
@@ -388,10 +423,21 @@ export class ReportsPageComponent implements OnInit {
         });
       },
       error: (error: any) => {
+        console.error('Error al obtener herramientas populares:', error);
+        
+        let mensaje = 'Error al obtener herramientas populares';
+        if (error.status === 500) {
+          mensaje = 'Los endpoints de reportes no están disponibles en la API. Contacta al administrador.';
+        } else if (error.status === 401) {
+          mensaje = 'No tienes permisos para acceder a los reportes.';
+        } else if (error.status === 403) {
+          mensaje = 'Acceso denegado. Necesitas permisos de administrador.';
+        }
+        
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Error al obtener herramientas populares: ' + (error.message || 'Error desconocido')
+          detail: mensaje
         });
       }
     });
