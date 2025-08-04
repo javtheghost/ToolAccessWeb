@@ -151,6 +151,7 @@ export class LineChartComponent implements OnInit {
     // Primero intentar obtener datos históricos reales
     this.reportsService.getDatosHistoricos().subscribe({
       next: (datosHistoricos) => {
+        console.log('Datos históricos obtenidos:', datosHistoricos);
         this.datosHistoricos = datosHistoricos;
         this.updateChartWithHistoricalData();
         this.loading = false;
@@ -166,19 +167,26 @@ export class LineChartComponent implements OnInit {
   private loadEstadisticasForSimulation() {
     this.reportsService.getEstadisticas().subscribe({
       next: (data) => {
+        console.log('Estadísticas obtenidas para simulación:', data);
         this.estadisticas = data;
         this.updateChartWithSimulatedData();
         this.loading = false;
       },
       error: (error) => {
         console.error('Error cargando datos para la gráfica:', error);
+        // Si no se pueden obtener estadísticas, usar datos por defecto
+        this.updateChartWithDefaultData();
         this.loading = false;
       }
     });
   }
 
   private updateChartWithHistoricalData() {
-    if (!this.datosHistoricos || this.datosHistoricos.length === 0) return;
+    if (!this.datosHistoricos || this.datosHistoricos.length === 0) {
+      console.log('No hay datos históricos válidos, usando datos por defecto');
+      this.updateChartWithDefaultData();
+      return;
+    }
 
     const labels = this.datosHistoricos.map(d => d.mes);
     const herramientasActivas = this.datosHistoricos.map(d => d.herramientas_activas);
@@ -189,10 +197,16 @@ export class LineChartComponent implements OnInit {
     this.chartData.datasets[0].data = herramientasActivas;
     this.chartData.datasets[1].data = prestamosActivos;
     this.chartData.datasets[2].data = herramientasDisponibles;
+
+    console.log('Gráfica actualizada con datos históricos:', this.chartData);
   }
 
   private updateChartWithSimulatedData() {
-    if (!this.estadisticas) return;
+    if (!this.estadisticas) {
+      console.log('No hay estadísticas disponibles, usando datos por defecto');
+      this.updateChartWithDefaultData();
+      return;
+    }
 
     // Generar datos simulados basados en las estadísticas reales
     const herramientasActivas = this.estadisticas.herramientas?.herramientas_activas || 0;
@@ -208,6 +222,19 @@ export class LineChartComponent implements OnInit {
     this.chartData.datasets[0].data = dataHerramientasActivas;
     this.chartData.datasets[1].data = dataPrestamosActivos;
     this.chartData.datasets[2].data = dataHerramientasDisponibles;
+
+    console.log('Gráfica actualizada con datos simulados:', this.chartData);
+  }
+
+  private updateChartWithDefaultData() {
+    // Datos por defecto para mostrar actividad mínima
+    const defaultData = [2, 3, 1, 4, 2, 3, 5, 4, 3, 2, 4, 3];
+
+    this.chartData.datasets[0].data = defaultData;
+    this.chartData.datasets[1].data = defaultData.map(x => Math.max(0, x - 1));
+    this.chartData.datasets[2].data = defaultData.map(x => Math.max(0, x + 1));
+
+    console.log('Gráfica actualizada con datos por defecto:', this.chartData);
   }
 
   private generateTrendData(currentValue: number, months: number): number[] {
@@ -220,7 +247,7 @@ export class LineChartComponent implements OnInit {
       const trend = baseValue + (currentValue - baseValue) * progress;
 
       // Agregar algo de variabilidad realista
-      const variation = (Math.random() - 0.5) * 0.2; // ±10% de variación
+      const variation = (Math.random() - 0.5) * 0.3; // ±15% de variación
       const finalValue = Math.max(0, trend * (1 + variation));
 
       data.push(Math.round(finalValue));
