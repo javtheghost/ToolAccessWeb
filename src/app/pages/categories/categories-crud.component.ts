@@ -60,7 +60,7 @@ interface Column {
         <div class="flex items-center justify-between gap-4 mt-2">
             <p-iconfield class="flex-1">
                 <p-inputicon styleClass="pi pi-search" />
-                <input pInputText type="text" placeholder="Buscar..." disabled />
+                <input pInputText type="text" placeholder="Buscar... ayudaaa" disabled />
             </p-iconfield>
         </div>
 
