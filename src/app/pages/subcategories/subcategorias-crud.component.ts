@@ -421,9 +421,6 @@ export class SubcategoriasCrudComponent implements OnInit {
                     this.subcategories.set(filteredSubcategories);
                     this.categories.set(data.categories);
 
-                    console.log('📊 Categorías cargadas:', data.categories.length);
-                    console.log('📊 Subcategorías cargadas:', filteredSubcategories.length);
-
                     this.loading.set(false);
 
                     this.cdr.detectChanges();

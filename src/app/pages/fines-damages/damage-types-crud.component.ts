@@ -208,7 +208,8 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
                     [locale]="'es-MX'"
                     styleClass="custom-inputnumber"
                     [class.border-red-500]="isFieldInvalid('porcentaje_aplicar')"
-                    [class.border-gray-300]="!isFieldInvalid('porcentaje_aplicar')">
+                    [class.border-gray-300]="!isFieldInvalid('porcentaje_aplicar')"
+                    (onBlur)="onPorcentajeBlur()">
                 </p-inputnumber>
                 <div *ngIf="isFieldInvalid('porcentaje_aplicar')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('porcentaje_aplicar') }}</div>
             </div>
@@ -388,8 +389,7 @@ export class DamageTypesCrudComponent implements OnInit {
             porcentaje_aplicar: [0, [
                 Validators.required,
                 Validators.min(0),
-                Validators.max(100),
-                Validators.pattern(/^(100(\.00)?|([0-9]|[1-9][0-9])(\.[0-9]{1,2})?)$/)
+                Validators.max(100)
             ]],
             is_active: [true]
         });
@@ -552,11 +552,18 @@ export class DamageTypesCrudComponent implements OnInit {
         this.saving = true;
         const formValue = this.damageTypeForm.value;
 
+        // Asegurar que el porcentaje tenga máximo 2 decimales y esté dentro del rango válido
+        let porcentajeRedondeado = Math.round(formValue.porcentaje_aplicar * 100) / 100;
+
+        // Validar que esté dentro del rango 0-100
+        if (porcentajeRedondeado < 0) porcentajeRedondeado = 0;
+        if (porcentajeRedondeado > 100) porcentajeRedondeado = 100;
+
         if (this.isEditMode) {
             const updateRequest: DamageTypeUpdateRequest = {
                 nombre: formValue.nombre,
                 descripcion: formValue.descripcion,
-                porcentaje_aplicar: formValue.porcentaje_aplicar,
+                porcentaje_aplicar: porcentajeRedondeado,
                 is_active: formValue.is_active
             };
 
@@ -584,7 +591,7 @@ export class DamageTypesCrudComponent implements OnInit {
             const createRequest: DamageTypeCreateRequest = {
                 nombre: formValue.nombre,
                 descripcion: formValue.descripcion,
-                porcentaje_aplicar: formValue.porcentaje_aplicar,
+                porcentaje_aplicar: porcentajeRedondeado,
                 is_active: formValue.is_active
             };
 
@@ -643,6 +650,14 @@ export class DamageTypesCrudComponent implements OnInit {
             porcentaje_aplicar: 0,
             is_active: true
         };
+    }
+
+    onPorcentajeBlur() {
+        const control = this.damageTypeForm.get('porcentaje_aplicar');
+        if (control && control.value !== null && control.value !== undefined) {
+            const valorRedondeado = Math.round(control.value * 100) / 100;
+            control.setValue(valorRedondeado);
+        }
     }
 
     @HostListener('document:keydown.escape')

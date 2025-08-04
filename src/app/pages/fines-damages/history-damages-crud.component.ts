@@ -19,6 +19,7 @@ import { ToolsService, Tool } from '../service/tools.service';
 import { LoansService, Loan } from '../service/loans.service';
 import { CategoryService } from '../service/category.service';
 import { SubcategoryService } from '../service/subcategory.service';
+import { DamageTypesService, DamageType } from '../service/damage-types.service';
 import { OAuthService } from '../service/oauth.service';
 
 interface DamageHistory {
@@ -261,15 +262,14 @@ interface DamageHistory {
                 <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                         <button type="button"
-                                *ngFor="let damageType of damageTypes"
-                                [style.background-color]="isDamageTypeSelected(damageType.name) ? damageType.bgColor : 'transparent'"
-                                [style.color]="isDamageTypeSelected(damageType.name) ? damageType.color : '#374151'"
-                                [style.border-color]="isDamageTypeSelected(damageType.name) ? damageType.color : '#D1D5DB'"
-                                [style.hover-background-color]="!isDamageTypeSelected(damageType.name) ? damageType.hoverColor : 'transparent'"
+                                *ngFor="let damageType of damageTypesFromService"
+                                [style.background-color]="isDamageTypeSelected(damageType.nombre) ? '#FEE8B9' : 'transparent'"
+                                [style.color]="isDamageTypeSelected(damageType.nombre) ? '#333333' : '#374151'"
+                                [style.border-color]="isDamageTypeSelected(damageType.nombre) ? '#FEE8B9' : '#D1D5DB'"
                                 class="px-3 py-2 rounded-full border text-xs sm:text-sm transition-colors duration-200 truncate"
-                                (click)="damageHistoryItem.tipo_dano_id = mapDamageTypeToId(mapDamageTypeToEnum(damageType.name))"
-                                [title]="damageType.name">
-                            {{ damageType.name }}
+                                (click)="damageHistoryItem.tipo_dano_id = damageType.id"
+                                [title]="damageType.nombre">
+                            {{ damageType.nombre }}
                         </button>
                     </div>
                 </div>
@@ -287,7 +287,7 @@ interface DamageHistory {
                 <input type="number" id="repairCost" name="repairCost" class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Costo estimado de reparación" [(ngModel)]="damageHistoryItem.costo_reparacion" />
             </div>
 
-            <!-- Tipo de multa -->
+            <!-- Tipo de multa - COMENTADO TEMPORALMENTE
             <div class="relative">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none w-6 h-6 z-20" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2.80031 20.28L12.4003 10.68L11.0003 9.25996L10.2803 9.96996C9.89031 10.36 9.26031 10.36 8.87031 9.96996L8.16031 9.25996C7.77031 8.86996 7.77031 8.23996 8.16031 7.84996L13.8203 2.18996C14.2103 1.79996 14.8403 1.79996 15.2303 2.18996L15.9403 2.89996C16.3303 3.28996 16.3303 3.91996 15.9403 4.30996L15.2303 4.99996L16.6503 6.42996C17.0403 6.03996 17.6703 6.03996 18.0603 6.42996C18.4503 6.81996 18.4503 7.45996 18.0603 7.84996L19.4703 9.25996L20.1803 8.54996C20.5703 8.15996 21.2103 8.15996 21.6003 8.54996L22.3003 9.25996C22.6903 9.64996 22.6903 10.29 22.3003 10.68L16.6503 16.33C16.2603 16.72 15.6203 16.72 15.2303 16.33L14.5303 15.63C14.1303 15.24 14.1303 14.6 14.5303 14.21L15.2303 13.5L13.8203 12.09L4.21031 21.7C3.82031 22.09 3.19031 22.09 2.80031 21.7C2.41031 21.31 2.41031 20.67 2.80031 20.28ZM20.5003 19C21.0307 19 21.5395 19.2107 21.9145 19.5857C22.2896 19.9608 22.5003 20.4695 22.5003 21V22H12.5003V21C12.5003 20.4695 12.711 19.9608 13.0861 19.5857C13.4612 19.2107 13.9699 19 14.5003 19H20.5003Z" fill="var(--primary-color)"/>
@@ -306,6 +306,7 @@ interface DamageHistory {
                     Tipo de multa seleccionado
                 </div>
             </div>
+            -->
         </div>
         <div class="flex justify-end gap-4 mt-6">
             <button pButton type="button" class="custom-cancel-btn w-24" (click)="hideDialog()">Cancelar</button>
@@ -565,6 +566,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
     loans: Loan[] = [];
     categories: any[] = [];
     subcategories: any[] = [];
+    damageTypesFromService: DamageType[] = []; // Tipos de daño dinámicos del servicio
     loading: boolean = false;
 
     // Arrays para opciones escalables
@@ -675,6 +677,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
         private loansService: LoansService,
         private categoryService: CategoryService,
         private subcategoryService: SubcategoryService,
+        private damageTypesService: DamageTypesService,
         private oauthService: OAuthService
     ) {}
 
@@ -684,9 +687,6 @@ export class HistoryDamagesCrudComponent implements OnInit {
 
     loadData() {
         const token = this.oauthService.getToken();
-        console.log('Token disponible:', !!token);
-        console.log('Usuario autenticado:', this.oauthService.isAuthenticated());
-        console.log('Usuario actual:', this.oauthService.getCurrentUser());
 
         this.loading = true;
 
@@ -752,6 +752,16 @@ export class HistoryDamagesCrudComponent implements OnInit {
             },
             error: (error: any) => {
                 console.error('Error cargando subcategorías:', error);
+            }
+        });
+
+        // Cargar tipos de daño del servicio
+        this.damageTypesService.getDamageTypes(undefined, true).subscribe({
+            next: (damageTypes: DamageType[]) => {
+                this.damageTypesFromService = damageTypes;
+            },
+            error: (error: any) => {
+                console.error('Error cargando tipos de daño:', error);
             }
         });
     }
@@ -1039,10 +1049,9 @@ export class HistoryDamagesCrudComponent implements OnInit {
     }
 
     isDamageTypeSelected(damageTypeName: string): boolean {
-        const mappedType = this.mapDamageTypeToEnum(damageTypeName);
-        // Convertir el tipo mapeado a ID para comparar
-        const mappedId = this.mapDamageTypeToId(mappedType);
-        return this.damageHistoryItem.tipo_dano_id === mappedId;
+        // Buscar el tipo de daño por nombre en el servicio
+        const damageType = this.damageTypesFromService.find(dt => dt.nombre === damageTypeName);
+        return damageType ? this.damageHistoryItem.tipo_dano_id === damageType.id : false;
     }
 
     @HostListener('document:keydown.escape')

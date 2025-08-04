@@ -143,12 +143,10 @@ export class CategoryService {
 
             if (status === 422) {
                 // Error de validación
-                console.log('[CategoryService] Detalles completos del error 422:', errorDetails);
 
                 if (errorDetails && errorDetails.message) {
                     errorMessage = `Error de validación: ${errorDetails.message}`;
                 } else if (errorDetails && errorDetails.errors) {
-                    console.log('[CategoryService] Errores de validación específicos:', errorDetails.errors);
                     const validationErrors = Object.entries(errorDetails.errors)
                         .map(([field, message]) => `${field}: ${message}`)
                         .join(', ');

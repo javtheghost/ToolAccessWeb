@@ -104,6 +104,8 @@ import { finalize } from 'rxjs/operators';
                         <th>Monto</th>
                         <th>Estado</th>
                         <th class="hidden lg:table-cell">Fecha Aplicación</th>
+                        <th class="hidden xl:table-cell">Fecha Vencimiento</th>
+                        <th class="hidden xl:table-cell">Fecha Pago</th>
                         <th>Acciones</th>
                     </tr>
                 </ng-template>
@@ -129,11 +131,29 @@ import { finalize } from 'rxjs/operators';
                         </td>
                         <td class="font-semibold text-sm sm:text-base">{{ fine.monto_total | currency:'MXN' }}</td>
                         <td>
-                            <span [class]="getEstadoClass(fine.estado)" class="text-xs sm:text-sm">
-                                {{ fine.estado?.toLowerCase() | titlecase }}
+                            <span [class]="getEstadoClass(getEstadoDisplay(fine).toLowerCase())" class="text-xs sm:text-sm">
+                                {{ getEstadoDisplay(fine) }}
                             </span>
                         </td>
-                        <td class="hidden lg:table-cell text-sm">{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</td>
+                        <td class="hidden lg:table-cell text-sm">
+                            <div class="flex flex-col">
+                                <span class="font-medium">{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</span>
+                                <span class="text-xs text-gray-500">{{ fine.fecha_aplicacion | date:'HH:mm' }}</span>
+                            </div>
+                        </td>
+                        <td class="hidden xl:table-cell text-sm">
+                            <span [class]="getFechaVencimientoClass(fine.fecha_vencimiento)">
+                                {{ fine.fecha_vencimiento | date:'dd/MM/yyyy' }}
+                            </span>
+                        </td>
+                        <td class="hidden xl:table-cell text-sm">
+                            <span *ngIf="fine.fecha_pago; else noPago" class="text-green-600">
+                                {{ fine.fecha_pago | date:'dd/MM/yyyy' }}
+                            </span>
+                            <ng-template #noPago>
+                                <span class="text-gray-400 italic">Sin pago</span>
+                            </ng-template>
+                        </td>
                         <td>
                             <div class="flex flex-wrap gap-1 justify-center sm:justify-start">
                                 <p-button
@@ -179,7 +199,7 @@ import { finalize } from 'rxjs/operators';
                 </ng-template>
                         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="7" class="text-center py-8">
+                <td colspan="9" class="text-center py-8">
                     <div class="flex flex-col items-center gap-2">
                         <i class="pi pi-database text-4xl text-[var(--primary-color)]"></i>
                         <h6 class="text-[var(--primary-color)] font-medium">No hay multas registradas</h6>
@@ -829,10 +849,8 @@ export class RecentFinesCrudComponent implements OnInit {
         this.finesService.getUsuarios().subscribe({
             next: (usuarios) => {
                 this.usuarios = usuarios;
-                console.log('Usuarios cargados:', usuarios.length);
             },
             error: (error) => {
-                console.error('Error al cargar usuarios:', error);
                 this.messageService.add({
                     severity: 'warn',
                     summary: 'Advertencia',
@@ -845,10 +863,8 @@ export class RecentFinesCrudComponent implements OnInit {
         this.finesService.getOrdenes().subscribe({
             next: (ordenes) => {
                 this.ordenes = ordenes;
-                console.log('Órdenes cargadas:', ordenes.length);
             },
             error: (error) => {
-                console.error('Error al cargar órdenes:', error);
                 this.messageService.add({
                     severity: 'warn',
                     summary: 'Advertencia',
@@ -861,7 +877,6 @@ export class RecentFinesCrudComponent implements OnInit {
         this.finesService.getConfiguraciones().subscribe({
             next: (configuraciones) => {
                 this.configuraciones = configuraciones;
-                console.log('Configuraciones cargadas:', configuraciones.length);
                 if (configuraciones.length === 0) {
                     this.messageService.add({
                         severity: 'info',
@@ -871,7 +886,6 @@ export class RecentFinesCrudComponent implements OnInit {
                 }
             },
             error: (error) => {
-                console.error('Error al cargar configuraciones:', error);
                 this.messageService.add({
                     severity: 'info',
                     summary: 'Información',
@@ -1003,8 +1017,70 @@ export class RecentFinesCrudComponent implements OnInit {
                 return 'bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded';
             case 'exonerada':
                 return 'bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded';
+            case 'vencida':
+                return 'bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded';
             default:
                 return 'bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded';
         }
+    }
+
+    getFechaVencimientoClass(fechaVencimiento: string): string {
+        if (!fechaVencimiento) return 'text-gray-400';
+
+        const fechaVenc = new Date(fechaVencimiento);
+        const hoy = new Date();
+
+        // Si la fecha de vencimiento ya pasó
+        if (fechaVenc < hoy) {
+            return 'text-red-600 font-semibold';
+        }
+
+        // Si vence en los próximos 7 días
+        const sieteDias = new Date();
+        sieteDias.setDate(hoy.getDate() + 7);
+        if (fechaVenc <= sieteDias) {
+            return 'text-orange-600 font-medium';
+        }
+
+        // Si vence en más de 7 días
+        return 'text-green-600';
+    }
+
+        isMultaVencida(fine: Fine): boolean {
+        if (!fine.fecha_vencimiento || fine.estado?.toLowerCase() === 'pagado') {
+            return false;
+        }
+
+        const fechaVenc = new Date(fine.fecha_vencimiento);
+        const hoy = new Date();
+
+        return fechaVenc < hoy;
+    }
+
+    getEstadoDisplay(fine: Fine): string {
+        const estado = fine.estado?.toLowerCase();
+
+        // Si está pagado, mostrar "Pagado" sin importar la fecha
+        if (estado === 'pagado') {
+            return 'Pagado';
+        }
+
+        // Si está exonerada, mostrar "Exonerada"
+        if (estado === 'exonerada') {
+            return 'Exonerada';
+        }
+
+        // Si está pendiente y vencida, mostrar "Vencida"
+        if (estado === 'pendiente' && this.isMultaVencida(fine)) {
+            return 'Vencida';
+        }
+
+        // Si está pendiente y no vencida, mostrar "Pendiente"
+        if (estado === 'pendiente') {
+            return 'Pendiente';
+        }
+
+        // Estado por defecto
+        return estado ? estado.charAt(0).toUpperCase() + estado.slice(1) : 'Desconocido';
     }
 }

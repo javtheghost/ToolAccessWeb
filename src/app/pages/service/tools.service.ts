@@ -260,22 +260,17 @@ export class ToolsService {
     // Método para obtener la URL completa de la imagen
     getImageUrl(imagePath: string): string {
         if (!imagePath) {
-            console.log('[ToolsService] getImageUrl - No imagePath provided');
             return '';
         }
-
-        console.log('[ToolsService] getImageUrl - Original path:', imagePath);
 
         // Corregir rutas que usan el puerto incorrecto
         let correctedPath = imagePath;
         if (imagePath.includes('localhost:3000')) {
             correctedPath = imagePath.replace('localhost:3000', 'localhost:3001');
-            console.log('[ToolsService] getImageUrl - Corregida ruta de puerto:', correctedPath);
         }
 
         // Si ya es una URL completa, retornarla (ya corregida si era necesario)
         if (correctedPath.startsWith('http')) {
-            console.log('[ToolsService] getImageUrl - URL final:', correctedPath);
             return correctedPath;
         }
 
@@ -287,7 +282,6 @@ export class ToolsService {
             ? `${baseUrl}${correctedPath}`
             : `${baseUrl}/uploads/${correctedPath}`;
 
-        console.log('[ToolsService] getImageUrl - URL construida:', fullUrl);
         return fullUrl;
     }
 
@@ -299,11 +293,9 @@ export class ToolsService {
         return this.http.head(imageUrl, { observe: 'response' }).pipe(
             map(response => {
                 const exists = response.status === 200;
-                console.log('[ToolsService] checkImageExists -', imageUrl, 'existe:', exists);
                 return exists;
             }),
             catchError(error => {
-                console.log('[ToolsService] checkImageExists -', imageUrl, 'error:', error);
                 return new Observable<boolean>(observer => observer.next(false));
             })
         );
@@ -321,7 +313,6 @@ export class ToolsService {
 
         return this.http.delete<{success: boolean, message: string}>(`${this.apiUrl}/${toolId}/image`, { headers }).pipe(
             map(response => {
-                console.log('[ToolsService] deleteToolImage - respuesta:', response);
                 return response.success;
             }),
             catchError(this.handleError)
@@ -346,12 +337,10 @@ export class ToolsService {
 
             if (status === 422) {
                 // Error de validación
-                console.log('[ToolsService] Detalles completos del error 422:', errorDetails);
 
                 if (errorDetails && errorDetails.message) {
                     errorMessage = `Error de validación: ${errorDetails.message}`;
                 } else if (errorDetails && errorDetails.errors) {
-                    console.log('[ToolsService] Errores de validación específicos:', errorDetails.errors);
                     const validationErrors = Array.isArray(errorDetails.errors)
                         ? errorDetails.errors.join(', ')
                         : Object.entries(errorDetails.errors)

@@ -313,19 +313,16 @@ export class AppTopbar {
 
     markAsRead(notificationId: number) {
         // Simular marcar como leído
-        console.log(`Notificación ${notificationId} marcada como leída`);
         this.unreadCount = Math.max(0, this.unreadCount - 1);
     }
 
     markAllAsRead() {
         // Simular marcar todas como leídas
-        console.log('Todas las notificaciones marcadas como leídas');
         this.unreadCount = 0;
     }
 
     viewAllNotifications() {
         // Navegar a una página de todas las notificaciones
-        console.log('Ver todas las notificaciones');
     }
 
     toggleDarkMode() {

@@ -17,19 +17,13 @@ export const TokenInterceptor: HttpInterceptorFn = (
   const router = inject(Router);
 
   const token = oauthService.getToken();
-  console.log('Interceptor - URL:', request.url);
-  console.log('Interceptor - Token disponible:', !!token);
 
   if (token) {
     request = addToken(request, token);
-    console.log('Interceptor - Token agregado al request');
-  } else {
-    console.log('Interceptor - No hay token disponible');
   }
 
   return next(request).pipe(
     catchError(error => {
-      console.log('Interceptor - Error en petición:', error);
       if (error instanceof HttpErrorResponse) {
         if (error.status === 401) {
           return handle401Error(request, next, oauthService, router);

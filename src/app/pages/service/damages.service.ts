@@ -127,15 +127,11 @@ export class DamagesService {
             params = params.set('limit', limit.toString());
         }
 
-        console.log('Haciendo petición GET a:', this.apiUrl);
-        console.log('Parámetros:', params.toString());
-
         return this.http.get<DamageResponse>(this.apiUrl, {
             params,
             headers: this.getHeaders()
         }).pipe(
             map(response => {
-                console.log('Respuesta exitosa:', response);
                 if (response.success) {
                     // El backend devuelve { danos: [...], pagination: {...} }
                     if (response.data && typeof response.data === 'object' && 'danos' in response.data) {

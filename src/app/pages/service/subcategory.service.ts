@@ -57,36 +57,28 @@ export class SubcategoryService {
 
             // GET - Obtener todas las subcategorías
     getAllSubcategories(): Observable<SubcategoryDisplay[]> {
-        console.log('🚀 Iniciando getAllSubcategories...');
 
         // Obtener todas las categorías primero
         return this.http.get<any>(`${environment.apiServiceGeneralUrl}/api/categories`).pipe(
             switchMap(categoriesResponse => {
-                console.log('📊 Respuesta de categorías:', categoriesResponse);
 
                 if (!categoriesResponse.success || !categoriesResponse.data) {
-                    console.error('❌ Error en respuesta de categorías:', categoriesResponse);
                     // Si no hay categorías, devolver array vacío
                     return of([]);
                 }
 
                 const categories = Array.isArray(categoriesResponse.data) ? categoriesResponse.data : [categoriesResponse.data];
-                console.log('📋 Categorías procesadas:', categories);
 
                 // Si no hay categorías, devolver array vacío
                 if (categories.length === 0) {
-                    console.log('⚠️ No hay categorías disponibles');
                     return of([]);
                 }
 
                 // Obtener subcategorías para cada categoría
                 const subcategoryRequests = categories.map((category: any) => {
                     const url = `${environment.apiServiceGeneralUrl}/api/categories/${category.id}/subcategories`;
-                    console.log(`🔍 Obteniendo subcategorías para categoría ${category.id} (${category.nombre})`);
-                    console.log(`🌐 URL: ${url}`);
                     return this.http.get<any>(url).pipe(
                         catchError(error => {
-                            console.warn(`⚠️ Error obteniendo subcategorías para categoría ${category.id}:`, error);
                             // Retornar un observable que emite un array vacío en caso de error
                             return of({ success: true, data: [] });
                         })
@@ -95,15 +87,12 @@ export class SubcategoryService {
 
                 return forkJoin(subcategoryRequests).pipe(
                     map((subcategoryResponses: any) => {
-                        console.log('📋 Respuestas de subcategorías:', subcategoryResponses);
 
                         const allSubcategories: SubcategoryDisplay[] = [];
 
                         subcategoryResponses.forEach((response: any, index: number) => {
-                            console.log(`📝 Procesando respuesta ${index}:`, response);
                             if (response.success && response.data) {
                                 const subcategories = Array.isArray(response.data) ? response.data : [response.data];
-                                console.log(`✅ Subcategorías de categoría ${index}:`, subcategories);
 
                                 // Agregar el nombre de la categoría a cada subcategoría
                                 const categoryName = categories[index].nombre;
@@ -113,23 +102,17 @@ export class SubcategoryService {
                                 }));
 
                                 allSubcategories.push(...subcategoriesWithCategoryName);
-                            } else {
-                                console.warn(`⚠️ Respuesta ${index} sin datos:`, response);
-                                console.warn(`⚠️ Esto puede significar que no hay subcategorías en esta categoría o hay un error`);
                             }
                         });
 
-                        console.log('🎯 Total de subcategorías combinadas:', allSubcategories.length);
                         return allSubcategories;
                     }),
                     catchError(error => {
-                        console.error('❌ Error procesando subcategorías:', error);
                         return of([]);
                     })
                 );
             }),
             catchError(error => {
-                console.error('❌ Error en getAllSubcategories:', error);
                 // En caso de error, devolver un array vacío en lugar de fallar completamente
                 return of([]);
             })
@@ -138,44 +121,30 @@ export class SubcategoryService {
 
     // GET - Obtener subcategoría por ID
     getSubcategoryById(id: number | string): Observable<SubcategoryDisplay> {
-        console.log('🔍 getSubcategoryById() iniciado con ID:', id);
 
         return this.http.get<SubcategoryResponse>(`${this.apiUrl}/${id}`).pipe(
-            tap(response => {
-                console.log('📡 Respuesta GET del backend:', response);
-            }),
             switchMap(response => {
                 if (response.success) {
                     const subcategory = Array.isArray(response.data) ? response.data[0] : response.data;
-                    console.log('📊 Subcategoría obtenida del backend:', subcategory);
-                    console.log('📊 Tiene categoria_nombre?', !!(subcategory as any).categoria_nombre);
 
                     // If it already has categoria_nombre, return directly
                     if ((subcategory as any).categoria_nombre) {
-                        console.log('✅ Ya tiene categoria_nombre, retornando directamente');
                         return of(subcategory as SubcategoryDisplay); // Use of() to return an Observable
                     }
 
                     // If it doesn't have categoria_nombre, get the category
-                    console.log('🔄 No tiene categoria_nombre, obteniendo categoría...');
                     return this.http.get<any>(`${environment.apiServiceGeneralUrl}/api/categories/${subcategory.categoria_id}`).pipe(
-                        tap(categoryResponse => {
-                            console.log('📡 Respuesta de categoría:', categoryResponse);
-                        }),
                         map(categoryResponse => {
                             if (categoryResponse.success && categoryResponse.data) {
                                 const category = Array.isArray(categoryResponse.data) ? categoryResponse.data[0] : categoryResponse.data;
-                                console.log('📊 Categoría obtenida:', category);
 
                                 const result = {
                                     ...subcategory,
                                     categoria_nombre: category.nombre
                                 } as SubcategoryDisplay;
 
-                                console.log('✅ Subcategoría con categoria_nombre agregada:', result);
                                 return result;
                             } else {
-                                console.log('⚠️ Categoría no encontrada, usando valor por defecto');
                                 return {
                                     ...subcategory,
                                     categoria_nombre: 'Categoría no encontrada'
@@ -184,7 +153,6 @@ export class SubcategoryService {
                         })
                     );
                 } else {
-                    console.error('❌ GET falló:', response.message);
                     throw new Error(response.message || 'Error al obtener la subcategoría');
                 }
             }),
@@ -232,25 +200,14 @@ export class SubcategoryService {
 
     // PUT - Actualizar subcategoría
     updateSubcategory(id: number | string, requestData: SubcategoryUpdateRequest): Observable<SubcategoryDisplay> {
-        console.log('🔄 updateSubcategory() iniciado con ID:', id);
-        console.log('🔄 Datos de actualización:', requestData);
 
         return this.http.put<SubcategoryResponse>(`${this.apiUrl}/${id}`, requestData).pipe(
-            tap(response => {
-                console.log('📡 Respuesta PUT del backend:', response);
-            }),
             switchMap(response => {
                 if (response.success) {
-                    console.log('✅ PUT exitoso, llamando getSubcategoryById...');
                     return this.getSubcategoryById(id); // Get full subcategory with category name
                 } else {
-                    console.error('❌ PUT falló:', response.message);
                     throw new Error(response.message || 'Error al actualizar la subcategoría');
                 }
-            }),
-            tap(result => {
-                console.log('✅ Resultado final de updateSubcategory:', result);
-                console.log('✅ Categoria_nombre en resultado:', (result as any).categoria_nombre);
             }),
             catchError(this.handleError)
         );
@@ -343,7 +300,6 @@ export class SubcategoryService {
 
         return new Observable(observer => {
             setTimeout(() => {
-                console.log('✅ Datos de prueba devueltos:', testData);
                 observer.next(testData);
                 observer.complete();
             }, 1000);
@@ -368,12 +324,10 @@ export class SubcategoryService {
 
             if (status === 422) {
                 // Error de validación
-                console.log('[SubcategoryService] Detalles completos del error 422:', errorDetails);
 
                 if (errorDetails && errorDetails.message) {
                     errorMessage = `Error de validación: ${errorDetails.message}`;
                 } else if (errorDetails && errorDetails.errors) {
-                    console.log('[SubcategoryService] Errores de validación específicos:', errorDetails.errors);
                     const validationErrors = Object.entries(errorDetails.errors)
                         .map(([field, message]) => `${field}: ${message}`)
                         .join(', ');
