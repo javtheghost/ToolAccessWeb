@@ -8,8 +8,21 @@
     --background-color: #03346E;
   --color-danger: #f44336;
   --text-color: #2F2F2F;
-   
+
 }
+
 .hover-bg-secundary:hover {
   background-color: var(--hover-color);
+}
+
+.text-primary-color {
+  color: #03346E !important;
+}
+
+.bg-primary-color {
+  background-color: #03346E !important;
+}
+
+.border-primary-color {
+  border-color: #03346E !important;
 }

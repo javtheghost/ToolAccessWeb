@@ -153,19 +153,68 @@ interface DateRange {
       color: #374151;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
       .date-range-inputs {
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
       }
 
       .date-separator {
         min-width: auto;
+        display: none;
       }
 
       .date-range-actions {
         justify-content: center;
+        flex-wrap: wrap;
       }
+
+      .action-btn {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .date-range-inputs {
+        gap: 8px;
+      }
+
+      .date-range-actions {
+        gap: 6px;
+      }
+
+      .action-btn {
+        min-width: 100px;
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+    }
+
+    /* Additional responsive improvements */
+    @media (max-width: 640px) {
+      .date-range-container {
+        width: 100%;
+      }
+
+      .date-input-wrapper {
+        min-width: 0;
+      }
+    }
+
+    /* Asegurar que los contenedores no corten el calendario */
+    .date-range-container {
+      overflow: visible !important;
+    }
+
+    .date-input-wrapper {
+      overflow: visible !important;
+      position: relative !important;
+    }
+
+    .date-range-inputs {
+      overflow: visible !important;
     }
   `]
 })

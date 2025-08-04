@@ -137,10 +137,12 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
         <ng-template pTemplate="emptymessage">
             <tr>
                 <td colspan="6" class="text-center py-8">
-                    <div class="flex flex-col items-center gap-2">
-                        <i class="pi pi-database text-4xl text-[var(--primary-color)]"></i>
-                        <h6 class="text-[var(--primary-color)] font-medium">No hay configuraciones de multas registradas</h6>
-                        <p class="text-gray-500 text-sm">Cuando se registren configuraciones de multas, aparecerán aquí.</p>
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
+                        <div class="text-center">
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay configuraciones de multas</h3>
+                            <p class="text-gray-500">Aún no se han registrado configuraciones de multas. Utiliza el botón "Nueva Configuración" para agregar la primera configuración.</p>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -149,7 +151,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
 </div>
 <p-dialog
   [(visible)]="fineConfigDialog"
-  [style]="{ width: '90vw', maxWidth: '500px' }"
+  [style]="{ width: '95vw', maxWidth: '600px' }"
   [modal]="true"
   [draggable]="false"
 >
@@ -158,88 +160,78 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
       {{ isEditMode ? 'Editar Configuración de Multa' : 'Nueva Configuración de Multa' }}
     </span>
   </ng-template>
-    <ng-template pTemplate="content">
-        <form [formGroup]="fineConfigForm" (ngSubmit)="saveFineConfig()">
-            <div class="grid grid-cols-1 gap-4">
-                <!-- Campo Nombre (Requerido) -->
-                <div class="relative py-2 mt-2">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">edit</span>
-                    <input
-                        type="text"
-                        id="nombre"
-                        name="nombre"
-                        formControlName="nombre"
-                        class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                        placeholder=" "
-                        aria-label="Nombre"
-                        [ngClass]="{'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('nombre')}"
-                    />
-                    <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-4 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">
-                        Nombre <span class="text-red-500">*</span>
-                    </label>
-                    <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-1">
-                        {{ getErrorMessage('nombre') }}
-                    </div>
-                </div>
-
-                <!-- Campo Categoría (Opcional) -->
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">inventory_2</span>
-                    <input
-                        type="number"
-                        id="aplica_a_categoria_id"
-                        name="aplica_a_categoria_id"
-                        formControlName="aplica_a_categoria_id"
-                        class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                        placeholder=" "
-                        aria-label="ID de Categoría"
-                    />
-                    <label for="aplica_a_categoria_id" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-4 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">
-                        ID de Categoría
-                    </label>
-                    <div *ngIf="isFieldInvalid('aplica_a_categoria_id')" class="text-red-500 text-xs mt-1 ml-1">
-                        {{ getErrorMessage('aplica_a_categoria_id') }}
-                    </div>
-                </div>
-
-                <!-- Campo Valor Base (Requerido) -->
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">payments</span>
-                    <input
-                        type="number"
-                        id="valor_base"
-                        name="valor_base"
-                        formControlName="valor_base"
-                        class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                        placeholder=" "
-                        aria-label="Valor base"
-                        [ngClass]="{'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('valor_base')}"
-                    />
-                    <label for="valor_base" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-4 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">
-                        Valor base <span class="text-red-500">*</span>
-                    </label>
-                    <div *ngIf="isFieldInvalid('valor_base')" class="text-red-500 text-xs mt-1 ml-1">
-                        {{ getErrorMessage('valor_base') }}
-                    </div>
-                </div>
-
-                <!-- Campo Activo -->
-                <div class="flex flex-col items-center justify-center">
-                    <label class="mb-2">Estado activo</label>
-                    <input type="checkbox" class="custom-toggle" formControlName="is_active" />
-                </div>
+  <ng-template pTemplate="content">
+    <form [formGroup]="fineConfigForm" (ngSubmit)="saveFineConfig()">
+        <div class="grid grid-cols-1 gap-4">
+            <!-- Nombre de la configuración -->
+            <div class="relative col-span-1 py-2 mt-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
+                <input
+                    type="text"
+                    id="nombre"
+                    formControlName="nombre"
+                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Nombre"
+                    [class.border-red-500]="isFieldInvalid('nombre')"
+                    [class.border-gray-300]="!isFieldInvalid('nombre')" />
+                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+                <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
             </div>
 
-            <!-- Botones -->
-            <div class="flex justify-end gap-4 mt-6">
-                <button pButton type="button" class="custom-cancel-btn w-24" (click)="hideDialog()">Cancelar</button>
-                <button pButton type="submit" class="p-button w-24" [disabled]="fineConfigForm.invalid || saving">
-                    <span *ngIf="saving">Guardando...</span>
-                    <span *ngIf="!saving">Guardar</span>
-                </button>
+            <!-- Categoría -->
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
+                <p-dropdown
+                    [options]="categories"
+                    formControlName="aplica_a_categoria_id"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccionar categoría (opcional)"
+                    [style]="{ width: '100%' }"
+                    class="w-full"
+                    [styleClass]="'h-12 px-10'"
+                    [showClear]="true"
+                    [class.border-red-500]="isFieldInvalid('aplica_a_categoria_id')"
+                    [class.border-gray-300]="!isFieldInvalid('aplica_a_categoria_id')">
+                </p-dropdown>
+                <div *ngIf="isFieldInvalid('aplica_a_categoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('aplica_a_categoria_id') }}</div>
             </div>
-        </form>
-    </ng-template>
+
+            <!-- Valor base -->
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-10">payments</span>
+                <p-inputnumber
+                    formControlName="valor_base"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    [min]="0"
+                    [max]="999999.99"
+                    placeholder="$0.00 MXN"
+                    class="w-full"
+                    [showButtons]="false"
+                    [useGrouping]="true"
+                    [locale]="'es-MX'"
+                    styleClass="custom-inputnumber">
+                </p-inputnumber>
+                <div *ngIf="isFieldInvalid('valor_base')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_base') }}</div>
+            </div>
+
+            <!-- Estado activo -->
+            <div class="flex flex-col items-center justify-center col-span-1">
+                <label class="mb-2">Activo</label>
+                <input type="checkbox" class="custom-toggle" formControlName="is_active" />
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+            <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="submit" class="p-button w-full sm:w-24" [disabled]="fineConfigForm.invalid || saving">
+                <span *ngIf="saving">Guardando...</span>
+                <span *ngIf="!saving">Guardar</span>
+            </button>
+        </div>
+    </form>
+  </ng-template>
 </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
 <div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
@@ -291,6 +283,178 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
             background: #fff !important;
         }
 
+        /* Estilos para que los dropdowns se vean como selects */
+        :host ::ng-deep .p-dropdown {
+            height: 48px !important;
+            border-radius: 8px !important;
+            border: 1px solid #d1d5db !important;
+            background: transparent !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled):hover {
+            border-color: var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled).p-focus {
+            outline: 0 none !important;
+            outline-offset: 0 !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            padding: 0.75rem 2.5rem 0.75rem 2.5rem !important;
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            line-height: normal !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-trigger {
+            width: 2.5rem !important;
+            color: #6b7280 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel {
+            border-radius: 8px !important;
+            border: 1px solid #d1d5db !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-inputtext {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder {
+            color: #6b7280 !important;
+        }
+
+        /* Asegurar que los iconos SVG se vean igual en todos los dropdowns */
+        :host ::ng-deep .p-dropdown {
+            position: relative !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            padding-left: 2.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+        }
+
+        /* Centrar verticalmente el texto en los dropdowns */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-inputtext {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Asegurar que el texto esté centrado como en la imagen */
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Centrar el placeholder también */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Asegurar que el placeholder esté centrado */
+        :host ::ng-deep .p-dropdown .p-dropdown-label:not(.p-inputtext) {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Centrado específico para placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            min-height: 48px !important;
+        }
+
+        /* Forzar centrado del placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder,
+        :host ::ng-deep .p-dropdown .p-dropdown-label:empty {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            min-height: 48px !important;
+        }
+
+        /* Centrado específico para placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            min-height: 48px !important;
+            vertical-align: middle !important;
+        }
+
+        /* Forzar centrado vertical del texto */
+        :host ::ng-deep .p-dropdown .p-dropdown-label span,
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: inline-flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            line-height: 1 !important;
+        }
+
+        /* Centrado específico para placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 48px !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            vertical-align: middle !important;
+        }
+
+        /* Asegurar que el texto esté centrado como en la imagen */
+        :host ::ng-deep .p-dropdown {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            height: 48px !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
         /* Estilos para campos requeridos */
         .required-field {
             color: #ef4444;
@@ -305,6 +469,67 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
         .field-error:focus {
             border-color: #ef4444 !important;
             box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        /* Estilos personalizados para p-inputnumber */
+        :host ::ng-deep .custom-inputnumber {
+            width: 100% !important;
+        }
+
+        :host ::ng-deep .custom-inputnumber .p-inputtext {
+            padding-left: 2.5rem !important;
+            height: 3rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #d1d5db !important;
+            background-color: transparent !important;
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+
+        :host ::ng-deep .custom-inputnumber .p-inputtext:focus {
+            outline: none !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .custom-inputnumber .p-inputtext::placeholder {
+            color: #9ca3af !important;
+            font-size: 0.875rem !important;
+            font-weight: 400 !important;
+        }
+
+        :host ::ng-deep .custom-inputnumber .p-inputtext:hover {
+            border-color: #9ca3af !important;
+        }
+
+        /* Estilos para campos con errores */
+        .border-red-500 {
+            border-color: #ef4444 !important;
+        }
+
+        .border-gray-300 {
+            border-color: #d1d5db !important;
+        }
+
+        /* Estilos para mensajes de error */
+        .text-red-500 {
+            color: #ef4444 !important;
+        }
+
+        .text-xs {
+            font-size: 0.75rem !important;
+            line-height: 1rem !important;
+        }
+
+        .mt-1 {
+            margin-top: 0.25rem !important;
+        }
+
+        .ml-10 {
+            margin-left: 2.5rem !important;
         }
     `]
 })
@@ -401,6 +626,12 @@ export class FinesConfigCrudComponent implements OnInit {
     isFieldInvalid(controlName: string): boolean {
         const control = this.fineConfigForm.get(controlName);
         return !!(control?.invalid && control?.touched);
+    }
+
+    onCategoryChange(event: any) {
+        this.fineConfigForm.patchValue({
+            aplica_a_categoria_id: event.value
+        });
     }
 
     loadFinesConfigs() {
@@ -511,34 +742,41 @@ export class FinesConfigCrudComponent implements OnInit {
         const formValue = this.fineConfigForm.value;
 
         if (this.isEditMode) {
-            const updateRequest: FinesConfigUpdateRequest = {
-                nombre: formValue.nombre,
-                valor_base: formValue.valor_base,
-                aplica_a_categoria_id: formValue.aplica_a_categoria_id,
-                is_active: formValue.is_active
-            };
+            // Modo edición - mostrar confirmación
+            this.confirmIcon = 'warning';
+            this.confirmMessage = `¿Estás seguro que deseas actualizar la configuración de multa <span class='text-primary'>${formValue.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+            this.confirmAction = () => {
+                const updateRequest: FinesConfigUpdateRequest = {
+                    nombre: formValue.nombre,
+                    valor_base: formValue.valor_base,
+                    aplica_a_categoria_id: formValue.aplica_a_categoria_id,
+                    is_active: formValue.is_active
+                };
 
-            this.finesConfigService.updateFinesConfig(this.fineConfig.id, updateRequest).subscribe({
-                next: (updatedConfig) => {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Configuración de multa actualizada correctamente'
-                    });
-                    this.hideDialog();
-                    this.loadFinesConfigs();
-                    this.saving = false;
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al actualizar configuración de multa'
-                    });
-                    this.saving = false;
-                }
-            });
+                this.finesConfigService.updateFinesConfig(this.fineConfig.id, updateRequest).subscribe({
+                    next: (updatedConfig) => {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Configuración de multa actualizada correctamente'
+                        });
+                        this.hideDialog();
+                        this.loadFinesConfigs();
+                        this.saving = false;
+                    },
+                    error: (error) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: error.message || 'Error al actualizar configuración de multa'
+                        });
+                        this.saving = false;
+                    }
+                });
+            };
+            this.showCustomConfirm = true;
         } else {
+            // Modo creación
             const createRequest: FinesConfigCreateRequest = {
                 nombre: formValue.nombre,
                 valor_base: formValue.valor_base,

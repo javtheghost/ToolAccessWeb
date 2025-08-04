@@ -134,10 +134,12 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
         <ng-template pTemplate="emptymessage">
             <tr>
                 <td colspan="6" class="text-center py-8">
-                    <div class="flex flex-col items-center gap-2">
-                        <i class="pi pi-database text-4xl text-[var(--primary-color)]"></i>
-                        <h6 class="text-[var(--primary-color)] font-medium">No hay tipos de daño registrados</h6>
-                        <p class="text-gray-500 text-sm">Cuando se registren tipos de daño, aparecerán aquí.</p>
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
+                        <div class="text-center">
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay tipos de daño</h3>
+                            <p class="text-gray-500">Aún no se han registrado tipos de daño. Utiliza el botón "Nuevo Tipo de daño" para agregar el primer tipo.</p>
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -146,85 +148,86 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
 </div>
 <p-dialog
   [(visible)]="damageTypeDialog"
-  [style]="{ width: '90vw', maxWidth: '500px' }"
+  [style]="{ width: '95vw', maxWidth: '600px' }"
   [modal]="true"
   [draggable]="false"
-  [resizable]="false"
 >
   <ng-template pTemplate="header">
     <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
       {{ isEditMode ? 'Editar Tipo de Daño' : 'Nuevo Tipo de Daño' }}
     </span>
   </ng-template>
-    <ng-template pTemplate="content">
-        <form [formGroup]="damageTypeForm" (ngSubmit)="saveDamageType()" class="space-y-4">
-            <div class="field">
-                <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre <span class="text-red-500">*</span>
-                </label>
+  <ng-template pTemplate="content">
+    <form [formGroup]="damageTypeForm" (ngSubmit)="saveDamageType()">
+        <div class="grid grid-cols-1 gap-4">
+            <!-- Nombre del tipo de daño -->
+            <div class="relative col-span-1 py-2 mt-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
                 <input
-                    id="nombre"
                     type="text"
-                    pInputText
+                    id="nombre"
                     formControlName="nombre"
-                    placeholder="Ej: Daño por uso normal"
-                    [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('nombre')}"
-                    class="w-full" />
-                <small *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1">
-                    {{ getErrorMessage('nombre') }}
-                </small>
+                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Nombre"
+                    [class.border-red-500]="isFieldInvalid('nombre')"
+                    [class.border-gray-300]="!isFieldInvalid('nombre')" />
+                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+                <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
             </div>
 
-            <div class="field">
-                <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-2">
-                    Descripción
-                </label>
+            <!-- Descripción -->
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
                 <textarea
                     id="descripcion"
-                    pInputText
                     formControlName="descripcion"
-                    placeholder="Descripción del tipo de daño..."
                     rows="3"
-                    class="w-full resize-none"></textarea>
-                <small *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1">
-                    {{ getErrorMessage('descripcion') }}
-                </small>
+                    class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Descripción"
+                    [class.border-red-500]="isFieldInvalid('descripcion')"
+                    [class.border-gray-300]="!isFieldInvalid('descripcion')"></textarea>
+                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
+                <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
             </div>
 
-            <div class="field">
-                <label for="porcentaje_aplicar" class="block text-sm font-medium text-gray-700 mb-2">
-                    Porcentaje a Aplicar <span class="text-red-500">*</span>
-                </label>
-                <p-inputNumber
-                    id="porcentaje_aplicar"
+            <!-- Porcentaje a aplicar -->
+            <div class="relative col-span-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-10">percent</span>
+                <p-inputnumber
                     formControlName="porcentaje_aplicar"
-                    placeholder="0.00"
-                    [min]="0"
-                    [max]="100"
                     [minFractionDigits]="2"
                     [maxFractionDigits]="2"
-                    suffix="%"
-                    [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('porcentaje_aplicar')}"
-                    class="w-full" />
-                <small *ngIf="isFieldInvalid('porcentaje_aplicar')" class="text-red-500 text-xs mt-1">
-                    {{ getErrorMessage('porcentaje_aplicar') }}
-                </small>
+                    [min]="0"
+                    [max]="100"
+                    placeholder="0.00%"
+                    class="w-full"
+                    [showButtons]="false"
+                    [useGrouping]="false"
+                    [locale]="'es-MX'"
+                    styleClass="custom-inputnumber"
+                    [class.border-red-500]="isFieldInvalid('porcentaje_aplicar')"
+                    [class.border-gray-300]="!isFieldInvalid('porcentaje_aplicar')">
+                </p-inputnumber>
+                <div *ngIf="isFieldInvalid('porcentaje_aplicar')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('porcentaje_aplicar') }}</div>
             </div>
 
-            <div class="field">
-                <div class="flex items-center space-x-3">
-                    <p-inputSwitch formControlName="is_active" />
-                    <label for="is_active" class="text-sm font-medium text-gray-700">
-                        Tipo de daño activo
-                    </label>
-                </div>
+            <!-- Estado activo -->
+            <div class="flex flex-col items-center justify-center col-span-1">
+                <label class="mb-2">Activo</label>
+                <input type="checkbox" class="custom-toggle" formControlName="is_active" />
             </div>
-        </form>
-        <div class="flex justify-end gap-3 mt-6">
-            <button pButton type="button" class="custom-cancel-btn px-6 py-2" (click)="hideDialog()">Cancelar</button>
-            <button pButton type="button" class="p-button px-6 py-2" (click)="saveDamageType()">Guardar</button>
         </div>
-    </ng-template>
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+            <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="submit" class="p-button w-full sm:w-24" [disabled]="damageTypeForm.invalid || saving">
+                <span *ngIf="saving">Guardando...</span>
+                <span *ngIf="!saving">Guardar</span>
+            </button>
+        </div>
+    </form>
+  </ng-template>
 </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
 <div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
@@ -276,7 +279,66 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
             background: #fff !important;
         }
 
+        /* Estilos personalizados para p-inputnumber */
+        :host ::ng-deep .custom-inputnumber {
+            width: 100% !important;
+        }
 
+        :host ::ng-deep .custom-inputnumber .p-inputtext {
+            padding-left: 2.5rem !important;
+            height: 3rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #d1d5db !important;
+            background-color: transparent !important;
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+
+        :host ::ng-deep .custom-inputnumber .p-inputtext:focus {
+            outline: none !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .custom-inputnumber .p-inputtext::placeholder {
+            color: #9ca3af !important;
+            font-size: 0.875rem !important;
+            font-weight: 400 !important;
+        }
+
+        :host ::ng-deep .custom-inputnumber .p-inputtext:hover {
+            border-color: #9ca3af !important;
+        }
+
+        /* Estilos para campos con errores */
+        .border-red-500 {
+            border-color: #ef4444 !important;
+        }
+
+        .border-gray-300 {
+            border-color: #d1d5db !important;
+        }
+
+        /* Estilos para mensajes de error */
+        .text-red-500 {
+            color: #ef4444 !important;
+        }
+
+        .text-xs {
+            font-size: 0.75rem !important;
+            line-height: 1rem !important;
+        }
+
+        .mt-1 {
+            margin-top: 0.25rem !important;
+        }
+
+        .ml-10 {
+            margin-left: 2.5rem !important;
+        }
     `]
 })
 export class DamageTypesCrudComponent implements OnInit {
@@ -323,7 +385,12 @@ export class DamageTypesCrudComponent implements OnInit {
         this.damageTypeForm = this.fb.group({
             nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
             descripcion: ['', [Validators.maxLength(300)]],
-            porcentaje_aplicar: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+            porcentaje_aplicar: [0, [
+                Validators.required,
+                Validators.min(0),
+                Validators.max(100),
+                Validators.pattern(/^(100(\.00)?|([0-9]|[1-9][0-9])(\.[0-9]{1,2})?)$/)
+            ]],
             is_active: [true]
         });
     }
@@ -338,21 +405,45 @@ export class DamageTypesCrudComponent implements OnInit {
         const control = this.damageTypeForm.get(controlName);
         if (control?.errors) {
             if (control.errors['required']) {
+                if (controlName === 'nombre') {
+                    return 'El nombre es obligatorio';
+                }
+                if (controlName === 'porcentaje_aplicar') {
+                    return 'El porcentaje es obligatorio';
+                }
                 return 'Este campo es obligatorio';
             }
             if (control.errors['minlength']) {
+                if (controlName === 'nombre') {
+                    return 'Mínimo 2 caracteres';
+                }
                 return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
             }
             if (control.errors['maxlength']) {
+                if (controlName === 'nombre') {
+                    return 'Máximo 50 caracteres';
+                }
+                if (controlName === 'descripcion') {
+                    return 'Máximo 300 caracteres';
+                }
                 return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
             }
             if (control.errors['min']) {
+                if (controlName === 'porcentaje_aplicar') {
+                    return 'El porcentaje debe ser mayor o igual a 0%';
+                }
                 return `Valor mínimo: ${control.errors['min'].min}`;
             }
             if (control.errors['max']) {
+                if (controlName === 'porcentaje_aplicar') {
+                    return 'El porcentaje no puede exceder 100%';
+                }
                 return `Valor máximo: ${control.errors['max'].max}`;
             }
             if (control.errors['pattern']) {
+                if (controlName === 'porcentaje_aplicar') {
+                    return 'Formato inválido. Use números del 0 al 100 con máximo 2 decimales';
+                }
                 return 'Formato inválido';
             }
         }

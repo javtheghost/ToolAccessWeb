@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { AppLayout } from './app/layout/component/app.layout';
 import { Dashboard } from './app/pages/dashboard/dashboard';
-import { Notfound } from './app/pages/notfound/notfound';
 import { AuthGuard } from './app/pages/guards/auth.guard';
 import { AdminGuard } from './app/pages/guards/admin.guard';
 import { PublicGuard } from './app/pages/guards/public.guard';

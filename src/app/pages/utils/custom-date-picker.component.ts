@@ -109,6 +109,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       position: relative;
       width: 100%;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: block;
     }
 
     .date-input-container {
@@ -122,6 +123,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       height: 48px;
       cursor: pointer;
       transition: all 0.2s ease;
+      min-width: 200px;
+      width: 100%;
     }
 
     .date-input-container:hover {
@@ -140,7 +143,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     .calendar-icon {
       width: 20px;
       height: 20px;
-      color: #6b7280;
+      color: var(--primary-color, #174ea6);
       margin-right: 8px;
       flex-shrink: 0;
     }
@@ -162,7 +165,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     .dropdown-icon {
       width: 16px;
       height: 16px;
-      color: #6b7280;
+      color: var(--primary-color, #174ea6);
       transition: transform 0.2s ease;
       flex-shrink: 0;
     }
@@ -173,16 +176,15 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
     .calendar-dropdown {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 4px);
       left: 0;
-      right: 0;
       background: #ffffff;
       border: 1px solid #e5e7eb;
       border-radius: 8px;
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      z-index: 1000;
-      margin-top: 4px;
+      z-index: 9999;
       min-width: 280px;
+      width: 100%;
     }
 
     .calendar-header {
@@ -199,13 +201,13 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       padding: 8px;
       border-radius: 6px;
       cursor: pointer;
-      color: #6b7280;
+      color: var(--primary-color, #174ea6);
       transition: all 0.2s ease;
     }
 
     .nav-btn:hover {
-      background: #f3f4f6;
-      color: #374151;
+      background: rgba(23, 78, 166, 0.1);
+      color: var(--primary-color, #174ea6);
     }
 
     .nav-btn svg {
@@ -281,12 +283,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     }
 
     .calendar-day.selected {
-      background: #174ea6;
+      background: var(--primary-color, #174ea6);
       color: #ffffff;
     }
 
     .calendar-day.today {
-      border: 2px solid #174ea6;
+      border: 2px solid var(--primary-color, #174ea6);
       font-weight: 600;
     }
 
@@ -318,12 +320,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     }
 
     .today-btn {
-      background: #174ea6;
+      background: var(--primary-color, #174ea6);
       color: #ffffff;
     }
 
     .today-btn:hover {
-      background: #0d3576;
+      background: var(--hover-color, #0d3576);
     }
 
     .clear-btn {
@@ -381,18 +383,145 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     }
 
     .year-option.selected {
-      background: #174ea6;
+      background: var(--primary-color, #174ea6);
       color: #ffffff;
-      border-color: #174ea6;
+      border-color: var(--primary-color, #174ea6);
     }
 
     .year-option.current-year {
-      border-color: #174ea6;
+      border-color: var(--primary-color, #174ea6);
       font-weight: 600;
     }
 
     .year-option.current-year:not(.selected) {
-      color: #174ea6;
+      color: var(--primary-color, #174ea6);
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .calendar-dropdown {
+        min-width: 260px;
+        left: 0;
+        transform: none;
+        width: 100%;
+      }
+
+      .calendar-header {
+        padding: 12px;
+      }
+
+      .calendar-days {
+        padding: 0 12px 12px;
+      }
+
+      .calendar-day {
+        height: 32px;
+        font-size: 13px;
+      }
+
+      .calendar-footer {
+        padding: 8px 12px;
+      }
+
+      .today-btn, .clear-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .calendar-dropdown {
+        min-width: 240px;
+        width: 100%;
+        max-width: none;
+      }
+
+      .calendar-header {
+        padding: 8px;
+      }
+
+      .calendar-days {
+        padding: 0 8px 8px;
+      }
+
+      .calendar-day {
+        height: 28px;
+        font-size: 12px;
+        margin: 1px;
+      }
+
+      .calendar-footer {
+        padding: 6px 8px;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .today-btn, .clear-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .date-input-container {
+        height: 44px;
+        min-width: 180px;
+      }
+
+      .date-input {
+        font-size: 13px;
+      }
+
+      .calendar-icon {
+        width: 18px;
+        height: 18px;
+      }
+
+      .dropdown-icon {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .date-input-container {
+        height: 40px;
+        min-width: 160px;
+        padding: 0 8px;
+      }
+
+      .date-input {
+        font-size: 12px;
+      }
+
+      .calendar-icon {
+        width: 16px;
+        height: 16px;
+        margin-right: 6px;
+      }
+
+      .dropdown-icon {
+        width: 12px;
+        height: 12px;
+      }
+    }
+
+    /* Asegurar que el calendario se muestre correctamente */
+    .custom-date-picker .calendar-dropdown {
+      position: absolute !important;
+      z-index: 9999 !important;
+      background: #ffffff !important;
+      border: 1px solid #e5e7eb !important;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Asegurar que el contenedor tenga overflow visible */
+    .date-range-container {
+      overflow: visible !important;
+    }
+
+    .date-input-wrapper {
+      overflow: visible !important;
     }
   `]
 })

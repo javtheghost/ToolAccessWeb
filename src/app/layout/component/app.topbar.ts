@@ -216,7 +216,7 @@ import { MessageService } from 'primeng/api';
                             >
                                 <i class="material-symbols-outlined" style="color: #fff;">manage_accounts</i>
 
-                                Editar perfil
+                                Ver perfil
                             </a>
                         </li>
                         <li>
