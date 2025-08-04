@@ -1,126 +1,309 @@
 .reports-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 32px auto;
   padding: 0 16px;
 }
+
 .titulo {
   font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  color: #1f2937;
 }
+
 .filtros-card {
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 24px 24px 16px 24px;
-  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 28px;
+  margin-bottom: 32px;
+  border: 1px solid #e5e7eb;
 }
+
 .filtros-titulo {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 16px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #374151;
 }
+
 .filtros-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
+
 .filtros-row {
   display: flex;
-  gap: 16px;
-  margin-bottom: 8px;
+  gap: 20px;
+  margin-bottom: 12px;
+  align-items: flex-end;
 }
+
 .filtro-col {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
+
+.filtro-col label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
 .rango-fechas {
   flex: 1.5;
 }
-.boton-generar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
+
+.botones-accion {
+  margin-top: 8px;
+  justify-content: flex-start;
+  gap: 12px;
 }
-button[type="submit"] {
-  background: #174ea6;
-  color: #fff;
-  border: none;
+
+.botones-accion .filtro-col {
+  flex: 0 0 auto;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
-  padding: 10px 24px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 18px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease;
 }
-button[type="submit"]:hover {
-  background: #0d3576;
+
+.form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
+
+.form-control:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
 .reportes-recientes-card {
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 24px;
+  border: 1px solid #e5e7eb;
 }
+
 .reportes-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
 }
-.ver-todos {
-  color: #174ea6;
-  text-decoration: underline;
-  font-size: 0.95rem;
+
+.reportes-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
 }
-.lista-reportes {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.reporte-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  background: #f8fafc;
-  border-radius: 6px;
-  padding: 14px 18px;
-  border: 1px solid #e0e7ef;
-}
-.reporte-info strong {
-  font-size: 1.05rem;
-}
-.reporte-fecha {
-  font-size: 0.95rem;
+
+.reportes-count {
+  font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 4px;
-}
-.reporte-descargar a {
-  color: #174ea6;
-  font-weight: 500;
-  text-decoration: underline;
-  cursor: pointer;
-}
-.fechas-flex {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.a-label {
-  margin: 0 4px;
-  color: #6b7280;
+  background: #f3f4f6;
+  padding: 4px 12px;
+  border-radius: 16px;
   font-weight: 500;
 }
 
-// Ajuste para que los PrimeNG dropdowns y calendarios ocupen todo el ancho
+.lista-reportes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reporte-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px 20px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.reporte-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.reporte-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.reporte-nombre {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reporte-nombre strong {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-left: 8px;
+}
+
+.reporte-fecha {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.reporte-descripcion {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.reporte-acciones {
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.no-reportes {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6b7280;
+}
+
+.no-reportes p {
+  margin: 16px 0 8px 0;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.no-reportes small {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+// Ajustes para PrimeNG components
 .p-dropdown, .p-calendar, app-custom-date-picker, app-custom-date-range {
   width: 100%;
 }
 
-// Ajuste para el botón de PrimeNG
-.boton-generar .p-button {
-  width: 100%;
-  min-width: 160px;
-  margin-top: 18px;
+.p-dropdown:not(.p-disabled):hover {
+  border-color: #3b82f6;
+}
+
+.p-dropdown:not(.p-disabled).p-focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.p-button {
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.p-button-primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.p-button-primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.p-button-secondary {
+  background: #6b7280;
+  border-color: #6b7280;
+}
+
+.p-button-secondary:hover {
+  background: #4b5563;
+  border-color: #4b5563;
+}
+
+.p-button-outlined {
+  border-width: 1px;
+}
+
+.p-progressspinner {
+  display: inline-block;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .reports-container {
+    margin: 16px auto;
+    padding: 0 12px;
+  }
+  
+  .filtros-card, .reportes-recientes-card {
+    padding: 20px;
+  }
+  
+  .filtros-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .filtro-col {
+    width: 100%;
+  }
+  
+  .botones-accion {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .botones-accion .filtro-col {
+    width: 100%;
+  }
+  
+  .reporte-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .reporte-acciones {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+  
+  .reportes-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .titulo {
+    font-size: 1.5rem;
+  }
+  
+  .filtros-titulo, .reportes-header h3 {
+    font-size: 1.125rem;
+  }
 }
