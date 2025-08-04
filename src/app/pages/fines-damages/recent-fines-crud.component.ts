@@ -52,23 +52,14 @@ import { finalize } from 'rxjs/operators';
 <p-toast></p-toast>
 <div class="p-4">
     <div class="card">
-        <h5 class="m-0 p-2 text-[var(--primary-color)]">Multas Recientes</h5>
-
         <!-- Estado de carga -->
         <div *ngIf="loading" class="p-4 text-center">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
             <p class="mt-2">Cargando multas...</p>
         </div>
 
-        <!-- Sin datos -->
-        <div *ngIf="!loading && fines.length === 0" class="p-4 text-center">
-            <i class="pi pi-info-circle" style="font-size: 2rem; color: var(--primary-color)"></i>
-            <h6 class="mt-2 mb-1">No hay multas registradas</h6>
-            <p class="text-gray-500 text-sm">Cuando se registren multas, aparecerán aquí.</p>
-        </div>
-
         <!-- Tabla de multas -->
-        <div *ngIf="!loading && fines.length > 0">
+        <div *ngIf="!loading">
             <p-table
                 #dt
                 [value]="fines"
@@ -88,15 +79,11 @@ import { finalize } from 'rxjs/operators';
             >
                 <ng-template #caption>
                     <div class="flex items-center justify-between">
-                        <h5 class="m-0 p-2 text-[var(--primary-color)]">Multas Recientes</h5>
-                        <div class="flex gap-2">
-                            <p-button
-                                label="Nueva Multa"
-                                icon="pi pi-plus"
-                                (onClick)="openNew()"
-                                pTooltip="Crear nueva multa"
-                                tooltipPosition="top">
-                            </p-button>
+                        <div>
+                            <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Multas Recientes</h5>
+                            <p class="text-sm text-[var(--primary-color)] mt-1 px-2">
+                                Gestiona y da seguimiento a todas las multas aplicadas en el sistema.
+                            </p>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
@@ -104,50 +91,51 @@ import { finalize } from 'rxjs/operators';
                             <p-inputicon styleClass="pi pi-search" />
                             <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
                         </p-iconfield>
+                        <div class="flex justify-end w-full sm:w-auto">
+                            <p-button label="Nueva Multa" icon="pi pi-plus" (onClick)="openNew()"></p-button>
+                        </div>
                     </div>
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr class="bg-[#6ea1cc] text-white">
-                        <th>ID</th>
                         <th>Usuario</th>
                         <th>Orden</th>
-                        <th>Configuración</th>
+                        <th class="hidden md:table-cell">Configuración</th>
                         <th>Monto</th>
                         <th>Estado</th>
-                        <th>Fecha Aplicación</th>
+                        <th class="hidden lg:table-cell">Fecha Aplicación</th>
                         <th>Acciones</th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-fine>
-                    <tr>
-                        <td>{{ fine.id }}</td>
+                    <tr class="hover:bg-gray-50 transition-colors">
                         <td>
                             <div class="flex flex-col">
-                                <span class="font-semibold text-gray-900">{{ fine.usuario_nombre || 'Usuario #' + fine.usuario_id }}</span>
-                                <span class="text-xs text-gray-500">{{ fine.usuario_email || 'Sin email' }}</span>
+                                <span class="font-semibold text-gray-900 text-sm sm:text-base">{{ fine.usuario_nombre || 'Usuario #' + fine.usuario_id }}</span>
+                                <span class="text-xs text-gray-500 hidden sm:block">{{ fine.usuario_email || 'Sin email' }}</span>
                             </div>
                         </td>
                         <td>
                             <div class="flex flex-col">
-                                <span class="font-semibold text-blue-600">{{ fine.orden_folio || 'Orden #' + fine.orden_id }}</span>
-                                <span class="text-xs text-gray-500">ID: {{ fine.orden_id }}</span>
+                                <span class="font-semibold text-blue-600 text-sm sm:text-base">{{ fine.orden_folio || 'Orden #' + fine.orden_id }}</span>
+                                <span class="text-xs text-gray-500 hidden sm:block">ID: {{ fine.orden_id }}</span>
                             </div>
                         </td>
-                        <td>
+                        <td class="hidden md:table-cell">
                             <div class="flex flex-col">
                                 <span class="font-semibold text-gray-900">{{ fine.configuracion_nombre || 'Config #' + fine.configuracion_multa_id }}</span>
                                 <span class="text-xs text-gray-500">ID: {{ fine.configuracion_multa_id }}</span>
                             </div>
                         </td>
-                        <td class="font-semibold">{{ fine.monto_total | currency:'MXN' }}</td>
+                        <td class="font-semibold text-sm sm:text-base">{{ fine.monto_total | currency:'MXN' }}</td>
                         <td>
-                            <span [class]="getEstadoClass(fine.estado)">
-                                {{ fine.estado | titlecase }}
+                            <span [class]="getEstadoClass(fine.estado)" class="text-xs sm:text-sm">
+                                {{ fine.estado?.toLowerCase() | titlecase }}
                             </span>
                         </td>
-                        <td>{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</td>
+                        <td class="hidden lg:table-cell text-sm">{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</td>
                         <td>
-                            <div class="flex gap-1">
+                            <div class="flex flex-wrap gap-1 justify-center sm:justify-start">
                                 <p-button
                                     (onClick)="viewFineDetails(fine)"
                                     styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
@@ -167,7 +155,7 @@ import { finalize } from 'rxjs/operators';
                                     </ng-template>
                                 </p-button>
                                 <p-button
-                                    *ngIf="fine.estado === 'pendiente'"
+                                    *ngIf="fine.estado?.toLowerCase() === 'pendiente'"
                                     (onClick)="payFine(fine)"
                                     styleClass="custom-flat-icon-button custom-flat-icon-button-pay mr-2"
                                     pTooltip="Marcar como pagada"
@@ -189,16 +177,17 @@ import { finalize } from 'rxjs/operators';
                         </td>
                     </tr>
                 </ng-template>
-                <ng-template pTemplate="emptymessage">
-                    <tr>
-                        <td colspan="8" class="text-center py-8">
-                            <div class="flex flex-col items-center gap-2">
-                                <i class="pi pi-inbox text-4xl text-gray-400"></i>
-                                <span class="text-gray-500">No se encontraron multas</span>
-                            </div>
-                        </td>
-                    </tr>
-                </ng-template>
+                        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="7" class="text-center py-8">
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="pi pi-database text-4xl text-[var(--primary-color)]"></i>
+                        <h6 class="text-[var(--primary-color)] font-medium">No hay multas registradas</h6>
+                        <p class="text-gray-500 text-sm">Cuando se registren multas, aparecerán aquí.</p>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
             </p-table>
         </div>
     </div>
@@ -273,7 +262,7 @@ import { finalize } from 'rxjs/operators';
                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <span class="font-medium text-gray-700">Estado:</span>
                         <span [class]="getEstadoClass(selectedFine.estado)">
-                            {{ selectedFine.estado | titlecase }}
+                            {{ selectedFine.estado.toLowerCase() | titlecase }}
                         </span>
                     </div>
 
@@ -621,6 +610,44 @@ import { finalize } from 'rxjs/operators';
         :host ::ng-deep app-custom-date-picker .date-input {
             height: 48px !important;
             font-size: 14px !important;
+        }
+
+        /* Estilos responsive para la tabla */
+        :host ::ng-deep .p-table {
+            font-size: 0.875rem !important;
+        }
+
+        @media (max-width: 640px) {
+            :host ::ng-deep .p-table {
+                font-size: 0.75rem !important;
+            }
+        }
+
+        /* Mejorar la responsividad de los botones de acción */
+        :host ::ng-deep .custom-flat-icon-button {
+            min-width: 40px !important;
+            height: 40px !important;
+            padding: 0 !important;
+        }
+
+        @media (max-width: 640px) {
+            :host ::ng-deep .custom-flat-icon-button {
+                min-width: 36px !important;
+                height: 36px !important;
+            }
+        }
+
+        /* Asegurar que la tabla sea scrollable en móviles */
+        :host ::ng-deep .p-table-wrapper {
+            overflow-x: auto !important;
+        }
+
+        /* Mejorar el espaciado en móviles */
+        @media (max-width: 640px) {
+            :host ::ng-deep .p-table .p-table-thead > tr > th,
+            :host ::ng-deep .p-table .p-table-tbody > tr > td {
+                padding: 0.5rem 0.25rem !important;
+            }
         }`
     ]
 })
@@ -968,7 +995,8 @@ export class RecentFinesCrudComponent implements OnInit {
     }
 
     getEstadoClass(estado: string): string {
-        switch (estado) {
+        const estadoLower = estado?.toLowerCase();
+        switch (estadoLower) {
             case 'pendiente':
                 return 'bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded';
             case 'pagado':

@@ -74,7 +74,12 @@ interface DamageHistory {
     >
         <ng-template #caption>
             <div class="flex items-center justify-between">
-                <h5 class="m-0 p-2 text-[var(--primary-color)]">Reportes de daños de herramientas</h5>
+                <div>
+                    <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Registro de Daños a Herramientas</h5>
+                    <p class="text-sm text-[var(--primary-color)] mt-1 px-2">
+                        Gestiona y da seguimiento a todos los reportes de daños ocurridos en las herramientas del sistema.
+                    </p>
+                </div>
             </div>
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
                 <p-iconfield class="flex-1 w-full sm:w-auto">
@@ -133,6 +138,19 @@ interface DamageHistory {
                 </td>
             </tr>
         </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="8" class="text-center py-8">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
+                        <div class="text-center">
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay reportes de daños</h3>
+                            <p class="text-gray-500">Aún no se han registrado reportes de daños a herramientas. Utiliza el botón "Reportar Daño" para agregar el primer reporte.</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
     </p-table>
 </div>
 <p-dialog
@@ -158,22 +176,17 @@ interface DamageHistory {
                     [(ngModel)]="damageHistoryItem.herramienta_id"
                     optionLabel="nombre"
                     optionValue="id"
+                    [filter]="true"
                     placeholder="Herramienta dañada..."
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
-                    [showClear]="false">
-                    <ng-template pTemplate="selectedItem" let-herramienta>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ herramienta.nombre }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="item" let-herramienta>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ herramienta.nombre }}</span>
-                        </div>
-                    </ng-template>
+                    [showClear]="false"
+                    [required]="true">
                 </p-dropdown>
+                <div *ngIf="damageHistoryItem.herramienta_id" class="mt-1 text-xs text-gray-500">
+                    Herramienta seleccionada
+                </div>
             </div>
 
             <!-- Préstamo asociado -->
@@ -186,25 +199,19 @@ interface DamageHistory {
                     [(ngModel)]="damageHistoryItem.orden_prestamo_id"
                     optionLabel="folio"
                     optionValue="id"
+                    [filter]="true"
                     placeholder="Préstamo asociado..."
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false">
-                    <ng-template pTemplate="selectedItem" let-prestamo>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ prestamo.folio }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="item" let-prestamo>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ prestamo.folio }}</span>
-                        </div>
-                    </ng-template>
                 </p-dropdown>
+                <div *ngIf="damageHistoryItem.orden_prestamo_id" class="mt-1 text-xs text-gray-500">
+                    Préstamo seleccionado
+                </div>
             </div>
 
-                        <!-- Categoría -->
+            <!-- Categoría -->
             <div class="relative">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none w-6 h-6 z-20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M20 21H4V10H6V19H18V10H20V21ZM3 3H21V9H3V3ZM9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11ZM5 5V7H19V5H5Z" fill="var(--primary-color)"/>
@@ -218,18 +225,12 @@ interface DamageHistory {
                     placeholder="Categoría..."
                     [style]="{ width: '100%' }"
                     class="w-full"
-                    [styleClass]="'h-12 px-10'">
-                    <ng-template pTemplate="selectedItem" let-category>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ category.nombre }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="item" let-category>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ category.nombre }}</span>
-                        </div>
-                    </ng-template>
+                    [styleClass]="'h-12 px-10'"
+                    [showClear]="false">
                 </p-dropdown>
+                <div *ngIf="damageHistoryItem.category" class="mt-1 text-xs text-gray-500">
+                    Categoría seleccionada
+                </div>
             </div>
 
             <!-- Subcategorías -->
@@ -246,18 +247,12 @@ interface DamageHistory {
                     placeholder="Subcategoría..."
                     [style]="{ width: '100%' }"
                     class="w-full"
-                    [styleClass]="'h-12 px-10'">
-                    <ng-template pTemplate="selectedItem" let-subcategory>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ subcategory.nombre }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="item" let-subcategory>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ subcategory.nombre }}</span>
-                        </div>
-                    </ng-template>
+                    [styleClass]="'h-12 px-10'"
+                    [showClear]="false">
                 </p-dropdown>
+                <div *ngIf="damageHistoryItem.subcategory" class="mt-1 text-xs text-gray-500">
+                    Subcategoría seleccionada
+                </div>
             </div>
 
             <!-- Tipo de Daño -->
@@ -292,7 +287,7 @@ interface DamageHistory {
                 <input type="number" id="repairCost" name="repairCost" class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Costo estimado de reparación" [(ngModel)]="damageHistoryItem.costo_reparacion" />
             </div>
 
-                        <!-- Tipo de multa -->
+            <!-- Tipo de multa -->
             <div class="relative">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none w-6 h-6 z-20" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2.80031 20.28L12.4003 10.68L11.0003 9.25996L10.2803 9.96996C9.89031 10.36 9.26031 10.36 8.87031 9.96996L8.16031 9.25996C7.77031 8.86996 7.77031 8.23996 8.16031 7.84996L13.8203 2.18996C14.2103 1.79996 14.8403 1.79996 15.2303 2.18996L15.9403 2.89996C16.3303 3.28996 16.3303 3.91996 15.9403 4.30996L15.2303 4.99996L16.6503 6.42996C17.0403 6.03996 17.6703 6.03996 18.0603 6.42996C18.4503 6.81996 18.4503 7.45996 18.0603 7.84996L19.4703 9.25996L20.1803 8.54996C20.5703 8.15996 21.2103 8.15996 21.6003 8.54996L22.3003 9.25996C22.6903 9.64996 22.6903 10.29 22.3003 10.68L16.6503 16.33C16.2603 16.72 15.6203 16.72 15.2303 16.33L14.5303 15.63C14.1303 15.24 14.1303 14.6 14.5303 14.21L15.2303 13.5L13.8203 12.09L4.21031 21.7C3.82031 22.09 3.19031 22.09 2.80031 21.7C2.41031 21.31 2.41031 20.67 2.80031 20.28ZM20.5003 19C21.0307 19 21.5395 19.2107 21.9145 19.5857C22.2896 19.9608 22.5003 20.4695 22.5003 21V22H12.5003V21C12.5003 20.4695 12.711 19.9608 13.0861 19.5857C13.4612 19.2107 13.9699 19 14.5003 19H20.5003Z" fill="var(--primary-color)"/>
@@ -304,18 +299,12 @@ interface DamageHistory {
                     placeholder="Tipo de multa..."
                     [style]="{ width: '100%' }"
                     class="w-full"
-                    [styleClass]="'h-12 px-10'">
-                    <ng-template pTemplate="selectedItem" let-fineType>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ fineType }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="item" let-fineType>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ fineType }}</span>
-                        </div>
-                    </ng-template>
+                    [styleClass]="'h-12 px-10'"
+                    [showClear]="false">
                 </p-dropdown>
+                <div *ngIf="damageHistoryItem.fineType" class="mt-1 text-xs text-gray-500">
+                    Tipo de multa seleccionado
+                </div>
             </div>
         </div>
         <div class="flex justify-end gap-4 mt-6">
@@ -965,7 +954,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
         return {
             id: 0,
             herramienta_id: 0,
-            orden_prestamo_id: 1,
+            orden_prestamo_id: 0,
             tipo_dano_id: 1,
             descripcion: '',
             costo_reparacion: 0,

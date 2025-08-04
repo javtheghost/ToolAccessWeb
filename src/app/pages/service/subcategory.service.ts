@@ -270,6 +270,36 @@ export class SubcategoryService {
         );
     }
 
+    // PUT - Reactivar subcategoría (cambiar is_active a true)
+    reactivateSubcategory(id: number | string): Observable<SubcategoryDisplay> {
+        const requestData = {
+            is_active: true
+        };
+
+        return this.http.put<SubcategoryResponse>(`${this.apiUrl}/${id}`, requestData).pipe(
+            map(response => {
+                if (response.success) {
+                    const data = Array.isArray(response.data) ? response.data[0] : response.data;
+                    // Convertir Subcategory a SubcategoryDisplay
+                    const subcategory = data as Subcategory;
+                    return {
+                        id: subcategory.id!,
+                        nombre: subcategory.nombre!,
+                        descripcion: subcategory.descripcion || '',
+                        categoria_id: subcategory.categoria_id!,
+                        categoria_nombre: 'Categoría', // Valor por defecto, se actualizará al recargar
+                        is_active: subcategory.is_active || false,
+                        created_at: subcategory.created_at,
+                        updated_at: subcategory.updated_at
+                    } as SubcategoryDisplay;
+                } else {
+                    throw new Error(response.message || 'Error al reactivar la subcategoría');
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
     // GET - Obtener subcategorías por categoría
     getSubcategoriesByCategory(categoryId: number): Observable<SubcategoryDisplay[]> {
         return this.http.get<SubcategoryResponse>(`${this.apiUrl}/by-category/${categoryId}`).pipe(

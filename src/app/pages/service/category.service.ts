@@ -107,6 +107,24 @@ export class CategoryService {
         );
     }
 
+    // PUT - Reactivar categoría (cambiar is_active a true)
+    reactivateCategory(id: number | string): Observable<Category> {
+        const requestData = {
+            is_active: true
+        };
+
+        return this.http.put<CategoryResponse>(`${this.apiUrl}/${id}`, requestData).pipe(
+            map(response => {
+                if (response.success) {
+                    return Array.isArray(response.data) ? response.data[0] : response.data;
+                } else {
+                    throw new Error(response.message || 'Error al reactivar la categoría');
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
     private handleError(error: any): Observable<never> {
         let errorMessage = 'Ocurrió un error';
         let errorSeverity: 'error' | 'warn' | 'info' = 'error';

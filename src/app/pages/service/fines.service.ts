@@ -13,7 +13,7 @@ export interface Fine {
     configuracion_multa_id: number;
     dano_id?: number;
     monto_total: number;
-    estado: 'pendiente' | 'pagado' | 'exonerada';
+    estado: string; // Cambiado para aceptar cualquier string (mayúsculas o minúsculas)
     fecha_aplicacion: string;
     fecha_vencimiento: string;
     fecha_pago?: string;
@@ -46,7 +46,7 @@ export interface FineUpdateRequest {
     usuario_id?: number;
     configuracion_multa_id?: number;
     monto_total?: number;
-    estado?: 'pendiente' | 'pagado' | 'exonerada';
+    estado?: string; // Cambiado para aceptar cualquier string
     fecha_vencimiento?: string;
     comentarios?: string;
 }

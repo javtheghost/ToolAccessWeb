@@ -129,6 +129,12 @@ import { Category } from './interfaces';
                     (onClick)="openNew()"
                     styleClass="w-full sm:w-auto">
                 </p-button>
+                <p-button
+                    [label]="showOnlyActive ? 'Ver Todas' : 'Solo Activas'"
+                    [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                    (onClick)="toggleActiveView()"
+                    styleClass="w-full sm:w-auto p-button-outlined">
+                </p-button>
             </div>
         </ng-template>
         <ng-template pTemplate="header">
@@ -146,7 +152,7 @@ import { Category } from './interfaces';
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-tool>
-            <tr class="hover:bg-gray-50">
+            <tr class="hover:bg-gray-50" [ngClass]="{'opacity-60 bg-gray-100': !tool.is_active}">
                 <td class="text-center p-3">
                     <img *ngIf="tool.foto_url" [src]="getImageUrl(tool.foto_url)" alt="Imagen" style="width: 48px; height: 48px; object-fit: cover;" class="rounded" />
                     <div *ngIf="!tool.foto_url" class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
@@ -154,19 +160,21 @@ import { Category } from './interfaces';
                     </div>
                 </td>
                 <td class="p-3">
-                    <div class="font-medium">{{ tool.nombre }}</div>
+                    <div class="font-medium" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.nombre }}</div>
+                    <div *ngIf="tool.is_active" class="text-xs text-green-600 mt-1">Activa</div>
+                    <div *ngIf="!tool.is_active" class="text-xs text-red-500 mt-1">Inactiva</div>
                 </td>
                 <td class="p-3">
-                    <span *ngIf="tool.descripcion && tool.descripcion.trim()">{{ tool.descripcion }}</span>
+                    <span *ngIf="tool.descripcion && tool.descripcion.trim()" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.descripcion }}</span>
                     <span *ngIf="!tool.descripcion || !tool.descripcion.trim()" class="text-gray-400 font-bold">Sin descripción</span>
                 </td>
                 <td class="text-center p-3">
-                    <span class="font-mono text-sm text-gray-600">{{ tool.folio }}</span>
+                    <span class="font-mono text-sm text-gray-600" [ngClass]="{'text-gray-400': !tool.is_active}">{{ tool.folio }}</span>
                 </td>
-                <td class="p-3">{{ tool.categoria_nombre || 'N/A' }}</td>
-                <td class="p-3">{{ tool.subcategoria_nombre || 'N/A' }}</td>
-                <td class="text-center p-3">{{ tool.stock }}</td>
-                <td class="text-center p-3">{{ tool.valor_reposicion | currency: 'MXN' }}</td>
+                <td class="p-3" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.categoria_nombre || 'N/A' }}</td>
+                <td class="p-3" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.subcategoria_nombre || 'N/A' }}</td>
+                <td class="text-center p-3" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.stock }}</td>
+                <td class="text-center p-3" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.valor_reposicion | currency: 'MXN' }}</td>
                 <td class="text-center p-3">
                     <input type="checkbox" class="custom-toggle" [(ngModel)]="tool.is_active" disabled />
                 </td>
@@ -181,13 +189,28 @@ import { Category } from './interfaces';
                                 <i class="material-symbols-outlined">edit</i>
                             </ng-template>
                         </p-button>
+
+                        <!-- Botón de eliminar solo para herramientas activas -->
                         <p-button
+                            *ngIf="tool.is_active"
                             (click)="deleteTool(tool)"
                             styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
                             pTooltip="Eliminar herramienta"
                             tooltipPosition="top">
                             <ng-template pTemplate="icon">
                                 <i class="material-symbols-outlined">delete</i>
+                            </ng-template>
+                        </p-button>
+
+                        <!-- Botón de reactivar para herramientas inactivas -->
+                        <p-button
+                            *ngIf="!tool.is_active"
+                            (click)="reactivateTool(tool)"
+                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
+                            pTooltip="Reactivar herramienta"
+                            tooltipPosition="top">
+                            <ng-template pTemplate="icon">
+                                <i class="material-symbols-outlined">refresh</i>
                             </ng-template>
                         </p-button>
                     </div>
@@ -582,6 +605,9 @@ export class ToolsCrudComponent implements OnInit {
     loading: boolean = false;
     loadingCategories: boolean = false;
 
+    // Control de vista de herramientas
+    showOnlyActive: boolean = true;
+
     // Manejo de imágenes
     selectedImage: File | null = null;
     imagePreview: string | null = null;
@@ -712,7 +738,9 @@ export class ToolsCrudComponent implements OnInit {
 
     loadTools() {
         this.loading = true;
-        this.toolsService.getTools().subscribe({
+        // Por defecto, solo cargar herramientas activas para usuarios normales
+        // Los administradores pueden ver todas las herramientas
+        this.toolsService.getTools(undefined, this.showOnlyActive).subscribe({
             next: (tools) => {
                 this.tools = tools;
                 this.loading = false;
@@ -727,6 +755,11 @@ export class ToolsCrudComponent implements OnInit {
                 this.loading = false;
             }
         });
+    }
+
+    toggleActiveView() {
+        this.showOnlyActive = !this.showOnlyActive;
+        this.loadTools();
     }
 
     loadCategories() {
@@ -816,6 +849,17 @@ export class ToolsCrudComponent implements OnInit {
     }
 
     deleteTool(tool: Tool) {
+        // Validar que la herramienta esté activa antes de intentar eliminarla
+        if (!tool.is_active) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Advertencia',
+                detail: 'No puedes eliminar una herramienta que ya está inactiva. Usa el botón de reactivar si deseas volver a activarla.',
+                life: 5000
+            });
+            return;
+        }
+
         this.confirmIcon = 'delete';
         this.confirmMessage = `¿Estás seguro de eliminar la herramienta <span class='text-primary'>${tool.nombre}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
         this.confirmAction = () => {
@@ -834,6 +878,34 @@ export class ToolsCrudComponent implements OnInit {
                         severity: 'error',
                         summary: 'Error',
                         detail: error.message || 'Error al eliminar herramienta',
+                        life: 3000
+                    });
+                }
+            });
+        };
+        this.showCustomConfirm = true;
+    }
+
+    reactivateTool(tool: Tool) {
+        this.confirmIcon = 'warning';
+        this.confirmMessage = `¿Estás seguro de reactivar la herramienta <span class='text-primary'>${tool.nombre}</span>? Una vez que aceptes, la herramienta volverá a estar activa.`;
+        this.confirmAction = () => {
+            this.toolsService.reactivateTool(tool.id).subscribe({
+                next: (reactivatedTool) => {
+                    const idx = this.tools.findIndex(t => t.id === tool.id);
+                    if (idx > -1) this.tools[idx] = reactivatedTool;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Herramienta reactivada',
+                        life: 3000
+                    });
+                },
+                error: (error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al reactivar herramienta',
                         life: 3000
                     });
                 }

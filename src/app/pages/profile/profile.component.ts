@@ -27,7 +27,8 @@ interface Profile {
                     id="nombres"
                     name="nombres"
                     required
-                    class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    disabled
+                    class="peer block w-full h-12 rounded-lg border border-gray-300 bg-gray-100 px-10 text-sm text-gray-500 cursor-not-allowed"
                     placeholder=" "
                     aria-label="Nombres"
                     [(ngModel)]="profile.nombres"
@@ -42,7 +43,8 @@ interface Profile {
                     id="apellidoPaterno"
                     name="apellidoPaterno"
                     required
-                    class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    disabled
+                    class="peer block w-full h-12 rounded-lg border border-gray-300 bg-gray-100 px-10 text-sm text-gray-500 cursor-not-allowed"
                     placeholder=" "
                     aria-label="Apellido Paterno"
                     [(ngModel)]="profile.apellidoPaterno"
@@ -57,7 +59,8 @@ interface Profile {
                     id="apellidoMaterno"
                     name="apellidoMaterno"
                     required
-                    class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    disabled
+                    class="peer block w-full h-12 rounded-lg border border-gray-300 bg-gray-100 px-10 text-sm text-gray-500 cursor-not-allowed"
                     placeholder=" "
                     aria-label="Apellido Materno"
                     [(ngModel)]="profile.apellidoMaterno"

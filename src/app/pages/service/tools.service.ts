@@ -214,6 +214,30 @@ export class ToolsService {
         );
     }
 
+    // PUT - Reactivar herramienta (cambiar is_active a true)
+    reactivateTool(id: number): Observable<Tool> {
+        // Obtener el token del servicio OAuth y agregarlo manualmente si es necesario
+        const token = this.oauthService.getToken();
+        let headers = new HttpHeaders();
+
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        const updateData = { is_active: true };
+
+        return this.http.put<ToolResponse>(`${this.apiUrl}/${id}`, updateData, { headers }).pipe(
+            map(response => {
+                if (response.success) {
+                    return Array.isArray(response.data) ? response.data[0] : response.data;
+                } else {
+                    throw new Error(response.message || 'Error al reactivar la herramienta');
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
     // GET - Obtener herramientas por subcategoría
     getToolsBySubcategory(subcategoryId: number, onlyActive?: boolean): Observable<Tool[]> {
         let params = new HttpParams();

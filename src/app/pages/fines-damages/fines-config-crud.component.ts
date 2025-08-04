@@ -63,7 +63,12 @@ interface FineConfig {
     >
         <ng-template #caption>
             <div class="flex items-center justify-between">
-                <h5 class="m-0 p-2 text-[var(--primary-color)]">Configuración de multas</h5>
+                <div>
+                    <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Configuración de Multas</h5>
+                    <p class="text-sm text-[var(--primary-color)] mt-1 px-2">
+                        Define las configuraciones y valores base para las multas del sistema.
+                    </p>
+                </div>
             </div>
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
                 <p-iconfield class="flex-1 w-full sm:w-auto">
@@ -113,6 +118,17 @@ interface FineConfig {
                             <i class="material-symbols-outlined">delete</i>
                         </ng-template>
                     </p-button>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="6" class="text-center py-8">
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="pi pi-database text-4xl text-[var(--primary-color)]"></i>
+                        <h6 class="text-[var(--primary-color)] font-medium">No hay configuraciones de multas registradas</h6>
+                        <p class="text-gray-500 text-sm">Cuando se registren configuraciones de multas, aparecerán aquí.</p>
+                    </div>
                 </td>
             </tr>
         </ng-template>

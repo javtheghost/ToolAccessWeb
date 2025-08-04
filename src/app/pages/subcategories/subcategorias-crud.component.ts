@@ -109,15 +109,21 @@ import { forkJoin } from 'rxjs';
                         <p-inputicon styleClass="pi pi-search" />
                         <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar subcategorías..." />
                     </p-iconfield>
-                                    <p-button
-                    label="Crear Subcategoría"
-                    icon="pi pi-plus"
-                    (onClick)="openNew()"
-                    [disabled]="categories().length === 0"
-                    styleClass="w-full sm:w-auto"
-                    pTooltip="Primero debes crear al menos una categoría"
-                    tooltipPosition="top">
-                </p-button>
+                    <p-button
+                        label="Crear Subcategoría"
+                        icon="pi pi-plus"
+                        (onClick)="openNew()"
+                        [disabled]="loading() || getActiveCategoriesCount() === 0"
+                        styleClass="w-full sm:w-auto"
+                        [pTooltip]="getCreateSubcategoryTooltip()"
+                        tooltipPosition="top">
+                    </p-button>
+                    <p-button
+                        [label]="showOnlyActive ? 'Ver Todas' : 'Solo Activas'"
+                        [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                        (onClick)="toggleActiveView()"
+                        styleClass="w-full sm:w-auto p-button-outlined">
+                    </p-button>
                 </div>
             </ng-template>
             <ng-template pTemplate="header">
@@ -131,12 +137,14 @@ import { forkJoin } from 'rxjs';
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-subcategory>
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50" [ngClass]="{'opacity-60 bg-gray-100': !subcategory.is_active}">
                     <td class="text-center p-3">
                         <span class="font-mono text-sm text-gray-600">{{ subcategory.id }}</span>
                     </td>
                     <td class="p-3">
-                        <div class="font-medium">{{ subcategory.nombre }}</div>
+                        <div class="font-medium" [ngClass]="{'text-gray-500': !subcategory.is_active}">{{ subcategory.nombre }}</div>
+                        <div *ngIf="subcategory.is_active" class="text-xs text-green-600 mt-1">Activa</div>
+                        <div *ngIf="!subcategory.is_active" class="text-xs text-red-500 mt-1">Inactiva</div>
                         <div class="text-sm text-gray-500 sm:hidden">
                             <span *ngIf="subcategory.descripcion && subcategory.descripcion.trim()">{{ subcategory.descripcion }}</span>
                             <span *ngIf="!subcategory.descripcion || !subcategory.descripcion.trim()" class="text-gray-400 italic">Sin descripción</span>
@@ -165,13 +173,28 @@ import { forkJoin } from 'rxjs';
                                     <i class="material-symbols-outlined">edit</i>
                                 </ng-template>
                             </p-button>
+
+                            <!-- Botón de eliminar solo para subcategorías activas -->
                             <p-button
+                                *ngIf="subcategory.is_active"
                                 (click)="deleteSubcategory(subcategory)"
                                 styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
                                 pTooltip="Eliminar subcategoría"
                                 tooltipPosition="top">
                                 <ng-template pTemplate="icon">
                                     <i class="material-symbols-outlined">delete</i>
+                                </ng-template>
+                            </p-button>
+
+                            <!-- Botón de reactivar solo para subcategorías inactivas -->
+                            <p-button
+                                *ngIf="!subcategory.is_active"
+                                (click)="reactivateSubcategory(subcategory)"
+                                styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
+                                pTooltip="Reactivar subcategoría"
+                                tooltipPosition="top">
+                                <ng-template pTemplate="icon">
+                                    <i class="material-symbols-outlined">refresh</i>
                                 </ng-template>
                             </p-button>
                         </div>
@@ -362,10 +385,13 @@ export class SubcategoriasCrudComponent implements OnInit {
     confirmMessage: string = '';
     confirmAction: (() => void) | null = null;
 
-    // Estados de carga
+    // Loading states
     loading = signal<boolean>(true);
     saving = signal<boolean>(false);
     deleting = signal<boolean>(false);
+
+    // Control de vista de subcategorías
+    showOnlyActive: boolean = true;
 
     constructor(
         private messageService: MessageService,
@@ -379,37 +405,103 @@ export class SubcategoriasCrudComponent implements OnInit {
     }
 
         loadData() {
-        this.loading.set(true);
+            this.loading.set(true);
 
-        // Cargar tanto subcategorías como categorías
-        forkJoin({
-            subcategories: this.subcategoryService.getAllSubcategories(),
-            categories: this.categoryService.getCategories()
-        }).subscribe({
-            next: (data) => {
-                this.subcategories.set(data.subcategories);
-                this.categories.set(data.categories);
-                this.loading.set(false);
+            // Cargar tanto subcategorías como categorías de manera sincronizada
+            forkJoin({
+                subcategories: this.subcategoryService.getAllSubcategories(),
+                categories: this.categoryService.getCategories()
+            }).subscribe({
+                next: (data) => {
+                    // Filtrar subcategorías según showOnlyActive
+                    const filteredSubcategories = this.showOnlyActive
+                        ? data.subcategories.filter(sub => sub.is_active)
+                        : data.subcategories;
 
-                this.cdr.detectChanges();
-            },
-            error: (error) => {
-                console.error('❌ Error en loadData():', error);
-                // En caso de error, establecer arrays vacíos y continuar
-                this.subcategories.set([]);
-                this.categories.set([]);
-                this.loading.set(false);
+                    this.subcategories.set(filteredSubcategories);
+                    this.categories.set(data.categories);
 
-                // Mostrar mensaje de error al usuario
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Error al cargar los datos. Por favor, intenta de nuevo.',
-                    life: 5000
+                    console.log('📊 Categorías cargadas:', data.categories.length);
+                    console.log('📊 Subcategorías cargadas:', filteredSubcategories.length);
+
+                    this.loading.set(false);
+
+                    this.cdr.detectChanges();
+                },
+                error: (error) => {
+                    console.error('Error en loadData():', error);
+                    // En caso de error, establecer arrays vacíos y continuar
+                    this.subcategories.set([]);
+                    this.categories.set([]);
+                    this.loading.set(false);
+
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Error al cargar los datos. Por favor, intenta de nuevo.',
+                        life: 5000
+                    });
+                }
+            });
+        }
+
+        toggleActiveView() {
+            this.showOnlyActive = !this.showOnlyActive;
+            this.loadData();
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Vista cambiada',
+                detail: this.showOnlyActive ? 'Mostrando solo subcategorías activas' : 'Mostrando todas las subcategorías',
+                life: 2000
+            });
+        }
+
+        reactivateSubcategory(subcategory: SubcategoryDisplay) {
+            this.confirmIcon = 'refresh';
+            this.confirmMessage = `¿Estás seguro de reactivar la subcategoría <span class='text-primary'>${subcategory.nombre}</span>?`;
+            this.confirmAction = () => {
+                this.deleting.set(true);
+                this.subcategoryService.reactivateSubcategory(subcategory.id).subscribe({
+                    next: () => {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Subcategoría reactivada exitosamente',
+                            life: 3000
+                        });
+                        this.loadData();
+                        this.deleting.set(false);
+                    },
+                    error: (error) => {
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: error.message || 'Error al reactivar la subcategoría',
+                            life: 3000
+                        });
+                        this.deleting.set(false);
+                    }
                 });
+            };
+            this.showCustomConfirm = true;
+        }
+
+        getCreateSubcategoryTooltip(): string {
+            const activeCategories = this.categories().filter(cat => cat.is_active);
+            const totalCategories = this.categories().length;
+
+            if (totalCategories === 0) {
+                return 'Primero debes crear al menos una categoría para poder crear una subcategoría.';
+            } else if (activeCategories.length === 0) {
+                return 'Tienes categorías pero están inactivas. Reactiva una categoría para poder crear subcategorías.';
+            } else {
+                return 'Crear nueva subcategoría';
             }
-        });
-    }
+        }
+
+        getActiveCategoriesCount(): number {
+            return this.categories().filter(cat => cat.is_active).length;
+        }
 
     onGlobalFilter(table: Table, event: Event) {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
@@ -492,29 +584,37 @@ export class SubcategoriasCrudComponent implements OnInit {
     }
 
     deleteSubcategory(subcategory: SubcategoryDisplay) {
+        // Validar que la subcategoría esté activa antes de intentar eliminarla
+        if (!subcategory.is_active) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Advertencia',
+                detail: 'No puedes eliminar una subcategoría que ya está inactiva. Usa el botón de reactivar si deseas volver a activarla.',
+                life: 5000
+            });
+            return;
+        }
+
         this.confirmIcon = 'delete';
         this.confirmMessage = `¿Estás seguro de eliminar la subcategoría <span class='text-primary'>${subcategory.nombre}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
         this.confirmAction = () => {
             this.deleting.set(true);
             this.subcategoryService.deleteSubcategory(subcategory.id).subscribe({
                 next: () => {
-                    // Recargar todos los datos para obtener la información actualizada
-                    this.loadData();
-
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
-                        detail: `Subcategoría "${subcategory.nombre}" eliminada exitosamente`,
+                        detail: 'Subcategoría eliminada exitosamente',
                         life: 3000
                     });
+                    this.loadData();
                     this.deleting.set(false);
                 },
-                error: (error: any) => {
-                    console.error('Error al eliminar subcategoría:', error);
+                error: (error) => {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: `Error al eliminar la subcategoría "${subcategory.nombre}"`,
+                        detail: error.message || 'Error al eliminar la subcategoría',
                         life: 3000
                     });
                     this.deleting.set(false);
@@ -617,6 +717,4 @@ export class SubcategoriasCrudComponent implements OnInit {
             this.hideDialog();
         }
     }
-
-
 }
