@@ -65,6 +65,14 @@ export interface HerramientaPopular {
   estado: boolean;
 }
 
+export interface DatosHistoricos {
+  mes: string;
+  herramientas_activas: number;
+  prestamos_activos: number;
+  herramientas_disponibles: number;
+  multas_generadas: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -95,7 +103,7 @@ export class ReportsService {
    */
   getReportePrestamos(params?: string): Observable<Prestamo[]> {
     let url = `${this.baseUrl}/prestamos`;
-    
+
     if (params) {
       url += `?${params}`;
     }
@@ -110,7 +118,7 @@ export class ReportsService {
    */
   getHerramientasPopulares(params?: string): Observable<HerramientaPopular[]> {
     let url = `${this.baseUrl}/herramientas-populares`;
-    
+
     if (params) {
       url += `?${params}`;
     }
@@ -125,7 +133,7 @@ export class ReportsService {
    */
   getReporteMultas(params?: string): Observable<Multa[]> {
     let url = `${this.baseUrl}/multas`;
-    
+
     if (params) {
       url += `?${params}`;
     }
@@ -133,5 +141,44 @@ export class ReportsService {
     return this.http.get<Multa[]>(url, {
       headers: this.getHeaders()
     });
+  }
+
+  /**
+   * Obtener datos históricos para gráficas (Solo ADMIN)
+   * Si tu API no tiene este endpoint, puedes implementarlo en el backend
+   */
+  getDatosHistoricos(periodo: string = '12'): Observable<DatosHistoricos[]> {
+    return this.http.get<DatosHistoricos[]>(`${this.baseUrl}/datos-historicos?periodo=${periodo}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Generar datos simulados basados en estadísticas actuales
+   * Útil cuando no hay datos históricos disponibles
+   */
+  generarDatosSimulados(estadisticas: Estadisticas): DatosHistoricos[] {
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const datos: DatosHistoricos[] = [];
+
+    const herramientasActivas = estadisticas.herramientas?.herramientas_activas || 0;
+    const prestamosActivos = estadisticas.prestamos?.activos || 0;
+    const herramientasDisponibles = estadisticas.herramientas?.disponibles || 0;
+    const multasGeneradas = estadisticas.multas?.total_multas || 0;
+
+    for (let i = 0; i < 12; i++) {
+      const progreso = i / 11; // 0 a 1
+      const baseValue = Math.max(1, 0.3); // Valor mínimo
+
+      datos.push({
+        mes: meses[i],
+        herramientas_activas: Math.round(baseValue + (herramientasActivas - baseValue) * progreso + (Math.random() - 0.5) * 0.2),
+        prestamos_activos: Math.round(baseValue + (prestamosActivos - baseValue) * progreso + (Math.random() - 0.5) * 0.2),
+        herramientas_disponibles: Math.round(baseValue + (herramientasDisponibles - baseValue) * progreso + (Math.random() - 0.5) * 0.2),
+        multas_generadas: Math.round(baseValue + (multasGeneradas - baseValue) * progreso + (Math.random() - 0.5) * 0.2)
+      });
+    }
+
+    return datos;
   }
 }

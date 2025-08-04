@@ -1,130 +1,261 @@
 <div class="reports-container">
   <p-toast></p-toast>
 
-  <h1 class="titulo">📊 Generador de Reportes</h1>
+  <!-- Header con estadísticas rápidas -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>📊 Panel de Reportes</h1>
+        <p class="header-subtitle">Genera reportes detallados y visualiza estadísticas del sistema</p>
+      </div>
+      <div class="header-actions">
+        <p-button
+          label="Generar Reporte"
+          icon="pi pi-file-pdf"
+          (onClick)="generarReporte()"
+          [loading]="loading"
+          [disabled]="!filtroTipoReporte || loading"
+          styleClass="p-button-primary header-btn">
+        </p-button>
+      </div>
+    </div>
+  </div>
 
-  <div class="filtros-card">
-    <h3 class="filtros-titulo">Configuración del Reporte</h3>
-    
-    <div class="filtros-form">
-      <div class="filtros-row">
-        <div class="filtro-col">
-          <label for="tipoReporte">Tipo de Reporte</label>
-          <p-dropdown 
-            id="tipoReporte"
-            [(ngModel)]="filtroTipoReporte"
-            [options]="tiposReporte"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Selecciona un tipo de reporte"
-            [disabled]="loading"
-            class="form-control">
-          </p-dropdown>
-        </div>
-
-        <div class="filtro-col">
-          <label for="estado">Estado</label>
-          <p-dropdown 
-            id="estado"
-            [(ngModel)]="filtroEstado"
-            [options]="estados"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Filtrar por estado"
-            [disabled]="loading"
-            class="form-control">
-          </p-dropdown>
+  <!-- Estadísticas rápidas -->
+  <div class="stats-grid" *ngIf="estadisticas">
+    <div class="stat-card">
+      <div class="stat-icon herramientas">
+        <i class="pi pi-wrench"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ estadisticas.herramientas.total_herramientas }}</h3>
+        <p>Herramientas Totales</p>
+        <div class="stat-details">
+          <span class="stat-item disponible">
+            <i class="pi pi-check-circle"></i>
+            {{ estadisticas.herramientas.disponibles }} disponibles
+          </span>
+          <span class="stat-item prestada">
+            <i class="pi pi-clock"></i>
+            {{ estadisticas.herramientas.prestadas }} prestadas
+          </span>
         </div>
       </div>
+    </div>
 
-      <div class="filtros-row">
-        <div class="filtro-col rango-fechas">
-          <label for="rangoFechas">Rango de Fechas</label>
-          <app-custom-date-range
-            [(ngModel)]="filtroRangoFechas"
-            startPlaceholder="Fecha inicio"
-            endPlaceholder="Fecha fin"
-            separatorText="a"
-            [showActions]="true">
-          </app-custom-date-range>
+    <div class="stat-card">
+      <div class="stat-icon prestamos">
+        <i class="pi pi-calendar-plus"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ estadisticas.prestamos.total_prestamos }}</h3>
+        <p>Préstamos Totales</p>
+        <div class="stat-details">
+          <span class="stat-item activo">
+            <i class="pi pi-play-circle"></i>
+            {{ estadisticas.prestamos.activos }} activos
+          </span>
+          <span class="stat-item vencido">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ estadisticas.prestamos.vencidos }} vencidos
+          </span>
         </div>
       </div>
+    </div>
 
-      <div class="filtros-row" *ngIf="filtroTipoReporte === 'herramientas-populares'">
-        <div class="filtro-col">
-          <label for="limiteHerramientas">Límite de Herramientas</label>
-          <input 
-            type="number" 
-            id="limiteHerramientas"
-            [(ngModel)]="limiteHerramientas"
-            min="1" 
-            max="50"
-            [disabled]="loading"
-            class="form-control">
+    <div class="stat-card">
+      <div class="stat-icon multas">
+        <i class="pi pi-dollar"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ estadisticas.multas.total_multas }}</h3>
+        <p>Multas Generadas</p>
+        <div class="stat-details">
+          <span class="stat-item pendiente">
+            <i class="pi pi-clock"></i>
+            {{ estadisticas.multas.pendientes }} pendientes
+          </span>
+          <span class="stat-item pagada">
+            <i class="pi pi-check"></i>
+            {{ estadisticas.multas.pagadas }} pagadas
+          </span>
         </div>
       </div>
+    </div>
 
-      <div class="filtros-row botones-accion">
-        <div class="filtro-col">
-          <p-button 
-            label="Generar Reporte PDF" 
+    <div class="stat-card">
+      <div class="stat-icon usuarios">
+        <i class="pi pi-users"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ estadisticas.usuarios.total_usuarios }}</h3>
+        <p>Usuarios Registrados</p>
+        <div class="stat-details">
+          <span class="stat-item activo">
+            <i class="pi pi-user"></i>
+            {{ estadisticas.usuarios.activos }} activos
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configuración de reportes -->
+  <div class="config-section">
+    <div class="config-card">
+      <div class="config-header">
+        <h3><i class="pi pi-cog"></i> Configuración del Reporte</h3>
+        <p>Personaliza los parámetros para generar reportes específicos</p>
+      </div>
+
+      <div class="config-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tipoReporte">
+              <i class="pi pi-file"></i>
+              Tipo de Reporte
+            </label>
+            <p-dropdown
+              id="tipoReporte"
+              [(ngModel)]="filtroTipoReporte"
+              [options]="tiposReporte"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona un tipo de reporte"
+              [disabled]="loading"
+              class="form-control">
+            </p-dropdown>
+          </div>
+
+          <div class="form-group">
+            <label for="estado">
+              <i class="pi pi-filter"></i>
+              Estado
+            </label>
+            <p-dropdown
+              id="estado"
+              [(ngModel)]="filtroEstado"
+              [options]="estados"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Filtrar por estado"
+              [disabled]="loading"
+              class="form-control">
+            </p-dropdown>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="rangoFechas">
+              <i class="pi pi-calendar"></i>
+              Rango de Fechas
+            </label>
+            <app-custom-date-range
+              [(ngModel)]="filtroRangoFechas"
+              startPlaceholder="Fecha inicio"
+              endPlaceholder="Fecha fin"
+              separatorText="a"
+              [showActions]="true">
+            </app-custom-date-range>
+          </div>
+        </div>
+
+        <div class="form-row" *ngIf="filtroTipoReporte === 'herramientas-populares'">
+          <div class="form-group">
+            <label for="limiteHerramientas">
+              <i class="pi pi-list"></i>
+              Límite de Herramientas
+            </label>
+            <input
+              type="number"
+              id="limiteHerramientas"
+              [(ngModel)]="limiteHerramientas"
+              min="1"
+              max="50"
+              [disabled]="loading"
+              class="form-control">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <p-button
+            label="Generar Reporte PDF"
             icon="pi pi-file-pdf"
             (onClick)="generarReporte()"
             [loading]="loading"
             [disabled]="!filtroTipoReporte || loading"
             styleClass="p-button-primary">
           </p-button>
-        </div>
 
-        <div class="filtro-col">
-          <p-button 
-            label="Limpiar Filtros" 
+          <p-button
+            label="Limpiar Filtros"
             icon="pi pi-refresh"
-            styleClass="p-button-secondary"
+            styleClass="p-button-outlined"
             (onClick)="limpiarFiltros()"
             [disabled]="loading">
           </p-button>
         </div>
-      </div>
 
-      <div class="loading-indicator" *ngIf="loading">
-        <p-progressSpinner></p-progressSpinner>
-        <p>Generando reporte...</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="reportes-recientes-card" *ngIf="reportes.length > 0">
-    <div class="reportes-header">
-      <h3>📋 Reportes Generados Recientemente</h3>
-      <span class="reportes-count">{{ reportes.length }} reportes</span>
-    </div>
-    
-    <div class="lista-reportes">
-      <div 
-        class="reporte-item" 
-        *ngFor="let reporte of reportes; trackBy: trackByReporte">
-        <div class="reporte-info">
-          <div class="reporte-nombre">
-            <i class="pi pi-file-pdf"></i>
-            <strong>{{ reporte.nombre }}</strong>
-          </div>
-          <div class="reporte-descripcion">
-            <i class="pi pi-info-circle"></i>
-            {{ reporte.descripcion }}
-          </div>
-          <div class="reporte-fecha">
-            <i class="pi pi-calendar"></i>
-            {{ reporte.fecha | date:'short' }}
+        <div class="loading-indicator" *ngIf="loading">
+          <div class="loading-content">
+            <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+            <p>Generando reporte...</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="no-reportes" *ngIf="reportes.length === 0">
-    <i class="pi pi-file-pdf" style="font-size: 3rem; color: #d1d5db;"></i>
-    <p>No hay reportes generados</p>
-    <small>Los reportes que generes aparecerán aquí</small>
+  <!-- Reportes recientes -->
+  <div class="recent-reports-section top-6" style="margin-top: 20px;" *ngIf="reportes.length > 0">
+    <div class="recent-header">
+      <h3><i class="pi pi-history"></i> Reportes Generados Recientemente</h3>
+      <span class="recent-count">{{ reportes.length }} reportes</span>
+    </div>
+
+    <div class="reports-grid">
+      <div
+        class="report-card"
+        *ngFor="let reporte of reportes; trackBy: trackByReporte">
+        <div class="report-icon">
+          <i class="pi pi-file-pdf"></i>
+        </div>
+        <div class="report-content">
+          <h4>{{ reporte.nombre }}</h4>
+          <p>{{ reporte.descripcion }}</p>
+          <div class="report-meta">
+            <span class="report-date">
+              <i class="pi pi-calendar"></i>
+              {{ reporte.fecha | date:'short' }}
+            </span>
+          </div>
+        </div>
+        <div class="report-actions">
+          <p-button
+            icon="pi pi-download"
+            styleClass="p-button-text p-button-sm"
+            pTooltip="Descargar reporte">
+          </p-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="reportes.length === 0">
+    <div class="empty-content">
+      <div class="empty-icon">
+        <i class="pi pi-file-pdf"></i>
+      </div>
+      <h3>No hay reportes generados</h3>
+      <p>Los reportes que generes aparecerán aquí para acceso rápido</p>
+      <p-button
+        label="Generar mi primer reporte"
+        icon="pi pi-plus"
+        styleClass="p-button-outlined"
+        (onClick)="scrollToConfig()">
+      </p-button>
+    </div>
   </div>
 </div>
