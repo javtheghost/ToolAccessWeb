@@ -90,20 +90,7 @@ export class FinesConfigService {
 
     // POST - Crear nueva configuración de multa
     createFinesConfig(finesConfig: FinesConfigCreateRequest): Observable<FinesConfig> {
-        const formData = new FormData();
-
-        formData.append('nombre', finesConfig.nombre);
-        if (finesConfig.valor_base !== undefined) {
-            formData.append('valor_base', finesConfig.valor_base.toString());
-        }
-        if (finesConfig.aplica_a_categoria_id !== undefined) {
-            formData.append('aplica_a_categoria_id', finesConfig.aplica_a_categoria_id.toString());
-        }
-        if (finesConfig.is_active !== undefined) {
-            formData.append('is_active', finesConfig.is_active.toString());
-        }
-
-        return this.http.post<FinesConfigResponse>(this.apiUrl, formData).pipe(
+        return this.http.post<FinesConfigResponse>(this.apiUrl, finesConfig).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -117,22 +104,7 @@ export class FinesConfigService {
 
     // PUT - Actualizar configuración de multa
     updateFinesConfig(id: number, finesConfig: FinesConfigUpdateRequest): Observable<FinesConfig> {
-        const formData = new FormData();
-
-        if (finesConfig.nombre) {
-            formData.append('nombre', finesConfig.nombre);
-        }
-        if (finesConfig.valor_base !== undefined) {
-            formData.append('valor_base', finesConfig.valor_base.toString());
-        }
-        if (finesConfig.aplica_a_categoria_id !== undefined) {
-            formData.append('aplica_a_categoria_id', finesConfig.aplica_a_categoria_id.toString());
-        }
-        if (finesConfig.is_active !== undefined) {
-            formData.append('is_active', finesConfig.is_active.toString());
-        }
-
-        return this.http.put<FinesConfigResponse>(`${this.apiUrl}/${id}`, formData).pipe(
+        return this.http.put<FinesConfigResponse>(`${this.apiUrl}/${id}`, finesConfig).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;

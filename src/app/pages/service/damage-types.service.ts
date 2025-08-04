@@ -88,20 +88,7 @@ export class DamageTypesService {
 
     // POST - Crear nuevo tipo de daño
     createDamageType(damageType: DamageTypeCreateRequest): Observable<DamageType> {
-        const formData = new FormData();
-
-        formData.append('nombre', damageType.nombre);
-        if (damageType.descripcion) {
-            formData.append('descripcion', damageType.descripcion);
-        }
-        if (damageType.porcentaje_aplicar !== undefined) {
-            formData.append('porcentaje_aplicar', damageType.porcentaje_aplicar.toString());
-        }
-        if (damageType.is_active !== undefined) {
-            formData.append('is_active', damageType.is_active.toString());
-        }
-
-        return this.http.post<DamageTypeResponse>(this.apiUrl, formData).pipe(
+        return this.http.post<DamageTypeResponse>(this.apiUrl, damageType).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
@@ -115,22 +102,7 @@ export class DamageTypesService {
 
     // PUT - Actualizar tipo de daño
     updateDamageType(id: number, damageType: DamageTypeUpdateRequest): Observable<DamageType> {
-        const formData = new FormData();
-
-        if (damageType.nombre) {
-            formData.append('nombre', damageType.nombre);
-        }
-        if (damageType.descripcion !== undefined) {
-            formData.append('descripcion', damageType.descripcion);
-        }
-        if (damageType.porcentaje_aplicar !== undefined) {
-            formData.append('porcentaje_aplicar', damageType.porcentaje_aplicar.toString());
-        }
-        if (damageType.is_active !== undefined) {
-            formData.append('is_active', damageType.is_active.toString());
-        }
-
-        return this.http.put<DamageTypeResponse>(`${this.apiUrl}/${id}`, formData).pipe(
+        return this.http.put<DamageTypeResponse>(`${this.apiUrl}/${id}`, damageType).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
