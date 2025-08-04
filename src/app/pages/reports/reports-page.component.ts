@@ -10,6 +10,7 @@ import { MessageService } from 'primeng/api';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { OAuthService } from '../service/oauth.service';
+import { CustomDateRangeComponent } from '../utils/custom-date-range.component';
 
 @Component({
   selector: 'app-reports-page',
@@ -23,7 +24,8 @@ import { OAuthService } from '../service/oauth.service';
     DropdownModule,
     ButtonModule,
     ToastModule,
-    ProgressSpinnerModule
+    ProgressSpinnerModule,
+    CustomDateRangeComponent
   ]
 })
 export class ReportsPageComponent implements OnInit {
@@ -47,9 +49,7 @@ export class ReportsPageComponent implements OnInit {
   // Variables de filtros
   filtroTipoReporte: string = '';
   filtroEstado: string = '';
-  filtroFechaInicio: Date | null = null;
-  filtroFechaFin: Date | null = null;
-  filtroRangoFechas: any = null;
+  filtroRangoFechas: { startDate: Date | null; endDate: Date | null } | null = null;
   limiteHerramientas: number = 10;
 
   // Variables de estado
@@ -215,8 +215,8 @@ export class ReportsPageComponent implements OnInit {
   async generarReportePrestamos() {
     const params = new URLSearchParams();
     if (this.filtroEstado) params.append('estado', this.filtroEstado);
-    if (this.filtroFechaInicio) params.append('fecha_inicio', this.filtroFechaInicio.toISOString());
-    if (this.filtroFechaFin) params.append('fecha_fin', this.filtroFechaFin.toISOString());
+    if (this.filtroRangoFechas?.startDate) params.append('fecha_inicio', this.filtroRangoFechas.startDate.toISOString());
+    if (this.filtroRangoFechas?.endDate) params.append('fecha_fin', this.filtroRangoFechas.endDate.toISOString());
 
     this.reportsService.getReportePrestamos(params.toString()).subscribe({
       next: (data: Prestamo[]) => {
@@ -278,8 +278,8 @@ export class ReportsPageComponent implements OnInit {
   async generarReporteMultas() {
     const params = new URLSearchParams();
     if (this.filtroEstado) params.append('estado', this.filtroEstado);
-    if (this.filtroFechaInicio) params.append('fecha_inicio', this.filtroFechaInicio.toISOString());
-    if (this.filtroFechaFin) params.append('fecha_fin', this.filtroFechaFin.toISOString());
+    if (this.filtroRangoFechas?.startDate) params.append('fecha_inicio', this.filtroRangoFechas.startDate.toISOString());
+    if (this.filtroRangoFechas?.endDate) params.append('fecha_fin', this.filtroRangoFechas.endDate.toISOString());
 
     this.reportsService.getReporteMultas(params.toString()).subscribe({
       next: (data: Multa[]) => {
@@ -400,8 +400,6 @@ export class ReportsPageComponent implements OnInit {
   limpiarFiltros() {
     this.filtroTipoReporte = '';
     this.filtroEstado = '';
-    this.filtroFechaInicio = null;
-    this.filtroFechaFin = null;
     this.filtroRangoFechas = null;
     this.limiteHerramientas = 10;
   }
