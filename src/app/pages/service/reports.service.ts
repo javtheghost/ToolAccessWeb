@@ -84,16 +84,11 @@ export class ReportsService {
   /**
    * Obtener reporte de préstamos por período (Solo ADMIN)
    */
-  getReportePrestamos(fechaInicio?: string, fechaFin?: string, estado?: string): Observable<Prestamo[]> {
+  getReportePrestamos(params?: string): Observable<Prestamo[]> {
     let url = `${this.baseUrl}/prestamos`;
-    const params = new URLSearchParams();
     
-    if (fechaInicio) params.append('fecha_inicio', fechaInicio);
-    if (fechaFin) params.append('fecha_fin', fechaFin);
-    if (estado) params.append('estado', estado);
-    
-    if (params.toString()) {
-      url += `?${params.toString()}`;
+    if (params) {
+      url += `?${params}`;
     }
 
     return this.http.get<Prestamo[]>(url, {
@@ -104,25 +99,26 @@ export class ReportsService {
   /**
    * Obtener herramientas más prestadas (Solo ADMIN)
    */
-  getHerramientasPopulares(limite: number = 10): Observable<HerramientaPopular[]> {
-    return this.http.get<HerramientaPopular[]>(`${this.baseUrl}/herramientas-populares?limite=${limite}`, {
+  getHerramientasPopulares(params?: string): Observable<HerramientaPopular[]> {
+    let url = `${this.baseUrl}/herramientas-populares`;
+    
+    if (params) {
+      url += `?${params}`;
+    }
+
+    return this.http.get<HerramientaPopular[]>(url, {
       headers: this.getHeaders()
     });
   }
 
   /**
-   * Obtener reporte de multas (Solo ADMIN)
+   * Obtener reporte de multas por período (Solo ADMIN)
    */
-  getReporteMultas(fechaInicio?: string, fechaFin?: string, estado?: string): Observable<Multa[]> {
+  getReporteMultas(params?: string): Observable<Multa[]> {
     let url = `${this.baseUrl}/multas`;
-    const params = new URLSearchParams();
     
-    if (fechaInicio) params.append('fecha_inicio', fechaInicio);
-    if (fechaFin) params.append('fecha_fin', fechaFin);
-    if (estado) params.append('estado', estado);
-    
-    if (params.toString()) {
-      url += `?${params.toString()}`;
+    if (params) {
+      url += `?${params}`;
     }
 
     return this.http.get<Multa[]>(url, {
