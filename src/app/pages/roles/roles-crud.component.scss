@@ -5,3 +5,136 @@
 ::ng-deep .p-dialog .p-dialog-content {
   background: #fff !important;
 }
+
+/* Estilos para custom toggle switches */
+.custom-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 50px;
+  height: 24px;
+  background: #ccc;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+  outline: none;
+}
+
+.custom-toggle:checked {
+  background: var(--primary-color);
+}
+
+.custom-toggle::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.custom-toggle:checked::before {
+  transform: translateX(26px);
+}
+
+.custom-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botones personalizados */
+.custom-flat-icon-button {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  border-radius: 50% !important;
+  border: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-flat-icon-button-edit {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  color: rgb(34, 197, 94) !important;
+}
+
+.custom-flat-icon-button-edit:hover {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Estilos para botones de modal */
+.custom-cancel-btn {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-cancel-btn:hover {
+  background: #e5e7eb !important;
+  border-color: #9ca3af !important;
+}
+
+.custom-confirm-accept-warning {
+  background: #f59e0b !important;
+  color: white !important;
+  border: 1px solid #f59e0b !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.5rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-confirm-accept-warning:hover {
+  background: #d97706 !important;
+  border-color: #d97706 !important;
+}
+
+.custom-confirm-accept-danger {
+  background: #ef4444 !important;
+  color: white !important;
+  border: 1px solid #ef4444 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.5rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.custom-confirm-accept-danger:hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+/* Z-index para modal personalizado */
+.z-modal-confirm {
+  z-index: 9999 !important;
+}
+
+/* Estilos para iconos */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* Clases de color utility */
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.text-danger {
+  color: #ef4444 !important;
+}
+
+.text-warning {
+  color: #f59e0b !important;
+}
