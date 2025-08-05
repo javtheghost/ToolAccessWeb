@@ -8,6 +8,7 @@ interface Profile {
     nombres: string;
     apellidoPaterno: string;
     apellidoMaterno: string;
+    email: string;
 }
 
 @Component({
@@ -68,6 +69,21 @@ interface Profile {
                 <label for="apellidoMaterno" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Materno</label>
             </div>
 
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">email</span>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    disabled
+                    class="peer block w-full h-12 rounded-lg border border-gray-300 bg-gray-100 px-10 text-sm text-gray-500 cursor-not-allowed"
+                    placeholder=" "
+                    aria-label="Correo Electrónico"
+                    [(ngModel)]="profile.email"
+                />
+                <label for="email" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Correo Electrónico</label>
+            </div>
 
         </form>
     </div>
@@ -79,7 +95,8 @@ export class ProfileComponent implements OnInit {
     profile: Profile = {
         nombres: '',
         apellidoPaterno: '',
-        apellidoMaterno: ''
+        apellidoMaterno: '',
+        email: ''
     };
 
     user: User | null = null;
@@ -94,7 +111,8 @@ export class ProfileComponent implements OnInit {
                 this.profile = {
                     nombres: user.nombre || '',
                     apellidoPaterno: user.apellido_paterno || '',
-                    apellidoMaterno: user.apellido_materno || ''
+                    apellidoMaterno: user.apellido_materno || '',
+                    email: user.email || ''
                 };
             }
         });

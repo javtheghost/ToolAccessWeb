@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -18,6 +18,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MobileDetectionService } from '../service/mobile-detection.service';
 import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpdateRequest } from '../service/damage-types.service';
+import { CommunicationService } from '../service/communication.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-damage-types-crud',
@@ -44,22 +46,50 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
     template: `
 <p-toast></p-toast>
 <div class="p-4">
-    <p-table
-        #dt
-        [value]="damageTypes"
-        [rows]="isMobile ? 3 : 5"
-        [paginator]="true"
-                    [globalFilterFields]="['nombre', 'descripcion']"
-        [tableStyle]="{ 'min-width': '100%' }"
-        [(selection)]="selectedDamageTypes"
-        [rowHover]="true"
-        dataKey="id"
-        [showCurrentPageReport]="false"
-        [rowsPerPageOptions]="isMobile ? [3, 5, 10] : [5, 10, 15, 25]"
-        [scrollable]="true"
-        scrollHeight="300px"
-        class="shadow-md rounded-lg"
-    >
+    <!-- Skeleton para toda la tabla (headers + datos) -->
+    <div *ngIf="loading" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Header skeleton -->
+        <div class="bg-[#6ea1cc] text-white p-3">
+            <div class="flex items-center space-x-4">
+                <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="200px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+            </div>
+        </div>
+        <!-- Filas skeleton -->
+        <div class="p-4 space-y-3">
+            <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
+                <p-skeleton height="1rem" width="60px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="200px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="80px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content when loaded -->
+    <div *ngIf="!loading">
+        <p-table
+            #dt
+            [value]="damageTypes"
+            [rows]="isMobile ? 3 : 5"
+            [paginator]="true"
+            [globalFilterFields]="['nombre', 'descripcion']"
+            [tableStyle]="{ 'min-width': '100%' }"
+            [(selection)]="selectedDamageTypes"
+            [rowHover]="true"
+            dataKey="id"
+            [showCurrentPageReport]="false"
+            [rowsPerPageOptions]="isMobile ? [3, 5, 10] : [5, 10, 15, 25]"
+            [scrollable]="true"
+            scrollHeight="300px"
+            class="shadow-md rounded-lg"
+        >
         <ng-template #caption>
             <div class="flex items-center justify-between">
                 <div>
@@ -102,8 +132,8 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
                 </td>
                 <td class="p-3">
                     <div class="font-medium" [ngClass]="{'text-gray-500': !damageType.is_active}">{{ damageType.nombre }}</div>
-                    <div *ngIf="damageType.is_active" class="text-xs text-green-600 mt-1">Activo</div>
-                    <div *ngIf="!damageType.is_active" class="text-xs text-red-500 mt-1">Inactivo</div>
+                    <span *ngIf="damageType.is_active" class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Activo</span>
+                    <span *ngIf="!damageType.is_active" class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactivo</span>
                 </td>
                 <td class="p-3">
                     <span *ngIf="damageType.descripcion && damageType.descripcion.trim()" [ngClass]="{'text-gray-500': !damageType.is_active}">{{ damageType.descripcion }}</span>
@@ -149,6 +179,7 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
             </tr>
         </ng-template>
     </p-table>
+    </div>
 </div>
 <p-dialog
   [(visible)]="damageTypeDialog"
@@ -219,11 +250,7 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
                 <div *ngIf="isFieldInvalid('porcentaje_aplicar')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('porcentaje_aplicar') }}</div>
             </div>
 
-            <!-- Estado activo -->
-            <div class="flex flex-col items-center justify-center col-span-1">
-                <label class="mb-2">Activo</label>
-                <input type="checkbox" class="custom-toggle" formControlName="is_active" />
-            </div>
+
         </div>
         <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
             <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
@@ -357,7 +384,7 @@ import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpda
         /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */
     `]
 })
-export class DamageTypesCrudComponent implements OnInit {
+export class DamageTypesCrudComponent implements OnInit, OnDestroy {
     damageTypes: DamageType[] = [];
     damageTypeDialog: boolean = false;
     damageType: DamageType = this.emptyDamageType();
@@ -381,11 +408,13 @@ export class DamageTypesCrudComponent implements OnInit {
     loading: boolean = false;
     saving: boolean = false;
     showOnlyActive: boolean = true;
+    private destroy$ = new Subject<void>();
 
     constructor(
         private messageService: MessageService,
         private mobileDetectionService: MobileDetectionService,
         private damageTypesService: DamageTypesService,
+        private communicationService: CommunicationService,
         private fb: FormBuilder,
         private cdr: ChangeDetectorRef
     ) {
@@ -395,6 +424,34 @@ export class DamageTypesCrudComponent implements OnInit {
     ngOnInit() {
         this.loadDamageTypes();
         this.setupMobileDetection();
+        this.setupCommunicationListeners();
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private setupCommunicationListeners() {
+        // Escuchar actualizaciones de tipos de daño
+        this.communicationService.damageTypesUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event && event.action !== 'created') {
+                    // Recargar datos cuando se actualiza o elimina
+                    this.loadDamageTypes();
+                }
+            });
+
+        // Escuchar actualizaciones de configuraciones de multas
+        this.communicationService.finesConfigUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event) {
+                    // Recargar configuraciones si las usa este componente
+                    console.log('Configuración de multas actualizada:', event);
+                }
+            });
     }
 
     initForm() {

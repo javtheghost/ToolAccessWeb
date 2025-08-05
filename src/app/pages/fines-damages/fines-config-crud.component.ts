@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -21,6 +21,8 @@ import { FinesConfigService, FinesConfig, FinesConfigCreateRequest, FinesConfigU
 import { CategoryService } from '../service/category.service';
 import { Category } from '../interfaces';
 import { MobileDetectionService } from '../service/mobile-detection.service';
+import { CommunicationService } from '../service/communication.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-fines-config-crud',
@@ -48,22 +50,50 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
     template: `
 <p-toast></p-toast>
 <div class="p-4">
-    <p-table
-        #dt
-        [value]="finesConfig"
-        [rows]="isMobile ? 3 : 5"
-        [paginator]="true"
-        [globalFilterFields]="['nombre', 'categoria_nombre']"
-        [tableStyle]="{ 'min-width': '100%' }"
-        [(selection)]="selectedFinesConfig"
-        [rowHover]="true"
-        dataKey="id"
-        [showCurrentPageReport]="false"
-        [rowsPerPageOptions]="isMobile ? [3, 5, 10] : [5, 10, 15, 25]"
-        [scrollable]="true"
-        scrollHeight="300px"
-        class="shadow-md rounded-lg"
-    >
+    <!-- Skeleton para toda la tabla (headers + datos) -->
+    <div *ngIf="loading" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Header skeleton -->
+        <div class="bg-[#6ea1cc] text-white p-3">
+            <div class="flex items-center space-x-4">
+                <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+            </div>
+        </div>
+        <!-- Filas skeleton -->
+        <div class="p-4 space-y-3">
+            <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
+                <p-skeleton height="1rem" width="60px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="140px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="80px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content when loaded -->
+    <div *ngIf="!loading">
+        <p-table
+            #dt
+            [value]="finesConfig"
+            [rows]="isMobile ? 3 : 5"
+            [paginator]="true"
+            [globalFilterFields]="['nombre', 'categoria_nombre']"
+            [tableStyle]="{ 'min-width': '100%' }"
+            [(selection)]="selectedFinesConfig"
+            [rowHover]="true"
+            dataKey="id"
+            [showCurrentPageReport]="false"
+            [rowsPerPageOptions]="isMobile ? [3, 5, 10] : [5, 10, 15, 25]"
+            [scrollable]="true"
+            scrollHeight="300px"
+            class="shadow-md rounded-lg"
+        >
         <ng-template #caption>
             <div class="flex items-center justify-between">
                 <div>
@@ -78,8 +108,14 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                     <p-inputicon styleClass="pi pi-search" />
                     <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
                 </p-iconfield>
-                <div class="flex justify-end w-full sm:w-auto">
+                <div class="flex justify-end w-full sm:w-auto gap-2">
                     <p-button label="Nueva Configuración" icon="pi pi-plus" (onClick)="openNew()"></p-button>
+                    <p-button
+                        [label]="showOnlyActive ? 'Ver Todas' : 'Solo Activos'"
+                        [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                        (onClick)="toggleActiveView()"
+                        styleClass="w-full sm:w-auto p-button-outlined">
+                    </p-button>
                 </div>
             </div>
         </ng-template>
@@ -100,8 +136,8 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                 </td>
                 <td class="p-3">
                     <div class="font-medium" [ngClass]="{'text-gray-500': !fine.is_active}">{{ fine.nombre }}</div>
-                    <div *ngIf="fine.is_active" class="text-xs text-green-600 mt-1">Activo</div>
-                    <div *ngIf="!fine.is_active" class="text-xs text-red-500 mt-1">Inactivo</div>
+                    <span *ngIf="fine.is_active" class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Activo</span>
+                    <span *ngIf="!fine.is_active" class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactivo</span>
                 </td>
                 <td class="p-3">
                     <span [ngClass]="{'text-gray-500': !fine.is_active}">{{ fine.categoria_nombre || 'Sin categoría' }}</span>
@@ -146,6 +182,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
             </tr>
         </ng-template>
     </p-table>
+    </div>
 </div>
 <p-dialog
   [(visible)]="fineConfigDialog"
@@ -191,8 +228,16 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="true"
+                    [filter]="true"
+                    filterPlaceholder="Buscar categorías..."
                     [class.border-red-500]="isFieldInvalid('aplica_a_categoria_id')"
                     [class.border-gray-300]="!isFieldInvalid('aplica_a_categoria_id')">
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron categorías</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
                 <div *ngIf="isFieldInvalid('aplica_a_categoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('aplica_a_categoria_id') }}</div>
             </div>
@@ -207,7 +252,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                     [maxFractionDigits]="2"
                     [min]="0"
                     [max]="999999.99"
-                    placeholder="$0.00 MXN"
+                    placeholder=" $0.00 MXN"
                     class="w-full"
                     [showButtons]="false"
                     [useGrouping]="true"
@@ -219,11 +264,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                 <div *ngIf="isFieldInvalid('valor_base')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_base') }}</div>
             </div>
 
-            <!-- Estado activo -->
-            <div class="flex flex-col items-center justify-center col-span-1">
-                <label class="mb-2">Activo</label>
-                <input type="checkbox" class="custom-toggle" formControlName="is_active" />
-            </div>
+
         </div>
         <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
             <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
@@ -552,7 +593,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
         /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */
     `]
 })
-export class FinesConfigCrudComponent implements OnInit {
+export class FinesConfigCrudComponent implements OnInit, OnDestroy {
     finesConfig: FinesConfig[] = [];
     fineConfigDialog: boolean = false;
     fineConfig: FinesConfig = this.emptyFineConfig();
@@ -574,6 +615,7 @@ export class FinesConfigCrudComponent implements OnInit {
     saving: boolean = false;
     showOnlyActive: boolean = true;
     isMobile = false;
+    private destroy$ = new Subject<void>();
 
     // Categorías
     categories: Category[] = [];
@@ -583,6 +625,7 @@ export class FinesConfigCrudComponent implements OnInit {
         private finesConfigService: FinesConfigService,
         private categoryService: CategoryService,
         private mobileDetectionService: MobileDetectionService,
+        private communicationService: CommunicationService,
         private fb: FormBuilder,
         private cdr: ChangeDetectorRef
     ) {
@@ -593,6 +636,35 @@ export class FinesConfigCrudComponent implements OnInit {
         this.loadFinesConfigs();
         this.loadCategories();
         this.setupMobileDetection();
+        this.setupCommunicationListeners();
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private setupCommunicationListeners() {
+        // Escuchar actualizaciones de configuraciones de multas
+        this.communicationService.finesConfigUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event && event.action !== 'created') {
+                    // Recargar datos cuando se actualiza o elimina
+                    this.loadFinesConfigs();
+                }
+            });
+
+        // Escuchar actualizaciones de tipos de daño
+        // ya que las configuraciones pueden depender de los tipos de daño
+        this.communicationService.damageTypesUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event) {
+                    // Recargar configuraciones cuando cambien los tipos de daño
+                    this.loadFinesConfigs();
+                }
+            });
     }
 
     private setupMobileDetection() {
@@ -605,7 +677,7 @@ export class FinesConfigCrudComponent implements OnInit {
     initForm() {
         this.fineConfigForm = this.fb.group({
             nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
-            valor_base: [0, [Validators.required, Validators.min(0), Validators.max(999999.99)]],
+            valor_base: [null, [Validators.required, Validators.min(0), Validators.max(999999.99)]],
             aplica_a_categoria_id: [null, [Validators.required]],
             is_active: [true]
         });
@@ -710,6 +782,12 @@ export class FinesConfigCrudComponent implements OnInit {
     toggleActiveView() {
         this.showOnlyActive = !this.showOnlyActive;
         this.loadFinesConfigs();
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Filtro actualizado',
+            detail: this.showOnlyActive ? 'Mostrando solo configuraciones activas' : 'Mostrando todas las configuraciones',
+            life: 3000
+        });
     }
 
     // Método para cambiar el estado de la configuración directamente
@@ -776,7 +854,7 @@ export class FinesConfigCrudComponent implements OnInit {
         this.isEditMode = false;
         this.fineConfigForm.reset({
             nombre: '',
-            valor_base: 0,
+            valor_base: null,
             aplica_a_categoria_id: null,
             is_active: true
         });
@@ -918,14 +996,7 @@ export class FinesConfigCrudComponent implements OnInit {
         this.showCustomConfirm = false;
     }
 
-    createId(): string {
-        let id = '';
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 5; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return id;
-    }
+
 
     emptyFineConfig(): FinesConfig {
         return {

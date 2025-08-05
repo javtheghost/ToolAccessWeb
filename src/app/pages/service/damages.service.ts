@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { OAuthService } from './oauth.service';
+import { CommunicationService } from './communication.service';
 
 // Interfaces para daños - Adaptadas al backend de reportes de daños
 export interface Damage {
@@ -84,7 +85,11 @@ export interface DamageResponse {
 export class DamagesService {
     private apiUrl = `${environment.apiServiceGeneralUrl}/api/damage-reports`;
 
-    constructor(private http: HttpClient, private oauthService: OAuthService) {}
+    constructor(
+        private http: HttpClient,
+        private oauthService: OAuthService,
+        private communicationService: CommunicationService
+    ) {}
 
     // Método privado para obtener headers con token
     private getHeaders(): HttpHeaders {
@@ -188,6 +193,9 @@ export class DamagesService {
                     throw new Error(response.message || 'Error al reportar daño');
                 }
             }),
+            tap(result => {
+                this.communicationService.notifyDamageCreated(result);
+            }),
             catchError(this.handleError)
         );
         */
@@ -210,6 +218,9 @@ export class DamagesService {
                 } else {
                     throw new Error(response.message || 'Error al actualizar daño');
                 }
+            }),
+            tap(result => {
+                this.communicationService.notifyDamageUpdated(result);
             }),
             catchError(this.handleError)
         );
@@ -256,6 +267,9 @@ export class DamagesService {
                 } else {
                     throw new Error(response.message || 'Error al eliminar daño');
                 }
+            }),
+            tap(() => {
+                this.communicationService.notifyDamageDeleted({ id });
             }),
             catchError(this.handleError)
         );

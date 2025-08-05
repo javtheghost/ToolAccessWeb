@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, OnDestroy } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -8,12 +8,14 @@ import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { DialogModule } from 'primeng/dialog';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { TooltipModule } from 'primeng/tooltip';
+import { SkeletonModule } from 'primeng/skeleton';
 import { DamagesService, Damage, DamageCreateRequest, DamageUpdateRequest } from '../service/damages.service';
 import { ToolsService, Tool } from '../service/tools.service';
 import { LoansService, Loan } from '../service/loans.service';
@@ -21,6 +23,8 @@ import { CategoryService } from '../service/category.service';
 import { SubcategoryService } from '../service/subcategory.service';
 import { DamageTypesService, DamageType } from '../service/damage-types.service';
 import { OAuthService } from '../service/oauth.service';
+import { CommunicationService } from '../service/communication.service';
+import { Subject, takeUntil } from 'rxjs';
 
 interface DamageHistory {
     id: string;
@@ -47,32 +51,72 @@ interface DamageHistory {
         ToastModule,
         ToolbarModule,
         InputTextModule,
+        InputNumberModule,
         DialogModule,
         ConfirmDialogModule,
         InputIconModule,
         IconFieldModule,
         DropdownModule,
-        TooltipModule
+        TooltipModule,
+        SkeletonModule
     ],
     template: `
 <p-toast></p-toast>
 <div class="p-4">
-    <p-table
-        #dt
-        [value]="damageHistory"
-        [rows]="10"
-        [paginator]="true"
-        [globalFilterFields]="['tool', 'order', 'damageType', 'description']"
-        [tableStyle]="{ 'min-width': '100%' }"
-        [(selection)]="selectedDamageHistory"
-        [rowHover]="true"
-        dataKey="id"
-        [showCurrentPageReport]="false"
-        [rowsPerPageOptions]="[5, 10, 15]"
-        [scrollable]="true"
-        scrollHeight="300px"
-        class="shadow-md rounded-lg"
-    >
+    <!-- Skeleton para toda la tabla (headers + datos) -->
+    <div *ngIf="loading" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Header skeleton -->
+        <div class="bg-[#6ea1cc] text-white p-3">
+            <div class="flex items-center space-x-4">
+                <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="200px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+            </div>
+        </div>
+        <!-- Filas skeleton -->
+        <div class="p-4 space-y-3">
+            <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
+                <p-skeleton height="1rem" width="60px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="140px"></p-skeleton>
+                <p-skeleton height="1rem" width="200px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="80px"></p-skeleton>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content when loaded -->
+    <div *ngIf="!loading">
+        <p-table
+            #dt
+            [value]="damageHistory"
+            [rows]="10"
+            [paginator]="true"
+            [globalFilterFields]="['tool', 'order', 'damageType', 'description']"
+            [tableStyle]="{ 'min-width': '100%' }"
+            [(selection)]="selectedDamageHistory"
+            [rowHover]="true"
+            dataKey="id"
+            [showCurrentPageReport]="false"
+            [rowsPerPageOptions]="[5, 10, 15]"
+            [scrollable]="true"
+            scrollHeight="300px"
+            class="shadow-md rounded-lg"
+        >
         <ng-template #caption>
             <div class="flex items-center justify-between">
                 <div>
@@ -153,6 +197,7 @@ interface DamageHistory {
             </tr>
         </ng-template>
     </p-table>
+    </div>
 </div>
 <p-dialog
   [(visible)]="damageHistoryDialog"
@@ -178,12 +223,19 @@ interface DamageHistory {
                     optionLabel="nombre"
                     optionValue="id"
                     [filter]="true"
+                    filterPlaceholder="Buscar herramientas..."
                     placeholder="Herramienta dañada..."
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
                     [required]="true">
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron herramientas</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
                 <div *ngIf="damageHistoryItem.herramienta_id" class="mt-1 text-xs text-gray-500">
                     Herramienta seleccionada
@@ -201,11 +253,18 @@ interface DamageHistory {
                     optionLabel="folio"
                     optionValue="id"
                     [filter]="true"
+                    filterPlaceholder="Buscar préstamos..."
                     placeholder="Préstamo asociado..."
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false">
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron préstamos</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
                 <div *ngIf="damageHistoryItem.orden_prestamo_id" class="mt-1 text-xs text-gray-500">
                     Préstamo seleccionado
@@ -223,11 +282,18 @@ interface DamageHistory {
                     optionLabel="nombre"
                     optionValue="id"
                     [filter]="true"
+                    filterPlaceholder="Buscar categorías..."
                     placeholder="Categoría..."
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false">
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron categorías</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
                 <div *ngIf="damageHistoryItem.category" class="mt-1 text-xs text-gray-500">
                     Categoría seleccionada
@@ -245,11 +311,18 @@ interface DamageHistory {
                     optionLabel="nombre"
                     optionValue="id"
                     [filter]="true"
+                    filterPlaceholder="Buscar subcategorías..."
                     placeholder="Subcategoría..."
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false">
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron subcategorías</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
                 <div *ngIf="damageHistoryItem.subcategory" class="mt-1 text-xs text-gray-500">
                     Subcategoría seleccionada
@@ -257,21 +330,29 @@ interface DamageHistory {
             </div>
 
             <!-- Tipo de Daño -->
-            <div>
-                <label class="text-sm font-medium text-gray-700 mb-2 block">Tipo de Daño</label>
-                <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        <button type="button"
-                                *ngFor="let damageType of damageTypesFromService"
-                                [style.background-color]="isDamageTypeSelected(damageType.nombre) ? '#FEE8B9' : 'transparent'"
-                                [style.color]="isDamageTypeSelected(damageType.nombre) ? '#333333' : '#374151'"
-                                [style.border-color]="isDamageTypeSelected(damageType.nombre) ? '#FEE8B9' : '#D1D5DB'"
-                                class="px-3 py-2 rounded-full border text-xs sm:text-sm transition-colors duration-200 truncate"
-                                (click)="damageHistoryItem.tipo_dano_id = damageType.id"
-                                [title]="damageType.nombre">
-                            {{ damageType.nombre }}
-                        </button>
-                    </div>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">warning</span>
+                <p-dropdown
+                    [options]="damageTypesFromService"
+                    [(ngModel)]="damageHistoryItem.tipo_dano_id"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    [filter]="true"
+                    filterPlaceholder="Buscar tipos de daño..."
+                    placeholder="Tipo de daño..."
+                    [style]="{ width: '100%' }"
+                    class="w-full"
+                    [styleClass]="'h-12 px-10'"
+                    [showClear]="false">
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron tipos de daño</p>
+                        </div>
+                    </ng-template>
+                </p-dropdown>
+                <div *ngIf="damageHistoryItem.tipo_dano_id" class="mt-1 text-xs text-gray-500">
+                    Tipo de daño seleccionado
                 </div>
             </div>
 
@@ -281,10 +362,25 @@ interface DamageHistory {
                 <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Descripción detallada" [(ngModel)]="damageHistoryItem.descripcion"></textarea>
             </div>
 
-            <!-- Costo estimado de reparación -->
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">payments</span>
-                <input type="number" id="repairCost" name="repairCost" class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Costo estimado de reparación" [(ngModel)]="damageHistoryItem.costo_reparacion" />
+            <!-- Costo de reparación -->
+            <div class="relative col-span-1">
+            <label for="costo_reparacion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Costo de reparación <span class="text-red-500">*</span></label>
+
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-10">payments</span>
+                <p-inputnumber
+                    [(ngModel)]="damageHistoryItem.costo_reparacion"
+                    [minFractionDigits]="2"
+                    [maxFractionDigits]="2"
+                    [min]="0"
+                    [max]="999999.99"
+                    placeholder=" $0.00 MXN"
+                    class="w-full"
+                    [showButtons]="false"
+                    [useGrouping]="true"
+                    [locale]="'es-MX'"
+                    styleClass="custom-inputnumber"
+                    [inputStyle]="{'padding-left': '2.5rem'}">
+                </p-inputnumber>
             </div>
 
             <!-- Tipo de multa - COMENTADO TEMPORALMENTE
@@ -552,7 +648,7 @@ interface DamageHistory {
         }
     `]
 })
-export class HistoryDamagesCrudComponent implements OnInit {
+export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
     damageHistory: Damage[] = [];
     damageHistoryDialog: boolean = false;
     damageHistoryItem: Damage = this.emptyDamageHistory();
@@ -669,6 +765,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
     showCustomConfirm: boolean = false;
     confirmMessage: string = '';
     confirmAction: (() => void) | null = null;
+    private destroy$ = new Subject<void>();
 
     constructor(
         private messageService: MessageService,
@@ -678,11 +775,51 @@ export class HistoryDamagesCrudComponent implements OnInit {
         private categoryService: CategoryService,
         private subcategoryService: SubcategoryService,
         private damageTypesService: DamageTypesService,
-        private oauthService: OAuthService
+        private oauthService: OAuthService,
+        private communicationService: CommunicationService
     ) {}
 
     ngOnInit() {
         this.loadData();
+        this.setupCommunicationListeners();
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private setupCommunicationListeners() {
+        // Escuchar actualizaciones de tipos de daño
+        this.communicationService.damageTypesUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event) {
+                    // Recargar tipos de daño cuando se actualicen
+                    this.loadDamageTypesFromService();
+                }
+            });
+
+        // Escuchar actualizaciones de configuraciones de multas
+        this.communicationService.finesConfigUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event) {
+                    // Recargar configuraciones cuando se actualicen
+                    this.loadData();
+                }
+            });
+    }
+
+    private loadDamageTypesFromService() {
+        this.damageTypesService.getDamageTypes(undefined, true).subscribe({
+            next: (data) => {
+                this.damageTypesFromService = data;
+            },
+            error: (error) => {
+                console.error('Error al cargar tipos de daño:', error);
+            }
+        });
     }
 
     loadData() {
@@ -965,7 +1102,7 @@ export class HistoryDamagesCrudComponent implements OnInit {
             id: 0,
             herramienta_id: 0,
             orden_prestamo_id: 0,
-            tipo_dano_id: 1,
+            tipo_dano_id: 0,
             descripcion: '',
             costo_reparacion: 0,
             report_date: '',

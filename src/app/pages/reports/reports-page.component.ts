@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { DropdownModule } from 'primeng/dropdown';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
@@ -12,6 +12,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { OAuthService } from '../service/oauth.service';
 import { CustomDateRangeComponent } from '../utils/custom-date-range.component';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-reports-page',
@@ -22,6 +23,7 @@ import { CustomDateRangeComponent } from '../utils/custom-date-range.component';
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     DropdownModule,
     ButtonModule,
     ToastModule,
@@ -30,7 +32,7 @@ import { CustomDateRangeComponent } from '../utils/custom-date-range.component';
     CustomDateRangeComponent
   ]
 })
-export class ReportsPageComponent implements OnInit {
+export class ReportsPageComponent implements OnInit, OnDestroy {
   // Opciones de filtros
   tiposReporte = [
     { label: 'Estadísticas Generales', value: 'estadisticas' },
@@ -48,26 +50,262 @@ export class ReportsPageComponent implements OnInit {
     { label: 'Pagada', value: 'pagada' }
   ];
 
-  // Variables de filtros
-  filtroTipoReporte: string = '';
-  filtroEstado: string = '';
-  filtroRangoFechas: { startDate: Date | null; endDate: Date | null } | null = null;
-  limiteHerramientas: number = 10;
+  // Formulario reactivo
+  reportForm!: FormGroup;
 
   // Variables de estado
   loading: boolean = false;
   reportes: any[] = [];
   estadisticas: Estadisticas | null = null;
+  formSubmitted: boolean = false;
+
+  // Subject para manejo de suscripciones
+  private destroy$ = new Subject<void>();
 
   constructor(
     private reportsService: ReportsService,
     private messageService: MessageService,
-    private oauthService: OAuthService
-  ) { }
+    private oauthService: OAuthService,
+    private fb: FormBuilder
+  ) {
+    this.initForm();
+  }
 
   ngOnInit() {
     this.cargarReportesGuardados();
     this.cargarEstadisticas();
+    this.setupFormListeners();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initForm() {
+    this.reportForm = this.fb.group({
+      tipoReporte: ['', [Validators.required]],
+      estado: [''],
+      rangoFechas: [null],
+      limiteHerramientas: [10, [
+        Validators.min(1),
+        Validators.max(100),
+        Validators.pattern(/^\d+$/)
+      ]]
+    }, {
+      validators: [this.validateDateRange.bind(this)]
+    });
+  }
+
+  private setupFormListeners() {
+    // Escuchar cambios en el tipo de reporte para validaciones condicionales
+    this.reportForm.get('tipoReporte')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(tipo => {
+        this.updateValidators(tipo);
+      });
+
+    // Escuchar cambios en el límite de herramientas
+    this.reportForm.get('limiteHerramientas')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        if (value && (value < 1 || value > 100)) {
+          this.reportForm.get('limiteHerramientas')?.setErrors({
+            invalidRange: true
+          });
+        }
+      });
+  }
+
+  private updateValidators(tipoReporte: string) {
+    const limiteControl = this.reportForm.get('limiteHerramientas');
+    const estadoControl = this.reportForm.get('estado');
+    const rangoFechasControl = this.reportForm.get('rangoFechas');
+
+    // Resetear validadores
+    limiteControl?.clearValidators();
+    estadoControl?.clearValidators();
+    rangoFechasControl?.clearValidators();
+
+    // Aplicar validadores según el tipo de reporte
+    switch (tipoReporte) {
+      case 'herramientas-populares':
+        limiteControl?.setValidators([
+          Validators.required,
+          Validators.min(1),
+          Validators.max(100),
+          Validators.pattern(/^\d+$/)
+        ]);
+        break;
+      case 'prestamos':
+      case 'multas':
+        // Para préstamos y multas, el rango de fechas es opcional pero debe ser válido si se proporciona
+        rangoFechasControl?.setValidators([this.validateOptionalDateRange.bind(this)]);
+        break;
+      default:
+        break;
+    }
+
+    // Actualizar validadores
+    limiteControl?.updateValueAndValidity();
+    estadoControl?.updateValueAndValidity();
+    rangoFechasControl?.updateValueAndValidity();
+  }
+
+  // Validador personalizado para rango de fechas
+  private validateDateRange(control: AbstractControl): ValidationErrors | null {
+    const rangoFechas = control.get('rangoFechas')?.value;
+    const tipoReporte = control.get('tipoReporte')?.value;
+
+    if (!rangoFechas || !tipoReporte) {
+      return null;
+    }
+
+    // Solo validar rango de fechas para reportes que lo requieren
+    if (['prestamos', 'multas'].includes(tipoReporte)) {
+      if (rangoFechas.startDate && rangoFechas.endDate) {
+        const startDate = new Date(rangoFechas.startDate);
+        const endDate = new Date(rangoFechas.endDate);
+        const today = new Date();
+
+        // Validar que la fecha de inicio no sea futura
+        if (startDate > today) {
+          return { futureStartDate: true };
+        }
+
+        // Validar que la fecha de fin no sea futura
+        if (endDate > today) {
+          return { futureEndDate: true };
+        }
+
+        // Validar que la fecha de inicio no sea mayor que la fecha de fin
+        if (startDate > endDate) {
+          return { invalidDateRange: true };
+        }
+
+        // Validar que el rango no sea mayor a 1 año
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays > 365) {
+          return { dateRangeTooLarge: true };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  // Validador para rango de fechas opcional
+  private validateOptionalDateRange(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+
+    if (!value) {
+      return null; // Es opcional
+    }
+
+    if (value.startDate && value.endDate) {
+      const startDate = new Date(value.startDate);
+      const endDate = new Date(value.endDate);
+      const today = new Date();
+
+      if (startDate > endDate) {
+        return { invalidDateRange: true };
+      }
+
+      if (startDate > today || endDate > today) {
+        return { futureDate: true };
+      }
+    }
+
+    return null;
+  }
+
+  // Getters para facilitar el acceso a los controles del formulario
+  get f() {
+    return this.reportForm.controls;
+  }
+
+  get isFormValid(): boolean {
+    return this.reportForm.valid && !this.loading;
+  }
+
+  get hasFormErrors(): boolean {
+    return this.formSubmitted && this.reportForm.invalid;
+  }
+
+  // Métodos para obtener mensajes de error
+  getErrorMessage(controlName: string): string {
+    const control = this.reportForm.get(controlName);
+    if (!control || !control.errors || !this.formSubmitted) {
+      return '';
+    }
+
+    const errors = control.errors;
+
+    switch (controlName) {
+      case 'tipoReporte':
+        if (errors['required']) {
+          return 'El tipo de reporte es obligatorio';
+        }
+        break;
+      case 'limiteHerramientas':
+        if (errors['required']) {
+          return 'El límite de herramientas es obligatorio';
+        }
+        if (errors['min']) {
+          return 'El límite debe ser al menos 1';
+        }
+        if (errors['max']) {
+          return 'El límite no puede ser mayor a 100';
+        }
+        if (errors['pattern']) {
+          return 'El límite debe ser un número entero';
+        }
+        if (errors['invalidRange']) {
+          return 'El límite debe estar entre 1 y 100';
+        }
+        break;
+      case 'rangoFechas':
+        if (errors['futureStartDate']) {
+          return 'La fecha de inicio no puede ser futura';
+        }
+        if (errors['futureEndDate']) {
+          return 'La fecha de fin no puede ser futura';
+        }
+        if (errors['invalidDateRange']) {
+          return 'La fecha de inicio no puede ser mayor que la fecha de fin';
+        }
+        if (errors['dateRangeTooLarge']) {
+          return 'El rango de fechas no puede ser mayor a 1 año';
+        }
+        if (errors['futureDate']) {
+          return 'Las fechas no pueden ser futuras';
+        }
+        break;
+    }
+
+    return '';
+  }
+
+  getFormErrors(): string[] {
+    const errors: string[] = [];
+
+    if (this.reportForm.errors) {
+      if (this.reportForm.errors['futureStartDate']) {
+        errors.push('La fecha de inicio no puede ser futura');
+      }
+      if (this.reportForm.errors['futureEndDate']) {
+        errors.push('La fecha de fin no puede ser futura');
+      }
+      if (this.reportForm.errors['invalidDateRange']) {
+        errors.push('La fecha de inicio no puede ser mayor que la fecha de fin');
+      }
+      if (this.reportForm.errors['dateRangeTooLarge']) {
+        errors.push('El rango de fechas no puede ser mayor a 1 año');
+      }
+    }
+
+    return errors;
   }
 
   async cargarEstadisticas() {
@@ -99,7 +337,7 @@ export class ReportsPageComponent implements OnInit {
       nombre: nombreArchivo,
       descripcion: descripcion,
       fecha: new Date().toISOString(),
-      tipo: this.filtroTipoReporte
+      tipo: this.reportForm.get('tipoReporte')?.value
     };
 
     this.reportes.unshift(reporte);
@@ -111,11 +349,14 @@ export class ReportsPageComponent implements OnInit {
   }
 
   async generarReporte() {
-    if (!this.filtroTipoReporte) {
+    this.formSubmitted = true;
+
+    // Validar formulario
+    if (this.reportForm.invalid) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Advertencia',
-        detail: 'Por favor selecciona un tipo de reporte'
+        detail: 'Por favor corrige los errores en el formulario'
       });
       return;
     }
@@ -133,18 +374,20 @@ export class ReportsPageComponent implements OnInit {
     this.loading = true;
 
     try {
-      switch (this.filtroTipoReporte) {
+      const formValue = this.reportForm.value;
+
+      switch (formValue.tipoReporte) {
         case 'estadisticas':
           await this.generarReporteEstadisticas();
           break;
         case 'prestamos':
-          await this.generarReportePrestamos();
+          await this.generarReportePrestamos(formValue);
           break;
         case 'multas':
-          await this.generarReporteMultas();
+          await this.generarReporteMultas(formValue);
           break;
         case 'herramientas-populares':
-          await this.generarReporteHerramientasPopulares();
+          await this.generarReporteHerramientasPopulares(formValue);
           break;
         default:
           this.messageService.add({
@@ -244,11 +487,11 @@ export class ReportsPageComponent implements OnInit {
     });
   }
 
-  async generarReportePrestamos() {
+  async generarReportePrestamos(formValue: any) {
     const params = new URLSearchParams();
-    if (this.filtroEstado) params.append('estado', this.filtroEstado);
-    if (this.filtroRangoFechas?.startDate) params.append('fecha_inicio', this.filtroRangoFechas.startDate.toISOString());
-    if (this.filtroRangoFechas?.endDate) params.append('fecha_fin', this.filtroRangoFechas.endDate.toISOString());
+    if (formValue.estado) params.append('estado', formValue.estado);
+    if (formValue.rangoFechas?.startDate) params.append('fecha_inicio', formValue.rangoFechas.startDate.toISOString());
+    if (formValue.rangoFechas?.endDate) params.append('fecha_fin', formValue.rangoFechas.endDate.toISOString());
 
     this.reportsService.getReportePrestamos(params.toString()).subscribe({
       next: (data: Prestamo[]) => {
@@ -318,11 +561,11 @@ export class ReportsPageComponent implements OnInit {
     });
   }
 
-  async generarReporteMultas() {
+  async generarReporteMultas(formValue: any) {
     const params = new URLSearchParams();
-    if (this.filtroEstado) params.append('estado', this.filtroEstado);
-    if (this.filtroRangoFechas?.startDate) params.append('fecha_inicio', this.filtroRangoFechas.startDate.toISOString());
-    if (this.filtroRangoFechas?.endDate) params.append('fecha_fin', this.filtroRangoFechas.endDate.toISOString());
+    if (formValue.estado) params.append('estado', formValue.estado);
+    if (formValue.rangoFechas?.startDate) params.append('fecha_inicio', formValue.rangoFechas.startDate.toISOString());
+    if (formValue.rangoFechas?.endDate) params.append('fecha_fin', formValue.rangoFechas.endDate.toISOString());
 
     this.reportsService.getReporteMultas(params.toString()).subscribe({
       next: (data: Multa[]) => {
@@ -392,9 +635,9 @@ export class ReportsPageComponent implements OnInit {
     });
   }
 
-  async generarReporteHerramientasPopulares() {
+  async generarReporteHerramientasPopulares(formValue: any) {
     const params = new URLSearchParams();
-    if (this.limiteHerramientas) params.append('limite', this.limiteHerramientas.toString());
+    if (formValue.limiteHerramientas) params.append('limite', formValue.limiteHerramientas.toString());
 
     this.reportsService.getHerramientasPopulares(params.toString()).subscribe({
       next: (data: HerramientaPopular[]) => {
@@ -465,10 +708,13 @@ export class ReportsPageComponent implements OnInit {
   }
 
   limpiarFiltros() {
-    this.filtroTipoReporte = '';
-    this.filtroEstado = '';
-    this.filtroRangoFechas = null;
-    this.limiteHerramientas = 10;
+    this.formSubmitted = false;
+    this.reportForm.reset({
+      tipoReporte: '',
+      estado: '',
+      rangoFechas: null,
+      limiteHerramientas: 10
+    });
   }
 
   trackByReporte(index: number, reporte: any): string {

@@ -146,8 +146,8 @@ interface Column {
                 </td>
                 <td class="p-3">
                     <div class="font-medium" [ngClass]="{'text-gray-500': !category.is_active}">{{ category.nombre }}</div>
-                    <div *ngIf="category.is_active" class="text-xs text-green-600 mt-1">Activa</div>
-                    <div *ngIf="!category.is_active" class="text-xs text-red-500 mt-1">Inactiva</div>
+                    <span *ngIf="category.is_active" class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Activa</span>
+                    <span *ngIf="!category.is_active" class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactiva</span>
                     <div class="text-sm text-gray-500 sm:hidden">
                         <span *ngIf="category.descripcion && category.descripcion.trim()">{{ category.descripcion }}</span>
                         <span *ngIf="!category.descripcion || !category.descripcion.trim()" class="text-gray-400 italic">Sin descripción</span>

@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { OAuthService } from './oauth.service';
+import { CommunicationService } from './communication.service';
 
 // Interfaces para configuración de multas
 export interface FinesConfig {
@@ -50,7 +51,11 @@ export interface FinesConfigResponse {
 export class FinesConfigService {
     private apiUrl = `${environment.apiServiceGeneralUrl}/api/fine-configs`;
 
-    constructor(private http: HttpClient, private oauthService: OAuthService) {}
+    constructor(
+        private http: HttpClient,
+        private oauthService: OAuthService,
+        private communicationService: CommunicationService
+    ) {}
 
     // GET - Obtener todas las configuraciones de multas
     getFinesConfigs(search?: string, onlyActive?: boolean): Observable<FinesConfig[]> {
@@ -98,6 +103,9 @@ export class FinesConfigService {
                     throw new Error(response.message || 'Error al crear la configuración de multa');
                 }
             }),
+            tap(result => {
+                this.communicationService.notifyFinesConfigCreated(result);
+            }),
             catchError(this.handleError)
         );
     }
@@ -111,6 +119,9 @@ export class FinesConfigService {
                 } else {
                     throw new Error(response.message || 'Error al actualizar la configuración de multa');
                 }
+            }),
+            tap(result => {
+                this.communicationService.notifyFinesConfigUpdated(result);
             }),
             catchError(this.handleError)
         );
@@ -126,19 +137,25 @@ export class FinesConfigService {
                     throw new Error(response.message || 'Error al eliminar la configuración de multa');
                 }
             }),
+            tap(() => {
+                this.communicationService.notifyFinesConfigDeleted({ id });
+            }),
             catchError(this.handleError)
         );
     }
 
-    // PUT - Reactivar configuración de multa
+    // PUT - Reactivar configuración de multa (usando update con is_active = true)
     reactivateFinesConfig(id: number): Observable<FinesConfig> {
-        return this.http.put<FinesConfigResponse>(`${this.apiUrl}/${id}/reactivate`, {}).pipe(
+        return this.http.put<FinesConfigResponse>(`${this.apiUrl}/${id}`, { is_active: true }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;
                 } else {
                     throw new Error(response.message || 'Error al reactivar la configuración de multa');
                 }
+            }),
+            tap(result => {
+                this.communicationService.notifyFinesConfigUpdated(result);
             }),
             catchError(this.handleError)
         );

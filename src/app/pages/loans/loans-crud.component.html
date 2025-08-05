@@ -1,107 +1,146 @@
 <p-toast></p-toast>
 <div class="p-6">
-    <p-table
-        #dt
-        [value]="loans"
-        [rows]="10"
-        [paginator]="true"
-        [globalFilterFields]="['id', 'folio', 'usuario_nombre', 'estado']"
-        [tableStyle]="{ 'min-width': '75rem' }"
-        [rowHover]="true"
-        dataKey="id"
-        [showCurrentPageReport]="false"
-        [rowsPerPageOptions]="[10, 20, 30]"
-        class="shadow-md rounded-lg"
-        [loading]="loading"
-    >
-        <ng-template #caption>
-            <div class="flex items-center justify-between">
-                <h5 class="m-0 p-2 text-[var(--primary-color)]">Consulta de Órdenes de Préstamo</h5>
-                <div class="flex gap-2">
-                    <p-button
-                        icon="pi pi-refresh"
-                        (click)="loadLoans()"
-                        [loading]="loading"
-                        styleClass="p-button-outlined p-button-sm"
-                        pTooltip="Actualizar lista"
-                        tooltipPosition="top">
-                    </p-button>
+    <!-- Skeleton para toda la tabla (headers + datos) -->
+    <div *ngIf="loading" class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Header skeleton -->
+        <div class="bg-[#6ea1cc] text-white p-3">
+            <div class="flex items-center space-x-4">
+                <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="180px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+            </div>
+        </div>
+        <!-- Filas skeleton -->
+        <div class="p-4 space-y-3">
+            <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
+                <p-skeleton height="1rem" width="60px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="80px"></p-skeleton>
+                <p-skeleton height="1rem" width="140px"></p-skeleton>
+                <p-skeleton height="1rem" width="140px"></p-skeleton>
+                <p-skeleton height="1rem" width="180px"></p-skeleton>
+                <p-skeleton height="1rem" width="140px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="80px"></p-skeleton>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content when loaded -->
+    <div *ngIf="!loading">
+        <p-table
+            #dt
+            [value]="loans"
+            [rows]="10"
+            [paginator]="true"
+            [globalFilterFields]="['id', 'folio', 'usuario_nombre', 'estado']"
+            [tableStyle]="{ 'min-width': '75rem' }"
+            [rowHover]="true"
+            dataKey="id"
+            [showCurrentPageReport]="false"
+            [rowsPerPageOptions]="[10, 20, 30]"
+            class="shadow-md rounded-lg"
+            [loading]="loading"
+        >
+            <ng-template #caption>
+                <div class="flex items-center justify-between">
+                    <h5 class="m-0 p-2 text-[var(--primary-color)]">Consulta de Órdenes de Préstamo</h5>
+                    <div class="flex gap-2">
+                        <p-button
+                            icon="pi pi-refresh"
+                            (click)="loadLoans()"
+                            [loading]="loading"
+                            styleClass="p-button-outlined p-button-sm"
+                            pTooltip="Actualizar lista"
+                            tooltipPosition="top">
+                        </p-button>
+                    </div>
                 </div>
-            </div>
-            <div class="flex items-center justify-between gap-4 mt-2">
-                <p-iconfield class="flex-1">
-                    <p-inputicon styleClass="pi pi-search" />
-                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, folio, usuario o estado..." />
-                </p-iconfield>
-            </div>
-        </ng-template>
-        <ng-template pTemplate="header">
-            <tr class="bg-[#6ea1cc] text-white">
-                <th>ID</th>
-                <th>Folio</th>
-                <th>Usuario</th>
-                <th>Estado</th>
-                <th>Fecha Solicitud</th>
-                <th>Fecha Aprobación</th>
-                <th>Fecha Devolución Estimada</th>
-                <th>Fecha Devolución Real</th>
-                <th>Tiempo Solicitado</th>
-                <th>Tiempo Aprobado</th>
-                <th>Acción</th>
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-loan>
-            <tr>
-                <td>{{ loan.id }}</td>
-                <td>{{ loan.folio }}</td>
-                <td>
-                    <div class="flex flex-col">
-                        <span class="font-semibold text-gray-900">{{ loan.usuario_nombre }}</span>
-                        <span class="text-xs text-gray-500">ID: {{ loan.usuario_id }}</span>
-                    </div>
-                </td>
-                <td>
-                    <span class="px-3 py-1 rounded-full text-sm font-medium"
-                          [ngClass]="{
-                              'bg-[#AAEACA] text-green-800': loan.estado === 'aprobado',
-                              'bg-[#FEE8B9] text-orange-800': loan.estado === 'pendiente',
-                              'bg-[#FF6B6B] text-red-800': loan.estado === 'rechazado',
-                              'bg-[#CEDEFO] text-blue-800': loan.estado === 'terminado',
-                              'bg-[#FFABAB] text-red-800': loan.estado === 'vencido'
-                          }">
-                        {{ loan.estado | titlecase }}
-                    </span>
-                </td>
-                <td>{{ loan.fecha_solicitud ? (loan.fecha_solicitud | date:'dd/MM/yy') : '-' }}</td>
-                <td>{{ loan.fecha_aprobacion ? (loan.fecha_aprobacion | date:'dd/MM/yy') : '-' }}</td>
-                <td>{{ loan.fecha_devolucion_estimada ? (loan.fecha_devolucion_estimada | date:'dd/MM/yy') : '-' }}</td>
-                <td>{{ loan.fecha_devolucion_real ? (loan.fecha_devolucion_real | date:'dd/MM/yy') : '-' }}</td>
-                <td>{{ loan.tiempo_solicitado }} min</td>
-                <td>{{ loan.tiempo_aprobado ? loan.tiempo_aprobado + ' min' : '-' }}</td>
-                <td>
-                    <p-button
-                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
-                        (click)="viewDetails(loan)"
-                        pTooltip="Ver detalles"
-                        tooltipPosition="top">
-                        <ng-template pTemplate="icon">
-                            <i class="material-symbols-outlined">visibility</i>
-                        </ng-template>
-                    </p-button>
-                </td>
-            </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-            <tr>
-                <td colspan="11" class="text-center py-8">
-                    <div class="flex flex-col items-center gap-2">
-                        <i class="pi pi-inbox text-4xl text-gray-400"></i>
-                        <span class="text-gray-500">No se encontraron órdenes de préstamo</span>
-                    </div>
-                </td>
-            </tr>
-        </ng-template>
-    </p-table>
+                <div class="flex items-center justify-between gap-4 mt-2">
+                    <p-iconfield class="flex-1">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, folio, usuario o estado..." />
+                    </p-iconfield>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr class="bg-[#6ea1cc] text-white">
+                    <th>ID</th>
+                    <th>Folio</th>
+                    <th>Usuario</th>
+                    <th>Estado</th>
+                    <th>Fecha Solicitud</th>
+                    <th>Fecha Aprobación</th>
+                    <th>Fecha Devolución Estimada</th>
+                    <th>Fecha Devolución Real</th>
+                    <th>Tiempo Solicitado</th>
+                    <th>Tiempo Aprobado</th>
+                    <th>Acción</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-loan>
+                <tr>
+                    <td>{{ loan.id }}</td>
+                    <td>{{ loan.folio }}</td>
+                    <td>
+                        <div class="flex flex-col">
+                            <span class="font-semibold text-gray-900">{{ loan.usuario_nombre }}</span>
+                            <span class="text-xs text-gray-500">ID: {{ loan.usuario_id }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium"
+                              [ngClass]="{
+                                  'bg-[#AAEACA] text-green-800': loan.estado === 'aprobado',
+                                  'bg-[#FEE8B9] text-orange-800': loan.estado === 'pendiente',
+                                  'bg-[#FF6B6B] text-red-800': loan.estado === 'rechazado',
+                                  'bg-[#CEDEFO] text-blue-800': loan.estado === 'terminado',
+                                  'bg-[#FFABAB] text-red-800': loan.estado === 'vencido'
+                              }">
+                            {{ loan.estado | titlecase }}
+                        </span>
+                    </td>
+                    <td>{{ loan.fecha_solicitud ? (loan.fecha_solicitud | date:'dd/MM/yy') : '-' }}</td>
+                    <td>{{ loan.fecha_aprobacion ? (loan.fecha_aprobacion | date:'dd/MM/yy') : '-' }}</td>
+                    <td>{{ loan.fecha_devolucion_estimada ? (loan.fecha_devolucion_estimada | date:'dd/MM/yy') : '-' }}</td>
+                    <td>{{ loan.fecha_devolucion_real ? (loan.fecha_devolucion_real | date:'dd/MM/yy') : '-' }}</td>
+                    <td>{{ loan.tiempo_solicitado }} min</td>
+                    <td>{{ loan.tiempo_aprobado ? loan.tiempo_aprobado + ' min' : '-' }}</td>
+                    <td>
+                        <p-button
+                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                            (click)="viewDetails(loan)"
+                            pTooltip="Ver detalles"
+                            tooltipPosition="top">
+                            <ng-template pTemplate="icon">
+                                <i class="material-symbols-outlined">visibility</i>
+                            </ng-template>
+                        </p-button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="11" class="text-center py-8">
+                        <div class="flex flex-col items-center gap-2">
+                            <i class="pi pi-inbox text-4xl text-gray-400"></i>
+                            <span class="text-gray-500">No se encontraron órdenes de préstamo</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
 </div>
 
 <!-- Modal de Detalles -->

@@ -14,7 +14,7 @@
           icon="pi pi-file-pdf"
           (onClick)="generarReporte()"
           [loading]="loading"
-          [disabled]="!filtroTipoReporte || loading"
+          [disabled]="!isFormValid"
           styleClass="p-button-primary header-btn">
         </p-button>
       </div>
@@ -108,23 +108,36 @@
         <p>Personaliza los parámetros para generar reportes específicos</p>
       </div>
 
-      <div class="config-form">
+      <!-- Mensajes de error del formulario -->
+      <div class="form-errors" *ngIf="hasFormErrors">
+        <div class="error-message" *ngFor="let error of getFormErrors()">
+          <i class="pi pi-exclamation-triangle"></i>
+          {{ error }}
+        </div>
+      </div>
+
+      <form [formGroup]="reportForm" class="config-form">
         <div class="form-row">
           <div class="form-group">
             <label for="tipoReporte">
               <i class="pi pi-file"></i>
               Tipo de Reporte
+              <span class="required">*</span>
             </label>
             <p-dropdown
               id="tipoReporte"
-              [(ngModel)]="filtroTipoReporte"
+              formControlName="tipoReporte"
               [options]="tiposReporte"
               optionLabel="label"
               optionValue="value"
               placeholder="Selecciona un tipo de reporte"
               [disabled]="loading"
+              [class.is-invalid]="f['tipoReporte'].invalid && formSubmitted"
               class="form-control">
             </p-dropdown>
+            <div class="error-message" *ngIf="f['tipoReporte'].invalid && formSubmitted">
+              {{ getErrorMessage('tipoReporte') }}
+            </div>
           </div>
 
           <div class="form-group">
@@ -134,7 +147,7 @@
             </label>
             <p-dropdown
               id="estado"
-              [(ngModel)]="filtroEstado"
+              formControlName="estado"
               [options]="estados"
               optionLabel="label"
               optionValue="value"
@@ -152,29 +165,38 @@
               Rango de Fechas
             </label>
             <app-custom-date-range
-              [(ngModel)]="filtroRangoFechas"
+              formControlName="rangoFechas"
               startPlaceholder="Fecha inicio"
               endPlaceholder="Fecha fin"
               separatorText="a"
-              [showActions]="true">
+              [showActions]="true"
+              [class.is-invalid]="f['rangoFechas'].invalid && formSubmitted">
             </app-custom-date-range>
+            <div class="error-message" *ngIf="f['rangoFechas'].invalid && formSubmitted">
+              {{ getErrorMessage('rangoFechas') }}
+            </div>
           </div>
         </div>
 
-        <div class="form-row" *ngIf="filtroTipoReporte === 'herramientas-populares'">
+        <div class="form-row" *ngIf="f['tipoReporte'].value === 'herramientas-populares'">
           <div class="form-group">
             <label for="limiteHerramientas">
               <i class="pi pi-list"></i>
               Límite de Herramientas
+              <span class="required">*</span>
             </label>
             <input
               type="number"
               id="limiteHerramientas"
-              [(ngModel)]="limiteHerramientas"
+              formControlName="limiteHerramientas"
               min="1"
-              max="50"
+              max="100"
               [disabled]="loading"
+              [class.is-invalid]="f['limiteHerramientas'].invalid && formSubmitted"
               class="form-control">
+            <div class="error-message" *ngIf="f['limiteHerramientas'].invalid && formSubmitted">
+              {{ getErrorMessage('limiteHerramientas') }}
+            </div>
           </div>
         </div>
 
@@ -184,7 +206,7 @@
             icon="pi pi-file-pdf"
             (onClick)="generarReporte()"
             [loading]="loading"
-            [disabled]="!filtroTipoReporte || loading"
+            [disabled]="!isFormValid"
             styleClass="p-button-primary">
           </p-button>
 
@@ -203,7 +225,7 @@
             <p>Generando reporte...</p>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 

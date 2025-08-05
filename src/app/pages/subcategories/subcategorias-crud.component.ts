@@ -143,8 +143,8 @@ import { forkJoin } from 'rxjs';
                     </td>
                     <td class="p-3">
                         <div class="font-medium" [ngClass]="{'text-gray-500': !subcategory.is_active}">{{ subcategory.nombre }}</div>
-                        <div *ngIf="subcategory.is_active" class="text-xs text-green-600 mt-1">Activa</div>
-                        <div *ngIf="!subcategory.is_active" class="text-xs text-red-500 mt-1">Inactiva</div>
+                        <span *ngIf="subcategory.is_active" class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Activa</span>
+                        <span *ngIf="!subcategory.is_active" class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactiva</span>
                         <div class="text-sm text-gray-500 sm:hidden">
                             <span *ngIf="subcategory.descripcion && subcategory.descripcion.trim()">{{ subcategory.descripcion }}</span>
                             <span *ngIf="!subcategory.descripcion || !subcategory.descripcion.trim()" class="text-gray-400 italic">Sin descripción</span>
@@ -235,6 +235,8 @@ import { forkJoin } from 'rxjs';
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="true"
+                    [filter]="true"
+                    filterPlaceholder="Buscar categorías..."
                     (onChange)="onCategoryChange($event)">
                     <ng-template pTemplate="selectedItem" let-category>
                         <div class="flex items-center justify-start h-full w-full">
@@ -247,6 +249,12 @@ import { forkJoin } from 'rxjs';
                                 <span class="font-medium">{{ category.nombre }}</span>
                                 <span class="text-sm text-gray-500">{{ category.descripcion || 'Sin descripción' }}</span>
                             </div>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron categorías</p>
                         </div>
                     </ng-template>
                 </p-dropdown>

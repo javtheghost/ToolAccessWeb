@@ -161,8 +161,8 @@ import { Category } from './interfaces';
                 </td>
                 <td class="p-3">
                     <div class="font-medium" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.nombre }}</div>
-                    <div *ngIf="tool.is_active" class="text-xs text-green-600 mt-1">Activa</div>
-                    <div *ngIf="!tool.is_active" class="text-xs text-red-500 mt-1">Inactiva</div>
+                    <span *ngIf="tool.is_active" class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Activa</span>
+                    <span *ngIf="!tool.is_active" class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactiva</span>
                 </td>
                 <td class="p-3">
                     <span *ngIf="tool.descripcion && tool.descripcion.trim()" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.descripcion }}</span>
@@ -275,6 +275,8 @@ import { Category } from './interfaces';
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="true"
+                    [filter]="true"
+                    filterPlaceholder="Buscar subcategorías..."
                     [class.border-red-500]="isFieldInvalid('subcategoria_id')"
                     [class.border-gray-300]="!isFieldInvalid('subcategoria_id')">
                     <ng-template pTemplate="selectedItem" let-subcategory>
@@ -288,6 +290,12 @@ import { Category } from './interfaces';
                                 <span class="font-medium">{{ subcategory.nombre }}</span>
                                 <span class="text-sm text-gray-500">{{ subcategory.categoria_nombre }}</span>
                             </div>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron subcategorías</p>
                         </div>
                     </ng-template>
                 </p-dropdown>

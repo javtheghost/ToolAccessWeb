@@ -12,6 +12,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
+import { SkeletonModule } from 'primeng/skeleton';
 import { LoansService, Loan, LoanDetail } from '../service/loans.service';
 import { finalize } from 'rxjs/operators';
 import { MobileDetectionService } from '../service/mobile-detection.service';
@@ -31,7 +32,8 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
         InputIconModule,
         IconFieldModule,
         DialogModule,
-        TooltipModule
+        TooltipModule,
+        SkeletonModule
     ],
     templateUrl: './loans-crud.component.html',
     providers: [MessageService],

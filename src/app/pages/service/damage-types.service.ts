@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { OAuthService } from './oauth.service';
+import { CommunicationService } from './communication.service';
 
 // Interfaces para tipos de daño
 export interface DamageType {
@@ -48,7 +49,11 @@ export interface DamageTypeResponse {
 export class DamageTypesService {
     private apiUrl = `${environment.apiServiceGeneralUrl}/api/damage-types`;
 
-    constructor(private http: HttpClient, private oauthService: OAuthService) {}
+    constructor(
+        private http: HttpClient, 
+        private oauthService: OAuthService,
+        private communicationService: CommunicationService
+    ) {}
 
     // GET - Obtener todos los tipos de daño
     getDamageTypes(search?: string, onlyActive?: boolean): Observable<DamageType[]> {
@@ -96,6 +101,9 @@ export class DamageTypesService {
                     throw new Error(response.message || 'Error al crear el tipo de daño');
                 }
             }),
+            tap(result => {
+                this.communicationService.notifyDamageTypeCreated(result);
+            }),
             catchError(this.handleError)
         );
     }
@@ -109,6 +117,9 @@ export class DamageTypesService {
                 } else {
                     throw new Error(response.message || 'Error al actualizar el tipo de daño');
                 }
+            }),
+            tap(result => {
+                this.communicationService.notifyDamageTypeUpdated(result);
             }),
             catchError(this.handleError)
         );
@@ -124,6 +135,9 @@ export class DamageTypesService {
                     throw new Error(response.message || 'Error al eliminar el tipo de daño');
                 }
             }),
+            tap(() => {
+                this.communicationService.notifyDamageTypeDeleted({ id });
+            }),
             catchError(this.handleError)
         );
     }
@@ -137,6 +151,9 @@ export class DamageTypesService {
                 } else {
                     throw new Error(response.message || 'Error al reactivar el tipo de daño');
                 }
+            }),
+            tap(result => {
+                this.communicationService.notifyDamageTypeStatusChanged(result);
             }),
             catchError(this.handleError)
         );

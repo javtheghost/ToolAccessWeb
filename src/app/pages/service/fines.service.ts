@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { OAuthService } from './oauth.service';
+import { CommunicationService } from './communication.service';
 
 // Interfaces para multas
 export interface Fine {
@@ -63,7 +64,11 @@ export interface FineResponse {
 export class FinesService {
     private apiUrl = `${environment.apiServiceGeneralUrl}/api/multas`;
 
-    constructor(private http: HttpClient, private oauthService: OAuthService) {}
+    constructor(
+        private http: HttpClient, 
+        private oauthService: OAuthService,
+        private communicationService: CommunicationService
+    ) {}
 
     // Método privado para obtener headers con token
     private getHeaders(): HttpHeaders {
@@ -166,6 +171,9 @@ export class FinesService {
                     throw new Error(response.message || 'Error al crear la multa');
                 }
             }),
+            tap(result => {
+                this.communicationService.notifyFineCreated(result);
+            }),
             catchError(this.handleError)
         );
     }
@@ -181,6 +189,9 @@ export class FinesService {
                 } else {
                     throw new Error(response.message || 'Error al actualizar la multa');
                 }
+            }),
+            tap(result => {
+                this.communicationService.notifyFineUpdated(result);
             }),
             catchError(this.handleError)
         );
@@ -198,6 +209,9 @@ export class FinesService {
                     throw new Error(response.message || 'Error al marcar la multa como pagada');
                 }
             }),
+            tap(result => {
+                this.communicationService.notifyFineUpdated(result);
+            }),
             catchError(this.handleError)
         );
     }
@@ -213,6 +227,9 @@ export class FinesService {
                 } else {
                     throw new Error(response.message || 'Error al eliminar la multa');
                 }
+            }),
+            tap(() => {
+                this.communicationService.notifyFineDeleted({ id });
             }),
             catchError(this.handleError)
         );

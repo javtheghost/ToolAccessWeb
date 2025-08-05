@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
@@ -17,6 +17,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { SkeletonModule } from 'primeng/skeleton';
 
 import { CardModule } from 'primeng/card';
 import { CustomDatePickerComponent } from '../utils/custom-date-picker.component';
@@ -24,6 +25,8 @@ import { CustomDatePickerComponent } from '../utils/custom-date-picker.component
 import { FinesService, Fine, FineCreateRequest, FineUpdateRequest } from '../service/fines.service';
 import { PaginationUtils } from '../utils/pagination.utils';
 import { finalize } from 'rxjs/operators';
+import { CommunicationService } from '../service/communication.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-recent-fines-crud',
@@ -45,6 +48,7 @@ import { finalize } from 'rxjs/operators';
         DropdownModule,
         TooltipModule,
         InputNumberModule,
+        SkeletonModule,
         CustomDatePickerComponent,
         CardModule
     ],
@@ -52,10 +56,36 @@ import { finalize } from 'rxjs/operators';
 <p-toast></p-toast>
 <div class="p-4">
     <div class="card">
-        <!-- Estado de carga -->
-        <div *ngIf="loading" class="p-4 text-center">
-            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-            <p class="mt-2">Cargando multas...</p>
+        <!-- Skeleton para toda la tabla (headers + datos) -->
+        <div *ngIf="loading" class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Header skeleton -->
+            <div class="bg-[#6ea1cc] text-white p-3">
+                <div class="flex items-center space-x-4">
+                    <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                </div>
+            </div>
+            <!-- Filas skeleton -->
+            <div class="p-4 space-y-3">
+                <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
+                    <p-skeleton height="1rem" width="60px"></p-skeleton>
+                    <p-skeleton height="1rem" width="120px"></p-skeleton>
+                    <p-skeleton height="1rem" width="140px"></p-skeleton>
+                    <p-skeleton height="1rem" width="120px"></p-skeleton>
+                    <p-skeleton height="1rem" width="100px"></p-skeleton>
+                    <p-skeleton height="1rem" width="120px"></p-skeleton>
+                    <p-skeleton height="1rem" width="140px"></p-skeleton>
+                    <p-skeleton height="1rem" width="100px"></p-skeleton>
+                    <p-skeleton height="1rem" width="80px"></p-skeleton>
+                </div>
+            </div>
         </div>
 
         <!-- Tabla de multas -->
@@ -386,7 +416,8 @@ import { finalize } from 'rxjs/operators';
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
-                    [filter]="true">
+                    [filter]="true"
+                    filterPlaceholder="Buscar usuarios...">
                     <ng-template pTemplate="selectedItem" let-usuario>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -407,8 +438,14 @@ import { finalize } from 'rxjs/operators';
                             </div>
                         </div>
                     </ng-template>
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron usuarios</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Usuario *</label>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Usuario <span class="text-red-500">*</span></label>
             </div>
 
             <!-- Orden préstamo -->
@@ -426,7 +463,8 @@ import { finalize } from 'rxjs/operators';
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
-                    [filter]="true">
+                    [filter]="true"
+                    filterPlaceholder="Buscar órdenes...">
                     <ng-template pTemplate="selectedItem" let-orden>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -447,8 +485,14 @@ import { finalize } from 'rxjs/operators';
                             </div>
                         </div>
                     </ng-template>
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron órdenes</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Orden préstamo *</label>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Orden préstamo <span class="text-red-500">*</span></label>
             </div>
 
             <!-- Configuración -->
@@ -466,7 +510,8 @@ import { finalize } from 'rxjs/operators';
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
-                    [filter]="true">
+                    [filter]="true"
+                    filterPlaceholder="Buscar configuraciones...">
                     <ng-template pTemplate="selectedItem" let-config>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -483,12 +528,20 @@ import { finalize } from 'rxjs/operators';
                             <span>{{ config.nombre }}</span>
                         </div>
                     </ng-template>
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron configuraciones</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Configuración *</label>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Configuración <span class="text-red-500">*</span></label>
             </div>
 
             <!-- Monto -->
             <div class="relative col-span-1">
+            <label for="monto_total" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Monto total  <span class="text-red-500">*</span></label>
+
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-10">payments</span>
                 <p-inputnumber
                     formControlName="monto_total"
@@ -496,7 +549,7 @@ import { finalize } from 'rxjs/operators';
                     [maxFractionDigits]="2"
                     [min]="0"
                     [max]="999999.99"
-                    placeholder="$0.00 MXN"
+                    placeholder=" $0.00 MXN"
                     class="w-full"
                     [showButtons]="false"
                     [useGrouping]="true"
@@ -518,7 +571,8 @@ import { finalize } from 'rxjs/operators';
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
-                    [filter]="true">
+                    [filter]="true"
+                    filterPlaceholder="Buscar estados...">
                     <ng-template pTemplate="selectedItem" let-estado>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -535,13 +589,19 @@ import { finalize } from 'rxjs/operators';
                             <span>{{ estado.label }}</span>
                         </div>
                     </ng-template>
+                    <ng-template pTemplate="emptyfilter">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                            <p class="text-gray-500">No se encontraron estados</p>
+                        </div>
+                    </ng-template>
                 </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Estado *</label>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Estado <span class="text-red-500">*</span></label>
             </div>
 
             <!-- Fecha Vencimiento -->
             <div class="relative col-span-1">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Vencimiento *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Vencimiento <span class="text-red-500">*</span></label>
                 <app-custom-date-picker
                     formControlName="fecha_vencimiento"
                     placeholder="Seleccionar fecha de vencimiento">
@@ -666,7 +726,7 @@ import { finalize } from 'rxjs/operators';
         }`
     ]
 })
-export class RecentFinesCrudComponent implements OnInit {
+export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     fines: Fine[] = [];
     selectedFines: Fine[] | null = null;
     @ViewChild('dt') dt!: Table;
@@ -701,11 +761,14 @@ export class RecentFinesCrudComponent implements OnInit {
         { label: 'Exonerada', value: 'exonerada' }
     ];
 
+    private destroy$ = new Subject<void>();
+
     constructor(
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private finesService: FinesService,
         public paginationUtils: PaginationUtils,
+        private communicationService: CommunicationService,
         private fb: FormBuilder,
     ) {
         this.initForm();
@@ -715,6 +778,61 @@ export class RecentFinesCrudComponent implements OnInit {
         this.loadFines();
         this.loadFormData();
         this.setupMobileDetection();
+        this.setupCommunicationListeners();
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private setupCommunicationListeners() {
+        // Escuchar actualizaciones de multas
+        this.communicationService.finesUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event) {
+                    // Recargar multas cuando se actualicen
+                    this.loadFines();
+                }
+            });
+
+        // Escuchar actualizaciones de tipos de daño para actualizar los selects
+        this.communicationService.damageTypesUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event) {
+                    // Recargar configuraciones cuando cambien los tipos de daño
+                    // ya que las configuraciones pueden depender de los tipos de daño
+                    this.loadFormData();
+
+                    // Mostrar mensaje de actualización
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Datos actualizados',
+                        detail: 'Los datos del formulario se han actualizado automáticamente',
+                        life: 2000
+                    });
+                }
+            });
+
+        // Escuchar actualizaciones de configuraciones de multas para actualizar los selects
+        this.communicationService.finesConfigUpdates$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(event => {
+                if (event) {
+                    // Recargar configuraciones en los selects
+                    this.loadFormData();
+
+                    // Mostrar mensaje de actualización
+                    this.messageService.add({
+                        severity: 'info',
+                        summary: 'Datos actualizados',
+                        detail: 'Las configuraciones de multas se han actualizado automáticamente',
+                        life: 2000
+                    });
+                }
+            });
     }
 
     private setupMobileDetection() {

@@ -278,6 +278,53 @@
     cursor: not-allowed;
   }
 
+  // Estilos para validaciones
+  .form-control.is-invalid {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.1);
+  }
+
+  .form-control.is-invalid:focus {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.2);
+  }
+
+  .error-message {
+    color: var(--color-danger);
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+  }
+
+  .error-message i {
+    font-size: 0.875rem;
+  }
+
+  .form-errors {
+    background: rgba(217, 83, 79, 0.1);
+    border: 1px solid rgba(217, 83, 79, 0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-errors .error-message {
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+
+  .form-errors .error-message:last-child {
+    margin-bottom: 0;
+  }
+
+  .required {
+    color: var(--color-danger);
+    font-weight: 600;
+  }
+
   .form-actions {
     display: flex;
     gap: 16px;
@@ -760,6 +807,16 @@
       outline-offset: 0 !important;
       box-shadow: 0 0 0 3px rgba(3, 52, 110, 0.1) !important;
       border-color: var(--primary-color) !important;
+    }
+
+    .p-dropdown.is-invalid {
+      border-color: var(--color-danger) !important;
+      box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.1) !important;
+    }
+
+    .p-dropdown.is-invalid:not(.p-disabled).p-focus {
+      border-color: var(--color-danger) !important;
+      box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.2) !important;
     }
 
     .p-dropdown .p-dropdown-label {
