@@ -80,7 +80,7 @@ import { finalize } from 'rxjs/operators';
                 <ng-template #caption>
                     <div class="flex items-center justify-between">
                         <div>
-                            <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Multas Recientes</h5>
+                            <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Multas</h5>
                             <p class="text-sm text-[var(--primary-color)] mt-1 px-2">
                                 Gestiona y da seguimiento a todas las multas aplicadas en el sistema.
                             </p>
@@ -120,13 +120,11 @@ import { finalize } from 'rxjs/operators';
                         <td>
                             <div class="flex flex-col">
                                 <span class="font-semibold text-blue-600 text-sm sm:text-base">{{ fine.orden_folio || 'Orden #' + fine.orden_id }}</span>
-                                <span class="text-xs text-gray-500 hidden sm:block">ID: {{ fine.orden_id }}</span>
                             </div>
                         </td>
                         <td class="hidden md:table-cell">
                             <div class="flex flex-col">
                                 <span class="font-semibold text-gray-900">{{ fine.configuracion_nombre || 'Config #' + fine.configuracion_multa_id }}</span>
-                                <span class="text-xs text-gray-500">ID: {{ fine.configuracion_multa_id }}</span>
                             </div>
                         </td>
                         <td class="font-semibold text-sm sm:text-base">{{ fine.monto_total | currency:'MXN' }}</td>
@@ -147,7 +145,7 @@ import { finalize } from 'rxjs/operators';
                             </span>
                         </td>
                         <td class="hidden xl:table-cell text-sm">
-                            <span *ngIf="fine.fecha_pago; else noPago" class="text-green-600">
+                            <span *ngIf="fine.fecha_pago; else noPago" class="text-green-600 font-medium">
                                 {{ fine.fecha_pago | date:'dd/MM/yyyy' }}
                             </span>
                             <ng-template #noPago>
@@ -247,7 +245,6 @@ import { finalize } from 'rxjs/operators';
                         <span class="font-medium text-gray-700">Orden:</span>
                         <div class="text-right">
                             <div class="font-semibold text-blue-600">{{ selectedFine.orden_folio || 'Orden #' + selectedFine.orden_id }}</div>
-                            <div class="text-sm text-gray-500">ID: {{ selectedFine.orden_id }}</div>
                         </div>
                     </div>
 
@@ -255,7 +252,6 @@ import { finalize } from 'rxjs/operators';
                         <span class="font-medium text-gray-700">Configuración:</span>
                         <div class="text-right">
                             <div class="font-semibold text-gray-900">{{ selectedFine.configuracion_nombre || 'Config #' + selectedFine.configuracion_multa_id }}</div>
-                            <div class="text-sm text-gray-500">ID: {{ selectedFine.configuracion_multa_id }}</div>
                         </div>
                     </div>
 
@@ -263,7 +259,6 @@ import { finalize } from 'rxjs/operators';
                         <span class="font-medium text-gray-700">Daño:</span>
                         <div class="text-right">
                             <div class="font-semibold text-red-600">{{ selectedFine.dano_descripcion || 'Daño #' + selectedFine.dano_id }}</div>
-                            <div class="text-sm text-gray-500">ID: {{ selectedFine.dano_id }}</div>
                         </div>
                     </div>
                 </div>

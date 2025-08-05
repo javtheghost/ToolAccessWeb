@@ -160,7 +160,13 @@ import { forkJoin } from 'rxjs';
                         </span>
                     </td>
                     <td class="hidden sm:table-cell text-center p-3">
-                        <input type="checkbox" class="custom-toggle" [(ngModel)]="subcategory.is_active" disabled />
+                        <p-inputswitch
+                            [(ngModel)]="subcategory.is_active"
+                            (onChange)="toggleSubcategoryStatus(subcategory)"
+                            [disabled]="loading()"
+                            pTooltip="Cambiar estado de la subcategoría"
+                            tooltipPosition="top">
+                        </p-inputswitch>
                     </td>
                     <td class="text-center p-3">
                         <div class="flex justify-center gap-2">
@@ -174,29 +180,9 @@ import { forkJoin } from 'rxjs';
                                 </ng-template>
                             </p-button>
 
-                            <!-- Botón de eliminar solo para subcategorías activas -->
-                            <p-button
-                                *ngIf="subcategory.is_active"
-                                (click)="deleteSubcategory(subcategory)"
-                                styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
-                                pTooltip="Eliminar subcategoría"
-                                tooltipPosition="top">
-                                <ng-template pTemplate="icon">
-                                    <i class="material-symbols-outlined">delete</i>
-                                </ng-template>
-                            </p-button>
+                            <!-- Botón de eliminar removido - ahora se maneja con el switch -->
 
-                            <!-- Botón de reactivar solo para subcategorías inactivas -->
-                            <p-button
-                                *ngIf="!subcategory.is_active"
-                                (click)="reactivateSubcategory(subcategory)"
-                                styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
-                                pTooltip="Reactivar subcategoría"
-                                tooltipPosition="top">
-                                <ng-template pTemplate="icon">
-                                    <i class="material-symbols-outlined">refresh</i>
-                                </ng-template>
-                            </p-button>
+                            <!-- Botón de reactivar removido - ahora se maneja con el switch -->
                         </div>
                     </td>
                 </tr>
@@ -363,7 +349,9 @@ import { forkJoin } from 'rxjs';
         :host ::ng-deep .p-dropdown .p-dropdown-trigger {
             color: var(--primary-color) !important;
             width: 2.5rem !important;
-        }`
+        }
+
+        /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */`
     ]
 })
 export class SubcategoriasCrudComponent implements OnInit {
@@ -453,34 +441,65 @@ export class SubcategoriasCrudComponent implements OnInit {
             });
         }
 
-        reactivateSubcategory(subcategory: SubcategoryDisplay) {
-            this.confirmIcon = 'refresh';
-            this.confirmMessage = `¿Estás seguro de reactivar la subcategoría <span class='text-primary'>${subcategory.nombre}</span>?`;
-            this.confirmAction = () => {
-                this.deleting.set(true);
+        // Método para cambiar el estado de la subcategoría directamente
+        toggleSubcategoryStatus(subcategory: SubcategoryDisplay) {
+            const newStatus = subcategory.is_active;
+
+            if (newStatus) {
+                // Activar subcategoría
                 this.subcategoryService.reactivateSubcategory(subcategory.id).subscribe({
-                    next: () => {
+                    next: (updatedSubcategory) => {
+                        const idx = this.subcategories().findIndex(s => s.id === subcategory.id);
+                        if (idx > -1) {
+                            this.subcategories.update(subs => {
+                                const updatedSubs = [...subs];
+                                updatedSubs[idx] = updatedSubcategory;
+                                return updatedSubs;
+                            });
+                        }
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Éxito',
-                            detail: 'Subcategoría reactivada exitosamente',
+                            detail: 'Subcategoría activada',
                             life: 3000
                         });
-                        this.loadData();
-                        this.deleting.set(false);
                     },
                     error: (error) => {
+                        // Revertir el switch si hay error
+                        subcategory.is_active = !newStatus;
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: error.message || 'Error al reactivar la subcategoría',
+                            detail: error.message || 'Error al activar subcategoría',
                             life: 3000
                         });
-                        this.deleting.set(false);
                     }
                 });
-            };
-            this.showCustomConfirm = true;
+            } else {
+                // Desactivar subcategoría (eliminar)
+                this.subcategoryService.deleteSubcategory(subcategory.id).subscribe({
+                    next: () => {
+                        // Actualizar el estado local
+                        subcategory.is_active = false;
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Éxito',
+                            detail: 'Subcategoría desactivada',
+                            life: 3000
+                        });
+                    },
+                    error: (error) => {
+                        // Revertir el switch si hay error
+                        subcategory.is_active = !newStatus;
+                        this.messageService.add({
+                            severity: 'error',
+                            summary: 'Error',
+                            detail: error.message || 'Error al desactivar subcategoría',
+                            life: 3000
+                        });
+                    }
+                });
+            }
         }
 
         getCreateSubcategoryTooltip(): string {

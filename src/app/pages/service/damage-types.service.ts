@@ -128,9 +128,9 @@ export class DamageTypesService {
         );
     }
 
-    // PUT - Reactivar tipo de daño
+    // PUT - Reactivar tipo de daño (usando update con is_active = true)
     reactivateDamageType(id: number): Observable<DamageType> {
-        return this.http.put<DamageTypeResponse>(`${this.apiUrl}/${id}/reactivate`, {}).pipe(
+        return this.http.put<DamageTypeResponse>(`${this.apiUrl}/${id}`, { is_active: true }).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data[0] : response.data;

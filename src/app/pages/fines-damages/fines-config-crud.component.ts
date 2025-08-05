@@ -110,7 +110,13 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                     <span class="font-medium">{{ fine.valor_base | currency: 'MXN' }}</span>
                 </td>
                 <td class="text-center p-3">
-                    <input type="checkbox" class="custom-toggle" [(ngModel)]="fine.is_active" disabled />
+                    <p-inputswitch
+                        [(ngModel)]="fine.is_active"
+                        (onChange)="toggleFineConfigStatus(fine)"
+                        [disabled]="loading"
+                        pTooltip="Cambiar estado de la configuración"
+                        tooltipPosition="top">
+                    </p-inputswitch>
                 </td>
                 <td>
                     <p-button
@@ -122,15 +128,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                             <i class="material-symbols-outlined">edit</i>
                         </ng-template>
                     </p-button>
-                    <p-button
-                        (click)="deleteFineConfig(fine)"
-                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
-                        pTooltip="Eliminar configuración"
-                        tooltipPosition="top">
-                        <ng-template pTemplate="icon">
-                            <i class="material-symbols-outlined">delete</i>
-                        </ng-template>
-                    </p-button>
+                    <!-- Botón de eliminar removido - ahora se maneja con el switch -->
                 </td>
             </tr>
         </ng-template>
@@ -175,19 +173,20 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                     aria-label="Nombre"
                     [class.border-red-500]="isFieldInvalid('nombre')"
                     [class.border-gray-300]="!isFieldInvalid('nombre')" />
-                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
                 <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
             </div>
 
             <!-- Categoría -->
             <div class="relative col-span-1">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
+                <label for="aplica_a_categoria_id" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Categoría <span class="text-red-500">*</span></label>
                 <p-dropdown
                     [options]="categories"
                     formControlName="aplica_a_categoria_id"
                     optionLabel="nombre"
                     optionValue="id"
-                    placeholder="Seleccionar categoría (opcional)"
+                    placeholder="Seleccionar categoría"
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
@@ -201,6 +200,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
             <!-- Valor base -->
             <div class="relative col-span-1">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-10">payments</span>
+                <label for="valor_base" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Valor base <span class="text-red-500">*</span></label>
                 <p-inputnumber
                     formControlName="valor_base"
                     [minFractionDigits]="2"
@@ -212,7 +212,9 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
                     [showButtons]="false"
                     [useGrouping]="true"
                     [locale]="'es-MX'"
-                    styleClass="custom-inputnumber">
+                    styleClass="custom-inputnumber"
+                    [class.border-red-500]="isFieldInvalid('valor_base')"
+                    [class.border-gray-300]="!isFieldInvalid('valor_base')">
                 </p-inputnumber>
                 <div *ngIf="isFieldInvalid('valor_base')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_base') }}</div>
             </div>
@@ -478,6 +480,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
 
         :host ::ng-deep .custom-inputnumber .p-inputtext {
             padding-left: 2.5rem !important;
+            padding-top: 1rem !important;
             height: 3rem !important;
             border-radius: 0.5rem !important;
             border: 1px solid #d1d5db !important;
@@ -503,6 +506,20 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
 
         :host ::ng-deep .custom-inputnumber .p-inputtext:hover {
             border-color: #9ca3af !important;
+        }
+
+        /* Estilos para el label del valor base */
+        :host ::ng-deep .custom-inputnumber .p-inputtext:focus + label,
+        :host ::ng-deep .custom-inputnumber .p-inputtext:not(:placeholder-shown) + label {
+            transform: translateY(-0.5rem) scale(0.75) !important;
+            color: var(--primary-color) !important;
+        }
+
+        /* Estilos para el label del dropdown */
+        :host ::ng-deep .p-dropdown:focus + label,
+        :host ::ng-deep .p-dropdown:has(.p-dropdown-label:not(.p-placeholder)) + label {
+            transform: translateY(-0.5rem) scale(0.75) !important;
+            color: var(--primary-color) !important;
         }
 
         /* Estilos para campos con errores */
@@ -531,6 +548,8 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
         .ml-10 {
             margin-left: 2.5rem !important;
         }
+
+        /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */
     `]
 })
 export class FinesConfigCrudComponent implements OnInit {
@@ -587,7 +606,7 @@ export class FinesConfigCrudComponent implements OnInit {
         this.fineConfigForm = this.fb.group({
             nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
             valor_base: [0, [Validators.required, Validators.min(0), Validators.max(999999.99)]],
-            aplica_a_categoria_id: [null],
+            aplica_a_categoria_id: [null, [Validators.required]],
             is_active: [true]
         });
     }
@@ -602,18 +621,39 @@ export class FinesConfigCrudComponent implements OnInit {
         const control = this.fineConfigForm.get(controlName);
         if (control?.errors) {
             if (control.errors['required']) {
+                if (controlName === 'nombre') {
+                    return 'El nombre es obligatorio';
+                }
+                if (controlName === 'valor_base') {
+                    return 'El valor base es obligatorio';
+                }
+                if (controlName === 'aplica_a_categoria_id') {
+                    return 'La categoría es obligatoria';
+                }
                 return 'Este campo es obligatorio';
             }
             if (control.errors['minlength']) {
+                if (controlName === 'nombre') {
+                    return 'Mínimo 3 caracteres';
+                }
                 return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
             }
             if (control.errors['maxlength']) {
+                if (controlName === 'nombre') {
+                    return 'Máximo 50 caracteres';
+                }
                 return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
             }
             if (control.errors['min']) {
+                if (controlName === 'valor_base') {
+                    return 'El valor base debe ser mayor o igual a 0';
+                }
                 return `Valor mínimo: ${control.errors['min'].min}`;
             }
             if (control.errors['max']) {
+                if (controlName === 'valor_base') {
+                    return 'El valor base no puede exceder 999,999.99';
+                }
                 return `Valor máximo: ${control.errors['max'].max}`;
             }
             if (control.errors['pattern']) {
@@ -637,11 +677,11 @@ export class FinesConfigCrudComponent implements OnInit {
     loadFinesConfigs() {
         this.loading = true;
         this.finesConfigService.getFinesConfigs(undefined, this.showOnlyActive).subscribe({
-            next: (data) => {
+            next: (data: FinesConfig[]) => {
                 this.finesConfig = data;
                 this.loading = false;
             },
-            error: (error) => {
+            error: (error: any) => {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -654,10 +694,10 @@ export class FinesConfigCrudComponent implements OnInit {
 
     loadCategories() {
         this.categoryService.getCategories().subscribe({
-            next: (data) => {
+            next: (data: Category[]) => {
                 this.categories = data;
             },
-            error: (error) => {
+            error: (error: any) => {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -670,6 +710,61 @@ export class FinesConfigCrudComponent implements OnInit {
     toggleActiveView() {
         this.showOnlyActive = !this.showOnlyActive;
         this.loadFinesConfigs();
+    }
+
+    // Método para cambiar el estado de la configuración directamente
+    toggleFineConfigStatus(fine: FinesConfig) {
+        const newStatus = fine.is_active;
+
+        if (newStatus) {
+            // Activar configuración
+            this.finesConfigService.reactivateFinesConfig(fine.id).subscribe({
+                next: (updatedFine: FinesConfig) => {
+                    const idx = this.finesConfig.findIndex(f => f.id === fine.id);
+                    if (idx > -1) this.finesConfig[idx] = updatedFine;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Configuración activada',
+                        life: 3000
+                    });
+                },
+                error: (error: any) => {
+                    // Revertir el switch si hay error
+                    fine.is_active = !newStatus;
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al activar configuración',
+                        life: 3000
+                    });
+                }
+            });
+        } else {
+            // Desactivar configuración (eliminar)
+            this.finesConfigService.deleteFinesConfig(fine.id).subscribe({
+                next: () => {
+                    // Actualizar el estado local
+                    fine.is_active = false;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Configuración desactivada',
+                        life: 3000
+                    });
+                },
+                error: (error: any) => {
+                    // Revertir el switch si hay error
+                    fine.is_active = !newStatus;
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al desactivar configuración',
+                        life: 3000
+                    });
+                }
+            });
+        }
     }
 
     onGlobalFilter(table: Table, event: Event) {
@@ -713,7 +808,7 @@ export class FinesConfigCrudComponent implements OnInit {
                     });
                     this.loadFinesConfigs();
                 },
-                error: (error) => {
+                error: (error: any) => {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
@@ -754,7 +849,7 @@ export class FinesConfigCrudComponent implements OnInit {
                 };
 
                 this.finesConfigService.updateFinesConfig(this.fineConfig.id, updateRequest).subscribe({
-                    next: (updatedConfig) => {
+                    next: (updatedConfig: FinesConfig) => {
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Éxito',
@@ -764,7 +859,7 @@ export class FinesConfigCrudComponent implements OnInit {
                         this.loadFinesConfigs();
                         this.saving = false;
                     },
-                    error: (error) => {
+                    error: (error: any) => {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
@@ -785,7 +880,7 @@ export class FinesConfigCrudComponent implements OnInit {
             };
 
             this.finesConfigService.createFinesConfig(createRequest).subscribe({
-                next: (newConfig) => {
+                next: (newConfig: FinesConfig) => {
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
@@ -795,7 +890,7 @@ export class FinesConfigCrudComponent implements OnInit {
                     this.loadFinesConfigs();
                     this.saving = false;
                 },
-                error: (error) => {
+                error: (error: any) => {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',

@@ -175,8 +175,14 @@ import { Category } from './interfaces';
                 <td class="p-3" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.subcategoria_nombre || 'N/A' }}</td>
                 <td class="text-center p-3" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.stock }}</td>
                 <td class="text-center p-3" [ngClass]="{'text-gray-500': !tool.is_active}">{{ tool.valor_reposicion | currency: 'MXN' }}</td>
-                <td class="text-center p-3">
-                    <input type="checkbox" class="custom-toggle" [(ngModel)]="tool.is_active" disabled />
+                                <td class="text-center p-3">
+                    <p-inputswitch
+                        [(ngModel)]="tool.is_active"
+                        (onChange)="toggleToolStatus(tool)"
+                        [disabled]="loading"
+                        pTooltip="Cambiar estado de la herramienta"
+                        tooltipPosition="top">
+                    </p-inputswitch>
                 </td>
                 <td class="text-center p-3">
                     <div class="flex justify-center gap-2">
@@ -190,29 +196,9 @@ import { Category } from './interfaces';
                             </ng-template>
                         </p-button>
 
-                        <!-- Botón de eliminar solo para herramientas activas -->
-                        <p-button
-                            *ngIf="tool.is_active"
-                            (click)="deleteTool(tool)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
-                            pTooltip="Eliminar herramienta"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">delete</i>
-                            </ng-template>
-                        </p-button>
+                        <!-- Botón de desactivar removido - ahora se maneja con el switch -->
 
-                        <!-- Botón de reactivar para herramientas inactivas -->
-                        <p-button
-                            *ngIf="!tool.is_active"
-                            (click)="reactivateTool(tool)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
-                            pTooltip="Reactivar herramienta"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">refresh</i>
-                            </ng-template>
-                        </p-button>
+                        <!-- Botón de reactivar removido - ahora se maneja con el switch -->
                     </div>
                 </td>
             </tr>
@@ -357,10 +343,7 @@ import { Category } from './interfaces';
                 <div *ngIf="isFieldInvalid('valor_reposicion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_reposicion') }}</div>
             </div>
 
-            <div class="flex flex-col items-center justify-center col-span-1">
-                <label class="mb-2">Activo</label>
-                <input type="checkbox" class="custom-toggle" formControlName="is_active" />
-            </div>
+            <!-- Switch removido del dialog - ahora se maneja desde la tabla -->
 
             <div class="col-span-1">
                 <label class="block mb-2">Selecciona la imagen</label>
@@ -570,6 +553,21 @@ import { Category } from './interfaces';
         :host ::ng-deep .p-dropdown .p-dropdown-trigger {
             width: 2.5rem !important;
             color: #6b7280 !important;
+        }
+
+        /* Estilos para el switch personalizado con color verde */
+        :host ::ng-deep .custom-inputswitch .p-inputswitch-slider {
+            background: #e5e7eb !important;
+            border-color: #e5e7eb !important;
+        }
+
+        :host ::ng-deep .custom-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+            background: #12A883 !important;
+            border-color: #12A883 !important;
+        }
+
+        :host ::ng-deep .custom-inputswitch .p-inputswitch-slider:before {
+            background: #ffffff !important;
         }`
     ]
 })
@@ -613,6 +611,8 @@ export class ToolsCrudComponent implements OnInit {
     imagePreview: string | null = null;
     hasNewImage: boolean = false; // Para rastrear si se seleccionó una nueva imagen
 
+    // Variable removida - ya no necesaria
+
     constructor(
         private messageService: MessageService,
         private toolsService: ToolsService,
@@ -655,8 +655,8 @@ export class ToolsCrudComponent implements OnInit {
                 Validators.pattern(/^\d{1,6}(\.\d{1,2})?$/),
                 Validators.min(0),
                 Validators.max(999999.99)
-            ]],
-            is_active: [true]
+            ]]
+            // is_active removido del formulario - ahora se maneja desde la tabla
         });
     }
 
@@ -667,7 +667,7 @@ export class ToolsCrudComponent implements OnInit {
     get subcategoria_id() { return this.toolForm.get('subcategoria_id'); }
     get stock() { return this.toolForm.get('stock'); }
     get valor_reposicion() { return this.toolForm.get('valor_reposicion'); }
-    get is_active() { return this.toolForm.get('is_active'); }
+    // get is_active() removido - ahora se maneja desde la tabla
 
     // Métodos de validación personalizados
     getErrorMessage(controlName: string): string {
@@ -738,8 +738,7 @@ export class ToolsCrudComponent implements OnInit {
 
     loadTools() {
         this.loading = true;
-        // Por defecto, solo cargar herramientas activas para usuarios normales
-        // Los administradores pueden ver todas las herramientas
+        // Cargar herramientas según el filtro de vista activa
         this.toolsService.getTools(undefined, this.showOnlyActive).subscribe({
             next: (tools) => {
                 this.tools = tools;
@@ -817,8 +816,7 @@ export class ToolsCrudComponent implements OnInit {
             folio: '',
             subcategoria_id: null,
             stock: 1,
-            valor_reposicion: 0,
-            is_active: true
+            valor_reposicion: 0
         });
         this.toolDialog = true;
     }
@@ -837,8 +835,7 @@ export class ToolsCrudComponent implements OnInit {
             folio: tool.folio,
             subcategoria_id: tool.subcategoria_id,
             stock: tool.stock,
-            valor_reposicion: tool.valor_reposicion,
-            is_active: tool.is_active
+            valor_reposicion: tool.valor_reposicion
         });
 
         this.selectedImage = null;
@@ -848,70 +845,63 @@ export class ToolsCrudComponent implements OnInit {
         this.toolDialog = true;
     }
 
-    deleteTool(tool: Tool) {
-        // Validar que la herramienta esté activa antes de intentar eliminarla
-        if (!tool.is_active) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Advertencia',
-                detail: 'No puedes eliminar una herramienta que ya está inactiva. Usa el botón de reactivar si deseas volver a activarla.',
-                life: 5000
-            });
-            return;
-        }
+    // Método deactivateTool removido - ahora se maneja con toggleToolStatus
 
-        this.confirmIcon = 'delete';
-        this.confirmMessage = `¿Estás seguro de eliminar la herramienta <span class='text-primary'>${tool.nombre}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
-        this.confirmAction = () => {
+    // Método reactivateTool removido - ahora se maneja con toggleToolStatus
+
+        // Método para cambiar el estado de la herramienta directamente
+    toggleToolStatus(tool: Tool) {
+        const newStatus = tool.is_active;
+
+        if (newStatus) {
+            // Activar herramienta
+            this.toolsService.reactivateTool(tool.id).subscribe({
+                next: (updatedTool) => {
+                    const idx = this.tools.findIndex(t => t.id === tool.id);
+                    if (idx > -1) this.tools[idx] = updatedTool;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Herramienta activada',
+                        life: 3000
+                    });
+                },
+                error: (error) => {
+                    // Revertir el switch si hay error
+                    tool.is_active = !newStatus;
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al activar herramienta',
+                        life: 3000
+                    });
+                }
+            });
+        } else {
+            // Desactivar herramienta (eliminar)
             this.toolsService.deleteTool(tool.id).subscribe({
                 next: () => {
-                    this.tools = this.tools.filter(t => t.id !== tool.id);
+                    // Actualizar el estado local
+                    tool.is_active = false;
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
-                        detail: 'Herramienta eliminada',
+                        detail: 'Herramienta desactivada',
                         life: 3000
                     });
                 },
                 error: (error) => {
+                    // Revertir el switch si hay error
+                    tool.is_active = !newStatus;
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: error.message || 'Error al eliminar herramienta',
+                        detail: error.message || 'Error al desactivar herramienta',
                         life: 3000
                     });
                 }
             });
-        };
-        this.showCustomConfirm = true;
-    }
-
-    reactivateTool(tool: Tool) {
-        this.confirmIcon = 'warning';
-        this.confirmMessage = `¿Estás seguro de reactivar la herramienta <span class='text-primary'>${tool.nombre}</span>? Una vez que aceptes, la herramienta volverá a estar activa.`;
-        this.confirmAction = () => {
-            this.toolsService.reactivateTool(tool.id).subscribe({
-                next: (reactivatedTool) => {
-                    const idx = this.tools.findIndex(t => t.id === tool.id);
-                    if (idx > -1) this.tools[idx] = reactivatedTool;
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Herramienta reactivada',
-                        life: 3000
-                    });
-                },
-                error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al reactivar herramienta',
-                        life: 3000
-                    });
-                }
-            });
-        };
-        this.showCustomConfirm = true;
+        }
     }
 
     hideDialog() {
@@ -972,7 +962,7 @@ export class ToolsCrudComponent implements OnInit {
                         valor_reposicion: formValue.valor_reposicion,
                         descripcion: formValue.descripcion,
                         imagen: this.hasNewImage && this.selectedImage ? this.selectedImage : undefined,
-                        is_active: Boolean(formValue.is_active)
+                        is_active: true // Siempre crear como activa, el estado se maneja desde la tabla
                     };
 
                     this.toolsService.updateTool(this.tool.id, updateData).subscribe({
@@ -1015,7 +1005,7 @@ export class ToolsCrudComponent implements OnInit {
                     valor_reposicion: formValue.valor_reposicion,
                     descripcion: formValue.descripcion,
                     imagen: this.selectedImage || undefined,
-                    is_active: Boolean(formValue.is_active)
+                    is_active: true // Siempre crear como activa, el estado se maneja desde la tabla
                 };
 
                 this.toolsService.createTool(createData).subscribe({

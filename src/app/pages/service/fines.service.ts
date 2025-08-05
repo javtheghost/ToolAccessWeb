@@ -188,7 +188,7 @@ export class FinesService {
 
     // PUT - Marcar multa como pagada (Solo ADMIN)
     payFine(id: number): Observable<Fine> {
-        return this.http.put<FineResponse>(`${this.apiUrl}/${id}/pay`, {}, {
+        return this.http.put<FineResponse>(`${this.apiUrl}/${id}/pagar`, {}, {
             headers: this.getHeaders()
         }).pipe(
             map(response => {
@@ -220,13 +220,6 @@ export class FinesService {
 
     // GET - Obtener usuarios para dropdown
     getUsuarios(): Observable<any[]> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.next([]);
-            observer.complete();
-        });
-
-        /*
         return this.http.get<any>(`${this.apiUrl}/usuarios`, {
             headers: this.getHeaders()
         }).pipe(
@@ -242,18 +235,10 @@ export class FinesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     // GET - Obtener configuraciones para dropdown
     getConfiguraciones(): Observable<any[]> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.next([]);
-            observer.complete();
-        });
-
-        /*
         return this.http.get<any>(`${this.apiUrl}/configuraciones`, {
             headers: this.getHeaders()
         }).pipe(
@@ -269,18 +254,10 @@ export class FinesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
-    // GET - Obtener órdenes para dropdown (usando ruta existente de órdenes)
+    // GET - Obtener órdenes para dropdown
     getOrdenes(): Observable<any[]> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.next([]);
-            observer.complete();
-        });
-
-        /*
         return this.http.get<any>(`${this.apiUrl}/ordenes`, {
             headers: this.getHeaders()
         }).pipe(
@@ -296,7 +273,6 @@ export class FinesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     private handleError(error: any): Observable<never> {

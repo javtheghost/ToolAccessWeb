@@ -158,7 +158,13 @@ interface Column {
                     <span *ngIf="!category.descripcion || !category.descripcion.trim()" class="text-gray-400 ">Sin descripción</span>
                 </td>
                 <td class="hidden sm:table-cell text-center p-3">
-                    <input type="checkbox" class="custom-toggle" [(ngModel)]="category.is_active" disabled />
+                    <p-inputswitch
+                        [(ngModel)]="category.is_active"
+                        (onChange)="toggleCategoryStatus(category)"
+                        [disabled]="loading()"
+                        pTooltip="Cambiar estado de la categoría"
+                        tooltipPosition="top">
+                    </p-inputswitch>
                 </td>
                 <td class="text-center p-3">
                     <div class="flex justify-center gap-2">
@@ -172,29 +178,9 @@ interface Column {
                             </ng-template>
                         </p-button>
 
-                        <!-- Botón de eliminar solo para categorías activas -->
-                        <p-button
-                            *ngIf="category.is_active"
-                            (click)="deleteCategory(category)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
-                            pTooltip="Eliminar categoría"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">delete</i>
-                            </ng-template>
-                        </p-button>
+                        <!-- Botón de eliminar removido - ahora se maneja con el switch -->
 
-                        <!-- Botón de reactivar solo para categorías inactivas -->
-                        <p-button
-                            *ngIf="!category.is_active"
-                            (click)="reactivateCategory(category)"
-                            styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
-                            pTooltip="Reactivar categoría"
-                            tooltipPosition="top">
-                            <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">refresh</i>
-                            </ng-template>
-                        </p-button>
+                        <!-- Botón de reactivar removido - ahora se maneja con el switch -->
                     </div>
                 </td>
             </tr>
@@ -349,7 +335,9 @@ interface Column {
 
         :host ::ng-deep .p-dialog .p-dialog-content {
             border-radius: 0 0 12px 12px !important;
-        }`
+        }
+
+        /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */`
     ]
 })
 export class CategoriesCrudComponent implements OnInit {
@@ -452,34 +440,65 @@ export class CategoriesCrudComponent implements OnInit {
         });
     }
 
-    reactivateCategory(category: Category) {
-        this.confirmIcon = 'refresh';
-        this.confirmMessage = `¿Estás seguro de reactivar la categoría <span class='text-primary'>${category.nombre}</span>?`;
-        this.confirmAction = () => {
-            this.deleting.set(true);
+    // Método para cambiar el estado de la categoría directamente
+    toggleCategoryStatus(category: Category) {
+        const newStatus = category.is_active;
+
+        if (newStatus) {
+            // Activar categoría
             this.categoryService.reactivateCategory(category.id!).subscribe({
-                next: () => {
+                next: (updatedCategory) => {
+                    const idx = this.categories().findIndex(c => c.id === category.id);
+                    if (idx > -1) {
+                        this.categories.update(cats => {
+                            const updatedCats = [...cats];
+                            updatedCats[idx] = updatedCategory;
+                            return updatedCats;
+                        });
+                    }
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
-                        detail: 'Categoría reactivada exitosamente',
+                        detail: 'Categoría activada',
                         life: 3000
                     });
-                    this.loadCategories();
-                    this.deleting.set(false);
                 },
                 error: (error) => {
+                    // Revertir el switch si hay error
+                    category.is_active = !newStatus;
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: error.message || 'Error al reactivar la categoría',
+                        detail: error.message || 'Error al activar categoría',
                         life: 3000
                     });
-                    this.deleting.set(false);
                 }
             });
-        };
-        this.showCustomConfirm = true;
+        } else {
+            // Desactivar categoría (eliminar)
+            this.categoryService.deleteCategory(category.id!).subscribe({
+                next: () => {
+                    // Actualizar el estado local
+                    category.is_active = false;
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Categoría desactivada',
+                        life: 3000
+                    });
+                },
+                error: (error) => {
+                    // Revertir el switch si hay error
+                    category.is_active = !newStatus;
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al desactivar categoría',
+                        life: 3000
+                    });
+                }
+            });
+        }
     }
 
     getActiveCategoriesCount(): number {
@@ -676,6 +695,61 @@ export class CategoriesCrudComponent implements OnInit {
     }
     onCustomConfirmReject() {
         this.showCustomConfirm = false;
+    }
+
+    onToggleActive(category: Category, event: Event) {
+        const checkbox = event.target as HTMLInputElement;
+        const newActiveState = checkbox.checked;
+
+        // Revertir el cambio visual inmediatamente
+        checkbox.checked = !newActiveState;
+
+        // Mostrar diálogo de confirmación
+        this.confirmIcon = newActiveState ? 'check_circle' : 'pause_circle';
+        this.confirmMessage = newActiveState
+            ? `¿Estás seguro de activar la categoría <span class='text-primary'>${category.nombre}</span>?`
+            : `¿Estás seguro de desactivar la categoría <span class='text-primary'>${category.nombre}</span>?`;
+
+        this.confirmAction = () => {
+            this.deleting.set(true);
+            const updateData: CategoryUpdateRequest = {
+                name: category.nombre!,
+                description: category.descripcion || '',
+                active: newActiveState
+            };
+
+            this.categoryService.updateCategory(category.id!, updateData).subscribe({
+                next: (updatedCategory) => {
+                    // Actualizar el estado visual después de confirmar
+                    checkbox.checked = newActiveState;
+
+                    // Actualizar la categoría en la lista
+                    const idx = this.categories().findIndex(c => c.id === category.id);
+                    if (idx > -1) {
+                        this.categories()[idx] = updatedCategory;
+                        this.categories.set([...this.categories()]);
+                    }
+
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: `Categoría "${category.nombre}" ${newActiveState ? 'activada' : 'desactivada'} exitosamente`,
+                        life: 3000
+                    });
+                    this.deleting.set(false);
+                },
+                error: (error) => {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || `Error al ${newActiveState ? 'activar' : 'desactivar'} la categoría`,
+                        life: 3000
+                    });
+                    this.deleting.set(false);
+                }
+            });
+        };
+        this.showCustomConfirm = true;
     }
 
     @HostListener('document:keydown.escape')
