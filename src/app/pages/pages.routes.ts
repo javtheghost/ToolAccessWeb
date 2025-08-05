@@ -2,7 +2,7 @@
 import { Routes } from '@angular/router';
 import { RolesCrudComponent } from './roles/roles-crud.component';
 import { CategoriesCrudComponent } from './categories/categories-crud.component';
-import { UsersCrudComponent } from './users/users-crud';
+import { UsersCrudComponent } from './users/users-crud.component';
 import { ToolsCrudComponent } from './tools-crud.component';
 import { LoansCrudComponent } from './loans/loans-crud.component';
 import { SubcategoriasCrudComponent } from './subcategories/subcategorias-crud.component';
