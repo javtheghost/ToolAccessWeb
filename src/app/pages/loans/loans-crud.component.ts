@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -16,6 +16,8 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { LoansService, Loan, LoanDetail } from '../service/loans.service';
 import { finalize } from 'rxjs/operators';
 import { MobileDetectionService } from '../service/mobile-detection.service';
+import { WebSocketService, OrderEvent, NotificationEvent } from '../service/websocket.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-loans-crud',
@@ -39,7 +41,7 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
     providers: [MessageService],
     styleUrls: ['./loans-crud.component.scss']
 })
-export class LoansCrudComponent implements OnInit {
+export class LoansCrudComponent implements OnInit, OnDestroy {
     loans: Loan[] = [];
     @ViewChild('dt') dt!: Table;
 
@@ -51,15 +53,110 @@ export class LoansCrudComponent implements OnInit {
     loading = false;
     loadingDetails = false;
 
+    // WebSocket subscriptions
+    private subscriptions: Subscription[] = [];
+
     constructor(
         private messageService: MessageService,
         private loansService: LoansService,
-        private mobileDetectionService: MobileDetectionService
+        private mobileDetectionService: MobileDetectionService,
+        private webSocketService: WebSocketService
     ) {}
 
     ngOnInit() {
         this.loadLoans();
         this.setupMobileDetection();
+        this.setupWebSocket();
+    }
+
+    ngOnDestroy() {
+        // Limpiar suscripciones
+        this.subscriptions.forEach(sub => sub.unsubscribe());
+        this.webSocketService.disconnect();
+    }
+
+    private setupWebSocket() {
+        // Suscribirse a eventos de órdenes para recargar la tabla automáticamente
+        const orderCreatedSub = this.webSocketService.onOrderCreated().subscribe((event: OrderEvent) => {
+            console.log('📋 Nueva orden creada, recargando tabla...', event);
+            this.loadLoans();
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Nueva Orden',
+                detail: `Se ha creado una nueva orden de préstamo`,
+                life: 3000
+            });
+        });
+
+        const orderApprovedSub = this.webSocketService.onOrderApproved().subscribe((event: OrderEvent) => {
+            console.log('✅ Orden aprobada, recargando tabla...', event);
+            this.loadLoans();
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Orden Aprobada',
+                detail: `Se ha aprobado una orden de préstamo`,
+                life: 3000
+            });
+        });
+
+        const orderRejectedSub = this.webSocketService.onOrderRejected().subscribe((event: OrderEvent) => {
+            console.log('❌ Orden rechazada, recargando tabla...', event);
+            this.loadLoans();
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Orden Rechazada',
+                detail: `Se ha rechazado una orden de préstamo`,
+                life: 3000
+            });
+        });
+
+        const orderStatusChangedSub = this.webSocketService.onOrderStatusChanged().subscribe((event: OrderEvent) => {
+            console.log('🔄 Estado de orden cambiado, recargando tabla...', event);
+            this.loadLoans();
+        });
+
+        const orderExpiredSub = this.webSocketService.onOrderExpired().subscribe((event: OrderEvent) => {
+            console.log('⏰ Orden vencida, recargando tabla...', event);
+            this.loadLoans();
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Orden Vencida',
+                detail: `Una orden de préstamo ha vencido`,
+                life: 5000
+            });
+        });
+
+        const orderExpiringSoonSub = this.webSocketService.onOrderExpiringSoon().subscribe((event: OrderEvent) => {
+            console.log('⚠️ Orden próxima a vencer, recargando tabla...', event);
+            this.loadLoans();
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Orden Próxima a Vencer',
+                detail: `Una orden de préstamo está próxima a vencer`,
+                life: 4000
+            });
+        });
+
+        // Suscribirse a notificaciones generales
+        const notificationSub = this.webSocketService.onNotification().subscribe((notification: NotificationEvent) => {
+            this.messageService.add({
+                severity: notification.data?.type === 'success' ? 'success' : 'info',
+                summary: 'Notificación',
+                detail: notification.data?.message || 'Nueva notificación',
+                life: 3000
+            });
+        });
+
+        // Agregar todas las suscripciones para limpieza posterior
+        this.subscriptions.push(
+            orderCreatedSub,
+            orderApprovedSub,
+            orderRejectedSub,
+            orderStatusChangedSub,
+            orderExpiredSub,
+            orderExpiringSoonSub,
+            notificationSub
+        );
     }
 
     private setupMobileDetection() {
