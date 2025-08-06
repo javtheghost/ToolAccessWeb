@@ -27,6 +27,8 @@ import { PaginationUtils } from '../utils/pagination.utils';
 import { finalize } from 'rxjs/operators';
 import { CommunicationService } from '../service/communication.service';
 import { Subject, takeUntil } from 'rxjs';
+import { ModalAlertService, ModalAlert } from '../utils/modal-alert.service';
+import { ModalAlertComponent } from '../utils/modal-alert.component';
 
 @Component({
     selector: 'app-recent-fines-crud',
@@ -50,7 +52,8 @@ import { Subject, takeUntil } from 'rxjs';
         InputNumberModule,
         SkeletonModule,
         CustomDatePickerComponent,
-        CardModule
+        CardModule,
+        ModalAlertComponent
     ],
     template: `
 <p-toast></p-toast>
@@ -136,7 +139,7 @@ import { Subject, takeUntil } from 'rxjs';
                         </th>
                         <th pSortableColumn="orden_folio">
                             <div class="flex justify-content-center align-items-center">
-                                Orden
+                                Orden Préstamo
                                 <p-sortIcon field="orden_folio"></p-sortIcon>
                             </div>
                         </th>
@@ -438,6 +441,12 @@ import { Subject, takeUntil } from 'rxjs';
     </span>
   </ng-template>
   <ng-template pTemplate="content">
+    <!-- Alerta Modal -->
+    <app-modal-alert
+        [alert]="modalAlert"
+        (close)="hideModalAlert()">
+    </app-modal-alert>
+
     <form [formGroup]="fineForm" (ngSubmit)="saveFine()" style="font-family: Arial, sans-serif;">
         <div class="grid grid-cols-1 gap-4 p-5">
 
@@ -802,6 +811,7 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     ];
 
     private destroy$ = new Subject<void>();
+    modalAlert: ModalAlert = { show: false, type: 'error', title: '', message: '' };
 
     constructor(
         private messageService: MessageService,
@@ -810,6 +820,7 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
         public paginationUtils: PaginationUtils,
         private communicationService: CommunicationService,
         private fb: FormBuilder,
+        private modalAlertService: ModalAlertService
     ) {
         this.initForm();
     }
@@ -824,6 +835,27 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
+        switch (type) {
+            case 'error':
+                this.modalAlert = this.modalAlertService.createErrorAlert(title, message);
+                break;
+            case 'warning':
+                this.modalAlert = this.modalAlertService.createWarningAlert(title, message);
+                break;
+            case 'info':
+                this.modalAlert = this.modalAlertService.createInfoAlert(title, message);
+                break;
+            case 'success':
+                this.modalAlert = this.modalAlertService.createSuccessAlert(title, message);
+                break;
+        }
+    }
+
+    hideModalAlert() {
+        this.modalAlert = this.modalAlertService.hideAlert();
     }
 
     private setupCommunicationListeners() {

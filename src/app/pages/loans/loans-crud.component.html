@@ -193,6 +193,12 @@
     [resizable]="false"
     (onHide)="closeDetailModal()"
 >
+    <!-- Alerta Modal -->
+    <app-modal-alert 
+        [alert]="modalAlert" 
+        (close)="hideModalAlert()">
+    </app-modal-alert>
+    
     <div *ngIf="loadingDetails" class="flex justify-center py-8">
         <i class="pi pi-spin pi-spinner text-2xl"></i>
     </div>

@@ -20,6 +20,8 @@ import { MobileDetectionService } from '../service/mobile-detection.service';
 import { DamageTypesService, DamageType, DamageTypeCreateRequest, DamageTypeUpdateRequest } from '../service/damage-types.service';
 import { CommunicationService } from '../service/communication.service';
 import { Subject, takeUntil } from 'rxjs';
+import { ModalAlertService, ModalAlert } from '../utils/modal-alert.service';
+import { ModalAlertComponent } from '../utils/modal-alert.component';
 
 @Component({
     selector: 'app-damage-types-crud',
@@ -41,7 +43,8 @@ import { Subject, takeUntil } from 'rxjs';
         IconFieldModule,
         InputNumberModule,
         TooltipModule,
-        SkeletonModule
+        SkeletonModule,
+        ModalAlertComponent
     ],
     template: `
 <p-toast></p-toast>
@@ -213,6 +216,12 @@ import { Subject, takeUntil } from 'rxjs';
     </span>
   </ng-template>
   <ng-template pTemplate="content">
+    <!-- Alerta Modal -->
+    <app-modal-alert
+        [alert]="modalAlert"
+        (close)="hideModalAlert()">
+    </app-modal-alert>
+
     <form [formGroup]="damageTypeForm" (ngSubmit)="saveDamageType()">
         <div class="grid grid-cols-1 gap-4">
             <!-- Nombre del tipo de daño -->
@@ -226,7 +235,9 @@ import { Subject, takeUntil } from 'rxjs';
                     placeholder=" "
                     aria-label="Nombre"
                     [class.border-red-500]="isFieldInvalid('nombre')"
-                    [class.border-gray-300]="!isFieldInvalid('nombre')" />
+                    [class.border-gray-300]="!isFieldInvalid('nombre')"
+                    (input)="onNombreInput($event)"
+                    (blur)="onNombreBlur()" />
                 <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
                 <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
             </div>
@@ -242,7 +253,8 @@ import { Subject, takeUntil } from 'rxjs';
                     placeholder=" "
                     aria-label="Descripción"
                     [class.border-red-500]="isFieldInvalid('descripcion')"
-                    [class.border-gray-300]="!isFieldInvalid('descripcion')"></textarea>
+                    [class.border-gray-300]="!isFieldInvalid('descripcion')"
+                    (blur)="onDescripcionBlur()"></textarea>
                 <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción</label>
                 <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
             </div>
@@ -428,6 +440,7 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
     loading: boolean = false;
     saving: boolean = false;
     showOnlyActive: boolean = true;
+    modalAlert: ModalAlert = { show: false, type: 'error', title: '', message: '' };
     private destroy$ = new Subject<void>();
 
     constructor(
@@ -436,7 +449,8 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
         private damageTypesService: DamageTypesService,
         private communicationService: CommunicationService,
         private fb: FormBuilder,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private modalAlertService: ModalAlertService
     ) {
         this.initForm();
     }
@@ -450,6 +464,27 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
+        switch (type) {
+            case 'error':
+                this.modalAlert = this.modalAlertService.createErrorAlert(title, message);
+                break;
+            case 'warning':
+                this.modalAlert = this.modalAlertService.createWarningAlert(title, message);
+                break;
+            case 'info':
+                this.modalAlert = this.modalAlertService.createInfoAlert(title, message);
+                break;
+            case 'success':
+                this.modalAlert = this.modalAlertService.createSuccessAlert(title, message);
+                break;
+        }
+    }
+
+    hideModalAlert() {
+        this.modalAlert = this.modalAlertService.hideAlert();
     }
 
     private setupCommunicationListeners() {
@@ -476,13 +511,21 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
 
     initForm() {
         this.damageTypeForm = this.fb.group({
-            nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-            descripcion: ['', [Validators.maxLength(300)]],
+            nombre: ['', [
+                Validators.required,
+                Validators.minLength(2),
+                Validators.maxLength(50),
+                Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-_]+$/)
+            ]],
+            descripcion: ['', [
+                Validators.maxLength(1000) // Cambiado de 300 a 1000 para coincidir con text en BD
+            ]],
             porcentaje_aplicar: [0, [
                 Validators.required,
                 Validators.min(0),
                 Validators.max(100),
-                this.validateDecimalPlaces.bind(this)
+                this.validateDecimalPlaces.bind(this),
+                this.validatePercentagePrecision.bind(this)
             ]],
             is_active: [true]
         });
@@ -501,6 +544,30 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
             return { maxDecimalPlaces: { max: 2, actual: decimalPlaces } };
         }
 
+        return null;
+    }
+
+    // Validador personalizado para precisión del porcentaje
+    validatePercentagePrecision(control: any) {
+        if (control.value === null || control.value === undefined) {
+            return null;
+        }
+
+        const value = control.value;
+        const roundedValue = Math.round(value * 100) / 100;
+
+        if (Math.abs(value - roundedValue) > 0.001) {
+            return { precisionError: { value: value, rounded: roundedValue } };
+        }
+
+        return null;
+    }
+
+    // Validador personalizado para espacios múltiples
+    validateNoMultipleSpaces(control: any) {
+        if (control.value && /\s{2,}/.test(control.value)) {
+            return { multipleSpaces: true };
+        }
         return null;
     }
 
@@ -533,7 +600,7 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
                     return 'Máximo 50 caracteres';
                 }
                 if (controlName === 'descripcion') {
-                    return 'Máximo 300 caracteres';
+                    return 'Máximo 1000 caracteres';
                 }
                 return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
             }
@@ -550,6 +617,9 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
                 return `Valor máximo: ${control.errors['max'].max}`;
             }
             if (control.errors['pattern']) {
+                if (controlName === 'nombre') {
+                    return 'El nombre solo puede contener letras, espacios, guiones y guiones bajos';
+                }
                 if (controlName === 'porcentaje_aplicar') {
                     return 'Formato inválido. Use números del 0 al 100 con máximo 2 decimales';
                 }
@@ -560,6 +630,18 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
                     return `El porcentaje debe tener máximo 2 decimales (tiene ${control.errors['maxDecimalPlaces'].actual})`;
                 }
                 return `Máximo ${control.errors['maxDecimalPlaces'].max} decimales permitidos`;
+            }
+            if (control.errors['precisionError']) {
+                if (controlName === 'porcentaje_aplicar') {
+                    return 'El porcentaje tiene demasiados decimales';
+                }
+                return 'El porcentaje tiene demasiados decimales';
+            }
+            if (control.errors['multipleSpaces']) {
+                if (controlName === 'nombre') {
+                    return 'El nombre no puede contener múltiples espacios consecutivos';
+                }
+                return 'El nombre no puede contener múltiples espacios consecutivos';
             }
         }
         return '';
@@ -728,6 +810,10 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
         this.saving = true;
         const formValue = this.damageTypeForm.value;
 
+        // Sanitizar datos antes de enviar
+        const nombreSanitizado = formValue.nombre ? formValue.nombre.replace(/\s+/g, ' ').trim() : '';
+        const descripcionSanitizada = formValue.descripcion ? formValue.descripcion.replace(/\s+/g, ' ').trim() : '';
+
         // Asegurar que el porcentaje tenga máximo 2 decimales y esté dentro del rango válido
         let porcentajeRedondeado = Math.round(formValue.porcentaje_aplicar * 100) / 100;
 
@@ -738,68 +824,55 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
         // Verificar que no tenga más de 2 decimales
         const decimalPlaces = (porcentajeRedondeado.toString().split('.')[1] || '').length;
         if (decimalPlaces > 2) {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Error de validación',
-                detail: 'El porcentaje debe tener máximo 2 decimales'
-            });
+            this.showModalAlert('error', 'Error de validación', 'El porcentaje debe tener máximo 2 decimales');
+            this.saving = false;
+            return;
+        }
+
+        // Validar que el nombre no esté vacío después de sanitizar
+        if (!nombreSanitizado) {
+            this.showModalAlert('error', 'Error de validación', 'El nombre no puede estar vacío');
             this.saving = false;
             return;
         }
 
         if (this.isEditMode) {
             const updateRequest: DamageTypeUpdateRequest = {
-                nombre: formValue.nombre,
-                descripcion: formValue.descripcion,
+                nombre: nombreSanitizado,
+                descripcion: descripcionSanitizada,
                 porcentaje_aplicar: porcentajeRedondeado,
                 is_active: formValue.is_active
             };
 
             this.damageTypesService.updateDamageType(this.damageType.id, updateRequest).subscribe({
                 next: (updatedDamageType) => {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Tipo de daño actualizado correctamente'
-                    });
+                    this.showModalAlert('success', 'Éxito', 'Tipo de daño actualizado correctamente');
                     this.hideDialog();
                     this.loadDamageTypes();
                     this.saving = false;
                 },
                 error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al actualizar tipo de daño'
-                    });
+                    this.showModalAlert('error', 'Error', error.message || 'Error al actualizar tipo de daño');
                     this.saving = false;
                 }
             });
         } else {
             const createRequest: DamageTypeCreateRequest = {
-                nombre: formValue.nombre,
-                descripcion: formValue.descripcion,
+                nombre: nombreSanitizado,
+                descripcion: descripcionSanitizada,
                 porcentaje_aplicar: porcentajeRedondeado,
                 is_active: formValue.is_active
             };
 
             this.damageTypesService.createDamageType(createRequest).subscribe({
                 next: (newDamageType) => {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Tipo de daño creado correctamente'
-                    });
+                    this.showModalAlert('success', 'Éxito', 'Tipo de daño creado correctamente');
                     this.hideDialog();
                     this.loadDamageTypes();
                     this.saving = false;
                 },
                 error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al crear tipo de daño'
-                    });
+                    this.showModalAlert('error', 'Error', error.message || 'Error al crear tipo de daño');
                     this.saving = false;
                 }
             });
@@ -852,6 +925,44 @@ export class DamageTypesCrudComponent implements OnInit, OnDestroy {
             control.setValue(valorFinal);
 
             // Validar el campo después del cambio
+            control.updateValueAndValidity();
+        }
+    }
+
+    // Sanitizar nombre al perder el foco
+    onNombreBlur() {
+        const control = this.damageTypeForm.get('nombre');
+        if (control && control.value) {
+            // Eliminar espacios múltiples y espacios al inicio/final
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    // Sanitizar descripción al perder el foco
+    onDescripcionBlur() {
+        const control = this.damageTypeForm.get('descripcion');
+        if (control && control.value) {
+            // Eliminar espacios múltiples y espacios al inicio/final
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    // Validar nombre en tiempo real
+    onNombreInput(event: any) {
+        const control = this.damageTypeForm.get('nombre');
+        if (control) {
+            // Validar caracteres permitidos en tiempo real
+            const value = event.target.value;
+            const validValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-_]/g, '');
+
+            if (value !== validValue) {
+                control.setValue(validValue);
+            }
+
             control.updateValueAndValidity();
         }
     }

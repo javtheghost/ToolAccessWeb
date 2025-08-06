@@ -105,3 +105,81 @@
     background-color: #fef2f2;
     color: #991b1b;
 }
+
+/* ===== ESTILOS PARA SOLUCIONAR EL PROBLEMA DE SCROLL AUTOMÁTICO ===== */
+
+/* Prevenir scroll automático cuando se abren dropdowns */
+:host ::ng-deep .p-dropdown-panel {
+  position: fixed !important;
+  transform: none !important;
+  z-index: 1000 !important;
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que el panel del dropdown no cause scroll */
+:host ::ng-deep .p-dropdown-items-wrapper {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  scroll-behavior: auto !important;
+}
+
+:host ::ng-deep .p-dropdown-items {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  scroll-behavior: auto !important;
+}
+
+/* Prevenir que el dropdown cause scroll automático */
+:host ::ng-deep .p-dropdown:focus-within {
+  z-index: 1000 !important;
+  scroll-behavior: auto !important;
+}
+
+:host ::ng-deep .p-dropdown.p-focus {
+  z-index: 1000 !important;
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que el contenedor principal no cause scroll automático */
+.p-6 {
+  scroll-behavior: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevenir scroll automático en el modal */
+:host ::ng-deep .p-dialog {
+  scroll-behavior: auto !important;
+}
+
+:host ::ng-deep .p-dialog-content {
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que el body no tenga scroll automático */
+:host ::ng-deep body {
+  scroll-behavior: auto !important;
+}
+
+/* Prevenir scroll automático en el formulario */
+:host ::ng-deep form {
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que los dropdowns no interfieran con el scroll de la página */
+:host ::ng-deep .p-dropdown-panel {
+  scroll-margin-top: 0 !important;
+  scroll-margin-bottom: 0 !important;
+  position: fixed !important;
+  transform: none !important;
+}
+
+/* Prevenir que el dropdown cause scroll automático al abrirse */
+:host ::ng-deep .p-dropdown {
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que el contenedor del dropdown no cause scroll */
+:host ::ng-deep .p-dropdown-container {
+  scroll-behavior: auto !important;
+  overflow: visible !important;
+}

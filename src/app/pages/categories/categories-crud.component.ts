@@ -19,6 +19,8 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TooltipModule } from 'primeng/tooltip';
 import { CategoryService } from '../service/category.service';
 import { Category, CategoryCreateRequest, CategoryUpdateRequest } from '../interfaces';
+import { ModalAlertService, ModalAlert } from '../utils/modal-alert.service';
+import { ModalAlertComponent } from '../utils/modal-alert.component';
 
 interface Column {
     field: string;
@@ -45,7 +47,8 @@ interface Column {
         InputIconModule,
         SkeletonModule,
         ProgressSpinnerModule,
-        TooltipModule
+        TooltipModule,
+        ModalAlertComponent
     ],
     template: `
 <p-toast></p-toast>
@@ -216,6 +219,12 @@ interface Column {
 <!-- Modal de formulario -->
 <p-dialog [(visible)]="categoryDialog" [style]="{ width: '90vw', maxWidth: '500px' }" [header]="isEditMode ? 'Editar Categoría' : 'Nueva Categoría'" [modal]="true" [draggable]="false">
     <ng-template pTemplate="content">
+        <!-- Sistema de alertas en modal -->
+        <app-modal-alert
+            [alert]="modalAlert"
+            (close)="hideModalAlert()">
+        </app-modal-alert>
+
         <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
             <div class="grid grid-cols-1 gap-4">
                 <!-- Campo Nombre -->
@@ -412,6 +421,14 @@ export class CategoriesCrudComponent implements OnInit {
     // Control de vista de categorías
     showOnlyActive: boolean = true;
 
+    // Sistema de alertas en modal
+    modalAlert: ModalAlert = {
+        show: false,
+        type: 'error',
+        title: '',
+        message: ''
+    };
+
     // Form
     categoryForm!: FormGroup;
 
@@ -421,6 +438,7 @@ export class CategoriesCrudComponent implements OnInit {
     constructor(
         private messageService: MessageService,
         private categoryService: CategoryService,
+        private modalAlertService: ModalAlertService,
         private fb: FormBuilder
     ) {
         this.initForm();
@@ -576,27 +594,57 @@ export class CategoriesCrudComponent implements OnInit {
             // Campo nombre: varchar(255) en BD, requerido
             nombre: ['', [
                 Validators.required,
-                Validators.minLength(3),  // Mínimo 3 caracteres (estándar UX)
-                Validators.maxLength(255), // Coincide exactamente con BD varchar(255)
-                // Patrón que permite letras (con acentos), números, espacios, guiones y algunos caracteres especiales comunes
+                Validators.minLength(3),
+                Validators.maxLength(255),
                 Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-_.,()&]+$/),
-                // Validadores de seguridad
                 this.noOnlySpacesValidator,
                 this.noMaliciousContentValidator,
                 this.noSQLInjectionValidator
             ]],
-            // Campo descripcion: text en BD (prácticamente ilimitado), opcional
+            // Campo descripcion: text en BD, opcional
             descripcion: ['', [
-                // Solo validar si hay contenido (campo opcional)
-                Validators.maxLength(5000), // Límite práctico para campo text
-                // Patrón permisivo para descripción: solo excluir caracteres peligrosos para seguridad
-                Validators.pattern(/^[^<>'"`;\\]*$/), // Permite números, letras, espacios y caracteres especiales excepto los peligrosos
-                // Validadores de seguridad
+                Validators.maxLength(1000), // Optimizado para mejor rendimiento
+                Validators.pattern(/^[^<>'"`;\\]*$/),
                 this.noOnlySpacesValidatorOptional,
                 this.noMaliciousContentValidator,
                 this.noSQLInjectionValidator
             ]]
         });
+    }
+
+    // Métodos de sanitización optimizados
+    onNombreBlur() {
+        const control = this.categoryForm.get('nombre');
+        if (control && control.value) {
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    onDescripcionBlur() {
+        const control = this.categoryForm.get('descripcion');
+        if (control && control.value) {
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    // Validación en tiempo real optimizada
+    onNombreInputOptimized(event: Event) {
+        const target = event.target as HTMLInputElement;
+        const control = this.categoryForm.get('nombre');
+        if (control) {
+            const value = target.value;
+            const validValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-_.,()&]/g, '');
+
+            if (value !== validValue) {
+                control.setValue(validValue);
+            }
+
+            control.updateValueAndValidity();
+        }
     }
 
     /**
@@ -806,35 +854,34 @@ export class CategoriesCrudComponent implements OnInit {
                 control?.markAsTouched();
             });
 
-            // Mostrar mensaje específico sobre errores de validación
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Errores de validación',
-                detail: 'Por favor, corrige los errores en el formulario antes de continuar',
-                life: 4000
-            });
+            // Mostrar alerta modal de errores de validación
+            this.showModalAlert('error', 'Errores de Validación', 'Por favor, corrige los errores en el formulario antes de continuar');
             return;
         }
 
         // Obtener y sanitizar datos del formulario
         const formValue = this.categoryForm.value;
+
+        // ✅ SANITIZACIÓN OPTIMIZADA
+        const nombreSanitizado = formValue.nombre ? formValue.nombre.replace(/\s+/g, ' ').trim() : '';
+        const descripcionSanitizada = formValue.descripcion ? formValue.descripcion.replace(/\s+/g, ' ').trim() : '';
+
+        // ✅ VALIDAR QUE EL NOMBRE NO ESTÉ VACÍO DESPUÉS DE SANITIZAR
+        if (!nombreSanitizado) {
+            this.showModalAlert('error', 'Error de Validación', 'El nombre no puede estar vacío');
+            return;
+        }
+
         const sanitizedData = {
-            nombre: this.sanitizeInput(formValue.nombre),
-            descripcion: this.sanitizeInput(formValue.descripcion || ''),
-            // Para nuevas categorías, is_active siempre será true
-            // Para edición, mantener el valor actual sin modificar desde el modal
+            nombre: nombreSanitizado,
+            descripcion: descripcionSanitizada,
             is_active: this.isEditMode ? this.category.is_active : true
         };
 
         // Validación adicional en el frontend (capa de seguridad extra)
         const validation = this.validateFormData(sanitizedData);
         if (!validation.isValid) {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Datos inválidos',
-                detail: validation.errors.join('. '),
-                life: 5000
-            });
+            this.showModalAlert('error', 'Datos Inválidos', validation.errors.join('. '));
             return;
         }
 
@@ -1071,5 +1118,22 @@ export class CategoriesCrudComponent implements OnInit {
         } else if (this.categoryDialog) {
             this.hideDialog();
         }
+    }
+
+    // ✅ MÉTODOS PARA MANEJAR ALERTAS EN MODAL
+    showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
+        if (type === 'error') {
+            this.modalAlert = this.modalAlertService.createErrorAlert(title, message);
+        } else if (type === 'warning') {
+            this.modalAlert = this.modalAlertService.createWarningAlert(title, message);
+        } else if (type === 'info') {
+            this.modalAlert = this.modalAlertService.createInfoAlert(title, message);
+        } else if (type === 'success') {
+            this.modalAlert = this.modalAlertService.createSuccessAlert(title, message);
+        }
+    }
+
+    hideModalAlert() {
+        this.modalAlert = this.modalAlertService.hideAlert();
     }
 }

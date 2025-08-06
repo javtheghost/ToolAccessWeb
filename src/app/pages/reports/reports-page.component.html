@@ -1,5 +1,12 @@
 <div class="reports-container">
-  <p-toast></p-toast>
+  <p-toast 
+    position="top-right" 
+    [baseZIndex]="9999999"
+    [autoZIndex]="false"
+    [preventDuplicates]="true"
+    [showTransformOptions]="'translateX(100%)'"
+    [hideTransformOptions]="'translateX(100%)'">
+  </p-toast>
 
   <!-- Header con estadísticas rápidas -->
   <div class="header-section">

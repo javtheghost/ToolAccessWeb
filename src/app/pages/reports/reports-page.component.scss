@@ -23,6 +23,9 @@
     padding: 24px;
     background: var(--light-bg);
     min-height: 100vh;
+    position: relative;
+    overflow: visible; // Asegurar que el toast no se corte
+    z-index: 1; // Mantener z-index bajo para no interferir con el toast
   }
 
   // Header Section
@@ -851,6 +854,31 @@
     .p-progressspinner .p-progressspinner-circle {
       stroke: var(--primary-color) !important;
     }
+
+    // Estilos específicos para el toast - Asegurar que se muestre correctamente
+    .p-toast {
+      z-index: 9999999 !important; // Z-index extremadamente alto para el toast
+      position: fixed !important;
+    }
+
+    .p-toast .p-toast-message {
+      z-index: 9999999 !important; // Z-index extremadamente alto para los mensajes del toast
+      position: relative !important;
+    }
+
+    .p-toast .p-toast-message-content {
+      z-index: 9999999 !important; // Z-index extremadamente alto para el contenido del mensaje
+    }
+
+    // Asegurar que el toast esté por encima de todos los elementos del calendario
+    .p-toast-top-right,
+    .p-toast-top-left,
+    .p-toast-top-center,
+    .p-toast-bottom-right,
+    .p-toast-bottom-left,
+    .p-toast-bottom-center {
+      z-index: 9999999 !important; // Z-index extremadamente alto para todas las posiciones del toast
+    }
   }
 
   // Responsive Design
@@ -989,4 +1017,54 @@
     .form-group.full-width {
       margin-bottom: 70px; // Aumentar espacio para pantallas muy pequeñas
     }
+  }
+
+  // Estilos responsivos específicos para el toast
+  @media (min-width: 1024px) {
+    // Asegurar que el toast se muestre correctamente en pantallas grandes
+    :host ::ng-deep .p-toast {
+      z-index: 9999999 !important;
+      position: fixed !important;
+      top: 20px !important;
+      right: 20px !important;
+    }
+
+    :host ::ng-deep .p-toast .p-toast-message {
+      z-index: 9999999 !important;
+      position: relative !important;
+      min-width: 300px !important; // Asegurar un ancho mínimo en pantallas grandes
+      max-width: 400px !important; // Limitar el ancho máximo
+    }
+  }
+
+  @media (max-width: 1023px) {
+    // Ajustes para pantallas medianas y pequeñas
+    :host ::ng-deep .p-toast {
+      z-index: 9999999 !important;
+      position: fixed !important;
+      top: 10px !important;
+      right: 10px !important;
+      left: 10px !important;
+    }
+
+    :host ::ng-deep .p-toast .p-toast-message {
+      z-index: 9999999 !important;
+      position: relative !important;
+      min-width: 250px !important;
+      max-width: calc(100vw - 20px) !important; // Responsive en pantallas pequeñas
+    }
+  }
+
+  // Estilo adicional para asegurar que el toast tenga máxima prioridad
+  :host ::ng-deep .p-toast,
+  :host ::ng-deep .p-toast * {
+    z-index: 9999999 !important;
+  }
+
+  // Asegurar que el toast esté siempre visible por encima de cualquier elemento
+  :host ::ng-deep .p-toast {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    pointer-events: auto !important;
   }

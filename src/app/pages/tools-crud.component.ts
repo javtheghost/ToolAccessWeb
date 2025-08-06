@@ -734,29 +734,119 @@ export class ToolsCrudComponent implements OnInit {
         this.toolForm = this.fb.group({
             nombre: ['', [
                 Validators.required,
-                Validators.pattern(/^[\wáéíóúÁÉÍÓÚñÑ\s\-.,]{3,100}$/),
                 Validators.minLength(3),
-                Validators.maxLength(100)
+                Validators.maxLength(100),
+                Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-_.,()&]+$/)
             ]],
             descripcion: ['', [
-                // Para campo text: permitir prácticamente cualquier carácter excepto los peligrosos para seguridad
-                Validators.pattern(/^[^<>'"`;\\]*$/), // Solo excluir caracteres potencialmente peligrosos
-                Validators.maxLength(1000) // Aumentar límite para campo text
+                Validators.maxLength(1000),
+                Validators.pattern(/^[^<>'"`;\\]*$/)
             ]],
-            folio: [''],
+            folio: ['', [
+                Validators.maxLength(50),
+                Validators.pattern(/^[a-zA-Z0-9\s\-_]*$/)
+            ]],
             subcategoria_id: [null, [Validators.required]],
-            stock: [1, [ // ✅ VALOR POR DEFECTO 1 SEGÚN BD
+            stock: [1, [
                 Validators.required,
-                Validators.pattern(/^([1-9]\d{0,3}|0)$/), // ✅ PERMITE 0 Y 1-9999
                 Validators.min(0),
-                Validators.max(9999)
+                Validators.max(9999),
+                this.validateInteger.bind(this)
             ]],
             valor_reposicion: [0, [
                 Validators.required,
                 Validators.min(0),
-                Validators.max(999999.99)
+                Validators.max(999999.99),
+                this.validateDecimal.bind(this)
             ]]
         });
+    }
+
+    // Validador personalizado para números enteros
+    validateInteger(control: any) {
+        if (control.value === null || control.value === undefined) {
+            return null;
+        }
+
+        const value = control.value;
+        if (!Number.isInteger(value) || value < 0) {
+            return { invalidInteger: true };
+        }
+
+        return null;
+    }
+
+    // Validador personalizado para decimales
+    validateDecimal(control: any) {
+        if (control.value === null || control.value === undefined) {
+            return null;
+        }
+
+        const value = control.value;
+        const decimalPlaces = (value.toString().split('.')[1] || '').length;
+
+        if (decimalPlaces > 2) {
+            return { maxDecimalPlaces: { max: 2, actual: decimalPlaces } };
+        }
+
+        return null;
+    }
+
+    // Métodos de sanitización
+    onNombreBlur() {
+        const control = this.toolForm.get('nombre');
+        if (control && control.value) {
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    onDescripcionBlur() {
+        const control = this.toolForm.get('descripcion');
+        if (control && control.value) {
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    onFolioBlur() {
+        const control = this.toolForm.get('folio');
+        if (control && control.value) {
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    // Validación en tiempo real
+    onNombreInput(event: any) {
+        const control = this.toolForm.get('nombre');
+        if (control) {
+            const value = event.target.value;
+            const validValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-_.,()&]/g, '');
+
+            if (value !== validValue) {
+                control.setValue(validValue);
+            }
+
+            control.updateValueAndValidity();
+        }
+    }
+
+    onFolioInput(event: any) {
+        const control = this.toolForm.get('folio');
+        if (control) {
+            const value = event.target.value;
+            const validValue = value.replace(/[^a-zA-Z0-9\s\-_]/g, '');
+
+            if (value !== validValue) {
+                control.setValue(validValue);
+            }
+
+            control.updateValueAndValidity();
+        }
     }
 
     //  MÉTODO PARA ACTUALIZAR VALIDACIONES SEGÚN MODO
@@ -859,10 +949,22 @@ export class ToolsCrudComponent implements OnInit {
                     case 'stock':
                         return 'El stock no puede exceder 9999';
                     case 'valor_reposicion':
-                        return 'El valor de reposición debe ser un número entre 0 y 999999.99';
+                        return 'El valor de reposición no puede exceder $999,999.99';
                     default:
                         return `Valor máximo: ${control.errors['max'].max}`;
                 }
+            }
+            if (control.errors['invalidInteger']) {
+                if (controlName === 'stock') {
+                    return 'El stock debe ser un número entero positivo';
+                }
+                return 'Este campo debe ser un número entero positivo';
+            }
+            if (control.errors['maxDecimalPlaces']) {
+                if (controlName === 'valor_reposicion') {
+                    return `El valor debe tener máximo 2 decimales (tiene ${control.errors['maxDecimalPlaces'].actual})`;
+                }
+                return `Máximo ${control.errors['maxDecimalPlaces'].max} decimales permitidos`;
             }
         }
         return '';
@@ -889,31 +991,47 @@ export class ToolsCrudComponent implements OnInit {
         }
 
         // Validar subcategoria_id (REQUERIDO según BD)
-        if (!data.subcategoria_id || typeof data.subcategoria_id !== 'number' || data.subcategoria_id <= 0) {
-            errors.push('El ID de subcategoría es requerido y debe ser un número positivo');
+        if (!data.subcategoria_id || data.subcategoria_id === null) {
+            errors.push('El ID de subcategoría es requerido');
+        } else {
+            // ✅ CONVERTIR A NÚMERO SI ES NECESARIO
+            const subcategoriaId = typeof data.subcategoria_id === 'string' ?
+                parseInt(data.subcategoria_id) : Number(data.subcategoria_id);
+
+            if (isNaN(subcategoriaId) || subcategoriaId <= 0) {
+                errors.push('El ID de subcategoría debe ser un número positivo');
+            }
         }
 
         // Validar stock (OPCIONAL pero con restricciones según BD)
-        if (data.stock !== undefined) {
-            if (typeof data.stock !== 'number') {
+        if (data.stock !== undefined && data.stock !== null) {
+            // ✅ CONVERTIR A NÚMERO SI ES NECESARIO
+            const stockValue = typeof data.stock === 'string' ?
+                parseInt(data.stock) : Number(data.stock);
+
+            if (isNaN(stockValue)) {
                 errors.push('El stock debe ser un número válido');
-            } else if (data.stock < 0 || data.stock > 9999) {
+            } else if (stockValue < 0 || stockValue > 9999) {
                 errors.push('El stock debe ser un número entre 0 y 9999');
-            } else if (!/^([1-9]\d{0,3}|0)$/.test(data.stock.toString())) {
+            } else if (!/^([1-9]\d{0,3}|0)$/.test(stockValue.toString())) {
                 errors.push('El stock debe ser un número válido entre 0 y 9999');
             }
 
             // ✅ VALIDACIÓN ESPECÍFICA SEGÚN MODO (si se proporciona isEditMode)
-            if (this.isEditMode === false && data.stock === 0) {
+            if (this.isEditMode === false && stockValue === 0) {
                 errors.push('No se puede crear una herramienta con stock = 0. El stock mínimo para nuevas herramientas es 1');
             }
         }
 
         // Validar valor_reposicion (OPCIONAL pero con restricciones según BD)
-        if (data.valor_reposicion !== undefined) {
-            if (typeof data.valor_reposicion !== 'number' || data.valor_reposicion < 0 || data.valor_reposicion > 999999.99) {
+        if (data.valor_reposicion !== undefined && data.valor_reposicion !== null) {
+            // ✅ CONVERTIR A NÚMERO SI ES NECESARIO
+            const valorReposicion = typeof data.valor_reposicion === 'string' ?
+                parseFloat(data.valor_reposicion) : Number(data.valor_reposicion);
+
+            if (isNaN(valorReposicion) || valorReposicion < 0 || valorReposicion > 999999.99) {
                 errors.push('El valor de reposición debe ser un número entre 0 y 999999.99');
-            } else if (!/^\d{1,6}(\.\d{1,2})?$/.test(data.valor_reposicion.toString())) {
+            } else if (!/^\d{1,6}(\.\d{1,2})?$/.test(valorReposicion.toString())) {
                 errors.push('El valor de reposición debe tener máximo 6 dígitos enteros y 2 decimales');
             }
         }
@@ -1197,13 +1315,14 @@ export class ToolsCrudComponent implements OnInit {
         }
 
         // Actualizar el formulario con los datos de la herramienta
+        // ✅ CONVERTIR VALORES A NÚMEROS PARA EVITAR PROBLEMAS DE VALIDACIÓN
         this.toolForm.patchValue({
             nombre: tool.nombre,
             descripcion: tool.descripcion,
             folio: tool.folio,
-            subcategoria_id: tool.subcategoria_id,
-            stock: tool.stock,
-            valor_reposicion: tool.valor_reposicion
+            subcategoria_id: Number(tool.subcategoria_id),
+            stock: Number(tool.stock),
+            valor_reposicion: Number(tool.valor_reposicion)
         });
 
         this.selectedImage = null;
@@ -1336,6 +1455,17 @@ export class ToolsCrudComponent implements OnInit {
         if (this.toolForm.valid) {
             const formValue = this.toolForm.value;
 
+            // ✅ SANITIZAR DATOS ANTES DE ENVIAR
+            const nombreSanitizado = formValue.nombre ? formValue.nombre.replace(/\s+/g, ' ').trim() : '';
+            const descripcionSanitizada = formValue.descripcion ? formValue.descripcion.replace(/\s+/g, ' ').trim() : '';
+            const folioSanitizado = formValue.folio ? formValue.folio.replace(/\s+/g, ' ').trim() : '';
+
+            // ✅ VALIDAR QUE EL NOMBRE NO ESTÉ VACÍO DESPUÉS DE SANITIZAR
+            if (!nombreSanitizado) {
+                this.showModalAlert('error', 'Error de Validación', 'El nombre no puede estar vacío');
+                return;
+            }
+
             // ✅ VALIDACIONES ADICIONALES ANTES DE ENVIAR
             const validationErrors = this.validateFormData(formValue);
             if (validationErrors.length > 0) {
@@ -1409,9 +1539,9 @@ export class ToolsCrudComponent implements OnInit {
                 this.confirmMessage = confirmMessage;
                 this.confirmAction = () => {
                     const updateData: ToolUpdateRequest = {
-                        nombre: formValue.nombre.trim(),
+                        nombre: nombreSanitizado,
                         subcategoria_id: subcategoriaId,
-                        folio: formValue.folio,
+                        folio: folioSanitizado,
                         stock: stockValue,
                         valor_reposicion: valorReposicionValue,
                         descripcion: formValue.descripcion?.trim() || '',
@@ -1419,30 +1549,32 @@ export class ToolsCrudComponent implements OnInit {
                         is_active: true // Siempre crear como activa, el estado se maneja desde la tabla
                     };
 
-                    this.toolsService.updateTool(this.tool.id, updateData).subscribe({
-                        next: (updatedTool) => {
-                            const idx = this.tools.findIndex(t => t.id === this.tool.id);
-                            if (idx > -1) this.tools[idx] = updatedTool;
-                            this.messageService.add({
-                                severity: 'success',
-                                summary: 'Éxito',
-                                detail: 'Herramienta actualizada exitosamente',
-                                life: 3000
-                            });
-                            this.toolDialog = false;
-                            this.isEditMode = false;
-                            this.tool = this.emptyTool();
-                            this.selectedSubcategory = null;
-                            this.selectedImage = null;
-                            this.imagePreview = null;
-                            this.hasNewImage = false;
-                            this.toolForm.reset();
-                        },
-                        error: (error) => {
-                            // ✅ MANEJO MEJORADO DE ERRORES DEL SERVIDOR
-                            this.handleServerError(error, 'actualizar');
-                        }
-                    });
+                                            this.toolsService.updateTool(this.tool.id, updateData).subscribe({
+                            next: (updatedTool) => {
+                                // ✅ ENRIQUECER LA HERRAMIENTA CON DATOS DE CATEGORÍA Y SUBCATEGORÍA
+                                const enrichedTool = this.enrichToolWithCategoryData(updatedTool);
+                                const idx = this.tools.findIndex(t => t.id === this.tool.id);
+                                if (idx > -1) this.tools[idx] = enrichedTool;
+                                this.messageService.add({
+                                    severity: 'success',
+                                    summary: 'Éxito',
+                                    detail: 'Herramienta actualizada exitosamente',
+                                    life: 3000
+                                });
+                                this.toolDialog = false;
+                                this.isEditMode = false;
+                                this.tool = this.emptyTool();
+                                this.selectedSubcategory = null;
+                                this.selectedImage = null;
+                                this.imagePreview = null;
+                                this.hasNewImage = false;
+                                this.toolForm.reset();
+                            },
+                            error: (error) => {
+                                // ✅ MANEJO MEJORADO DE ERRORES DEL SERVIDOR
+                                this.handleServerError(error, 'actualizar');
+                            }
+                        });
                 };
                 this.showCustomConfirm = true;
             } else {
@@ -1460,7 +1592,9 @@ export class ToolsCrudComponent implements OnInit {
 
                 this.toolsService.createTool(createData).subscribe({
                     next: (newTool) => {
-                        this.tools.push(newTool);
+                        // ✅ ENRIQUECER LA HERRAMIENTA CON DATOS DE CATEGORÍA Y SUBCATEGORÍA
+                        const enrichedTool = this.enrichToolWithCategoryData(newTool);
+                        this.tools.push(enrichedTool);
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Éxito',
@@ -1727,5 +1861,23 @@ export class ToolsCrudComponent implements OnInit {
         } else if (this.toolDialog) {
             this.hideDialog();
         }
+    }
+
+    // ✅ MÉTODO PARA ENRIQUECER HERRAMIENTA CON DATOS DE CATEGORÍA Y SUBCATEGORÍA
+    private enrichToolWithCategoryData(tool: Tool): Tool {
+        // Buscar la subcategoría correspondiente
+        const subcategory = this.subcategories.find(s => s.id === tool.subcategoria_id);
+
+        if (subcategory) {
+            // Enriquecer la herramienta con los nombres de categoría y subcategoría
+            return {
+                ...tool,
+                subcategoria_nombre: subcategory.nombre,
+                categoria_nombre: subcategory.categoria_nombre
+            };
+        }
+
+        // Si no se encuentra la subcategoría, devolver la herramienta sin cambios
+        return tool;
     }
 }

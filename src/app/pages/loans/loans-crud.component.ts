@@ -18,6 +18,8 @@ import { finalize } from 'rxjs/operators';
 import { MobileDetectionService } from '../service/mobile-detection.service';
 import { WebSocketService, OrderEvent, NotificationEvent } from '../service/websocket.service';
 import { Subscription } from 'rxjs';
+import { ModalAlertService, ModalAlert } from '../utils/modal-alert.service';
+import { ModalAlertComponent } from '../utils/modal-alert.component';
 
 @Component({
     selector: 'app-loans-crud',
@@ -35,7 +37,8 @@ import { Subscription } from 'rxjs';
         IconFieldModule,
         DialogModule,
         TooltipModule,
-        SkeletonModule
+        SkeletonModule,
+        ModalAlertComponent
     ],
     templateUrl: './loans-crud.component.html',
     providers: [MessageService],
@@ -55,12 +58,14 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
 
     // WebSocket subscriptions
     private subscriptions: Subscription[] = [];
+    modalAlert: ModalAlert = { show: false, type: 'error', title: '', message: '' };
 
     constructor(
         private messageService: MessageService,
         private loansService: LoansService,
         private mobileDetectionService: MobileDetectionService,
-        private webSocketService: WebSocketService
+        private webSocketService: WebSocketService,
+        private modalAlertService: ModalAlertService
     ) {}
 
     ngOnInit() {
@@ -166,6 +171,27 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
         });
     }
 
+    showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
+        switch (type) {
+            case 'error':
+                this.modalAlert = this.modalAlertService.createErrorAlert(title, message);
+                break;
+            case 'warning':
+                this.modalAlert = this.modalAlertService.createWarningAlert(title, message);
+                break;
+            case 'info':
+                this.modalAlert = this.modalAlertService.createInfoAlert(title, message);
+                break;
+            case 'success':
+                this.modalAlert = this.modalAlertService.createSuccessAlert(title, message);
+                break;
+        }
+    }
+
+    hideModalAlert() {
+        this.modalAlert = this.modalAlertService.hideAlert();
+    }
+
     loadLoans() {
         this.loading = true;
         this.loansService.getLoans()
@@ -173,19 +199,11 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (loans) => {
                     this.loans = loans;
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: `Se cargaron ${loans.length} órdenes de préstamo`
-                    });
+                    this.showModalAlert('success', 'Éxito', `Se cargaron ${loans.length} órdenes de préstamo`);
                 },
                 error: (error) => {
                     console.error('Error al cargar órdenes de préstamo:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al cargar las órdenes de préstamo'
-                    });
+                    this.showModalAlert('error', 'Error', error.message || 'Error al cargar las órdenes de préstamo');
                 }
             });
     }
@@ -206,11 +224,7 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
                 },
                 error: (error) => {
                     console.error('Error al cargar detalles de la orden:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al cargar los detalles de la orden'
-                    });
+                    this.showModalAlert('error', 'Error', error.message || 'Error al cargar los detalles de la orden');
                     this.selectedLoanDetails = [];
                 }
             });

@@ -2,7 +2,7 @@ import { Component, OnInit, signal, ViewChild, HostListener, ChangeDetectorRef }
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
@@ -22,6 +22,8 @@ import { SubcategoryService, Subcategory, SubcategoryDisplay, SubcategoryCreateR
 import { CategoryService } from '../service/category.service';
 import { Category } from '../interfaces';
 import { forkJoin } from 'rxjs';
+import { ModalAlertService, ModalAlert } from '../utils/modal-alert.service';
+import { ModalAlertComponent } from '../utils/modal-alert.component';
 
 @Component({
     selector: 'app-subcategorias-crud',
@@ -30,6 +32,7 @@ import { forkJoin } from 'rxjs';
         CommonModule,
         TableModule,
         FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
@@ -44,7 +47,8 @@ import { forkJoin } from 'rxjs';
         DropdownModule,
         SkeletonModule,
         ProgressSpinnerModule,
-        TooltipModule
+        TooltipModule,
+        ModalAlertComponent
     ],
     template: `
 <p-toast></p-toast>
@@ -230,70 +234,103 @@ import { forkJoin } from 'rxjs';
     </div>
 </div>
 
-<p-dialog [(visible)]="subcategoryDialog" [style]="{ width: '90vw', maxWidth: '500px' }" [header]="isEditMode ? 'Editar Subcategoría' : 'Nueva Subcategoría'" [modal]="true" [draggable]="false">
+<p-dialog [(visible)]="subcategoryDialog" [style]="{ width: '95vw', maxWidth: '600px' }" [header]="isEditMode ? 'Editar Subcategoría' : 'Nueva Subcategoría'" [modal]="true" [draggable]="false">
     <ng-template pTemplate="content">
-        <div class="grid grid-cols-1 gap-4">
-            <div class="relative py-2 mt-2">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
-                <input type="text" id="nombre" name="nombre" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="subcategory.nombre" />
-                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre *</label>
-            </div>
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
-                <textarea
-                    id="descripcion"
-                    name="descripcion"
-                    rows="3"
-                    maxlength="5000"
-                    class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                    placeholder=" "
-                    aria-label="Descripción"
-                    [(ngModel)]="subcategory.descripcion">
-                </textarea>
-                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción (Opcional)</label>
-            </div>
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
-                <p-dropdown
-                    [options]="categories()"
-                    [(ngModel)]="selectedCategory"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    placeholder="Seleccionar categoría"
-                    [style]="{ width: '100%' }"
-                    class="w-full"
-                    [styleClass]="'h-12 px-10'"
-                    [showClear]="true"
-                    [filter]="true"
-                    filterPlaceholder="Buscar categorías..."
-                    (onChange)="onCategoryChange($event)">
-                    <ng-template pTemplate="selectedItem" let-category>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ category.nombre }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="item" let-category>
-                        <div class="flex items-center justify-start h-full w-full">
-                            <div class="flex flex-col">
-                                <span class="font-medium">{{ category.nombre }}</span>
-                                <span class="text-sm text-gray-500">{{ category.descripcion || 'Sin descripción' }}</span>
+        <!-- Alerta Modal -->
+        <app-modal-alert
+            [alert]="modalAlert"
+            (close)="hideModalAlert()">
+        </app-modal-alert>
+
+        <form [formGroup]="subcategoryForm" (ngSubmit)="saveSubcategory()">
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Nombre -->
+                <div class="relative py-2 mt-2">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
+                    <input
+                        type="text"
+                        id="nombre"
+                        formControlName="nombre"
+                        class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        placeholder=" "
+                        aria-label="Nombre"
+                        [class.border-red-500]="isFieldInvalid('nombre')"
+                        [class.border-gray-300]="!isFieldInvalid('nombre')"
+                        (input)="onNombreInput($event)"
+                        (blur)="onNombreBlur()" />
+                    <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
+                    <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
+                </div>
+
+                <!-- Categoría -->
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
+                    <p-dropdown
+                        [options]="categories()"
+                        formControlName="categoria_id"
+                        optionLabel="nombre"
+                        optionValue="id"
+                        placeholder="Seleccionar categoría"
+                        [style]="{ width: '100%' }"
+                        class="w-full"
+                        [styleClass]="'h-12 px-10'"
+                        [showClear]="true"
+                        [filter]="true"
+                        filterPlaceholder="Buscar categorías..."
+                        (onChange)="onCategoryChange($event)"
+                        [class.border-red-500]="isFieldInvalid('categoria_id')"
+                        [class.border-gray-300]="!isFieldInvalid('categoria_id')">
+                        <ng-template pTemplate="selectedItem" let-category>
+                            <div class="flex items-center justify-start h-full w-full">
+                                <span>{{ category.nombre }}</span>
                             </div>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="emptyfilter">
-                        <div class="text-center py-4">
-                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
-                            <p class="text-gray-500">No se encontraron categorías</p>
-                        </div>
-                    </ng-template>
-                </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría *</label>
+                        </ng-template>
+                        <ng-template pTemplate="item" let-category>
+                            <div class="flex items-center justify-start h-full w-full">
+                                <div class="flex flex-col">
+                                    <span class="font-medium">{{ category.nombre }}</span>
+                                    <span class="text-sm text-gray-500">{{ category.descripcion || 'Sin descripción' }}</span>
+                                </div>
+                            </div>
+                        </ng-template>
+                        <ng-template pTemplate="emptyfilter">
+                            <div class="text-center py-4">
+                                <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
+                                <p class="text-gray-500">No se encontraron categorías</p>
+                            </div>
+                        </ng-template>
+                    </p-dropdown>
+                    <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría <span class="text-red-500">*</span></label>
+                    <div *ngIf="isFieldInvalid('categoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('categoria_id') }}</div>
+                </div>
+
+                <!-- Descripción -->
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
+                    <textarea
+                        id="descripcion"
+                        formControlName="descripcion"
+                        rows="3"
+                        maxlength="1000"
+                        class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        placeholder=" "
+                        aria-label="Descripción"
+                        [class.border-red-500]="isFieldInvalid('descripcion')"
+                        [class.border-gray-300]="!isFieldInvalid('descripcion')"
+                        (blur)="onDescripcionBlur()">
+                    </textarea>
+                    <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción (Opcional)</label>
+                    <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
+                </div>
             </div>
-        </div>
-        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
-            <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()" [disabled]="saving()">Cancelar</button>
-            <button pButton type="button" class="p-button w-full sm:w-24" [label]="saving() ? '' : 'Guardar'" (click)="saveSubcategory()" [loading]="saving()"></button>
-        </div>
+            <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+                <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()" [disabled]="saving()">Cancelar</button>
+                <button pButton type="submit" class="p-button w-full sm:w-24" [disabled]="subcategoryForm.invalid || saving()">
+                    <span *ngIf="saving()">Guardando...</span>
+                    <span *ngIf="!saving()">Guardar</span>
+                </button>
+            </div>
+        </form>
     </ng-template>
 </p-dialog>
 
@@ -353,6 +390,7 @@ import { forkJoin } from 'rxjs';
             border-radius: 0 0 12px 12px !important;
         }
 
+
         /* Estilos para dropdown de categoría */
         :host ::ng-deep .p-dropdown {
             border: 1px solid #d1d5db !important;
@@ -384,6 +422,180 @@ import { forkJoin } from 'rxjs';
             width: 2.5rem !important;
         }
 
+        /* Estilos para que los dropdowns se vean como selects */
+        :host ::ng-deep .p-dropdown {
+            height: 48px !important;
+            border-radius: 8px !important;
+            border: 1px solid #d1d5db !important;
+            background: transparent !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled):hover {
+            border-color: var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown:not(.p-disabled).p-focus {
+            outline: 0 none !important;
+            outline-offset: 0 !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            padding: 0.75rem 2.5rem 0.75rem 2.5rem !important;
+            font-size: 0.875rem !important;
+            color: #111827 !important;
+            line-height: normal !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-trigger {
+            width: 2.5rem !important;
+            color: #6b7280 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel {
+            border-radius: 8px !important;
+            border: 1px solid #d1d5db !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-inputtext {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder {
+            color: #6b7280 !important;
+        }
+
+        /* Asegurar que los iconos SVG se vean igual en todos los dropdowns */
+        :host ::ng-deep .p-dropdown {
+            position: relative !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            padding-left: 2.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+        }
+
+        /* Centrar verticalmente el texto en los dropdowns */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-inputtext {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Asegurar que el texto esté centrado como en la imagen */
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Centrar el placeholder también */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Asegurar que el placeholder esté centrado */
+        :host ::ng-deep .p-dropdown .p-dropdown-label:not(.p-inputtext) {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+        /* Centrado específico para placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            min-height: 48px !important;
+        }
+
+        /* Forzar centrado del placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder,
+        :host ::ng-deep .p-dropdown .p-dropdown-label:empty {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            min-height: 48px !important;
+        }
+
+        /* Centrado específico para placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 100% !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            min-height: 48px !important;
+            vertical-align: middle !important;
+        }
+
+        /* Forzar centrado vertical del texto */
+        :host ::ng-deep .p-dropdown .p-dropdown-label span,
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: inline-flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            line-height: 1 !important;
+        }
+
+        /* Centrado específico para placeholder */
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            height: 48px !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+            vertical-align: middle !important;
+        }
+
+        /* Asegurar que el texto esté centrado como en la imagen */
+        :host ::ng-deep .p-dropdown {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            display: flex !important;
+            align-items: center !important;
+            height: 48px !important;
+            padding-left: 2.5rem !important;
+            line-height: 1 !important;
+        }
+
+
+
         /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */`
     ]
 })
@@ -396,7 +608,7 @@ export class SubcategoriasCrudComponent implements OnInit {
         categoria_id: 0,
         is_active: true
     };
-    selectedCategory: Category | null = null;
+    selectedCategory: number | null = null;
     selectedSubcategories: SubcategoryDisplay[] | null = null;
     isEditMode: boolean = false;
     confirmIcon: string = 'delete';
@@ -414,18 +626,146 @@ export class SubcategoriasCrudComponent implements OnInit {
     // Control de vista de subcategorías
     showOnlyActive: boolean = true;
 
+    // Formulario reactivo
+    subcategoryForm!: FormGroup;
+    modalAlert: ModalAlert = { show: false, type: 'error', title: '', message: '' };
+
     constructor(
         private messageService: MessageService,
         private subcategoryService: SubcategoryService,
         private categoryService: CategoryService,
-        private cdr: ChangeDetectorRef
-    ) {}
+        private cdr: ChangeDetectorRef,
+        private fb: FormBuilder,
+        private modalAlertService: ModalAlertService
+    ) {
+        this.initForm();
+    }
 
-    ngOnInit() {
+        ngOnInit() {
         this.loadData();
     }
 
-        loadData() {
+    // Inicializar formulario reactivo con validaciones
+    private initForm() {
+        this.subcategoryForm = this.fb.group({
+            nombre: ['', [
+                Validators.required,
+                Validators.minLength(2),
+                Validators.maxLength(50),
+                Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-_]+$/)
+            ]],
+            descripcion: ['', [
+                Validators.maxLength(1000)
+            ]],
+            categoria_id: [null, [
+                Validators.required
+            ]],
+            is_active: [true]
+        });
+    }
+
+    // Getters para validación
+    get nombre() { return this.subcategoryForm.get('nombre'); }
+    get descripcion() { return this.subcategoryForm.get('descripcion'); }
+    get categoria_id() { return this.subcategoryForm.get('categoria_id'); }
+
+    // Mensajes de error
+    getErrorMessage(controlName: string): string {
+        const control = this.subcategoryForm.get(controlName);
+        if (control?.errors) {
+            if (control.errors['required']) {
+                if (controlName === 'nombre') return 'El nombre es obligatorio';
+                if (controlName === 'categoria_id') return 'La categoría es obligatoria';
+                return 'Este campo es obligatorio';
+            }
+            if (control.errors['minlength']) {
+                if (controlName === 'nombre') return 'Mínimo 2 caracteres';
+                return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+            }
+            if (control.errors['maxlength']) {
+                if (controlName === 'nombre') return 'Máximo 50 caracteres';
+                if (controlName === 'descripcion') return 'Máximo 1000 caracteres';
+                return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
+            }
+            if (control.errors['pattern']) {
+                if (controlName === 'nombre') {
+                    return 'El nombre solo puede contener letras, espacios, guiones y guiones bajos';
+                }
+                return 'Formato inválido';
+            }
+        }
+        return '';
+    }
+
+    isFieldInvalid(controlName: string): boolean {
+        const control = this.subcategoryForm.get(controlName);
+        return !!(control?.invalid && control?.touched);
+    }
+
+    // Sanitización automática
+    onNombreBlur() {
+        const control = this.subcategoryForm.get('nombre');
+        if (control && control.value) {
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    onDescripcionBlur() {
+        const control = this.subcategoryForm.get('descripcion');
+        if (control && control.value) {
+            const valorSanitizado = control.value.replace(/\s+/g, ' ').trim();
+            control.setValue(valorSanitizado);
+            control.updateValueAndValidity();
+        }
+    }
+
+    // Validación en tiempo real
+    onNombreInput(event: any) {
+        const control = this.subcategoryForm.get('nombre');
+        if (control) {
+            const value = event.target.value;
+            const validValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-_]/g, '');
+
+            if (value !== validValue) {
+                control.setValue(validValue);
+            }
+
+            control.updateValueAndValidity();
+        }
+    }
+
+    // Marcar todos los campos como touched para mostrar errores
+    markFormGroupTouched() {
+        Object.keys(this.subcategoryForm.controls).forEach(key => {
+            const control = this.subcategoryForm.get(key);
+            control?.markAsTouched();
+        });
+    }
+
+    showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
+        switch (type) {
+            case 'error':
+                this.modalAlert = this.modalAlertService.createErrorAlert(title, message);
+                break;
+            case 'warning':
+                this.modalAlert = this.modalAlertService.createWarningAlert(title, message);
+                break;
+            case 'info':
+                this.modalAlert = this.modalAlertService.createInfoAlert(title, message);
+                break;
+            case 'success':
+                this.modalAlert = this.modalAlertService.createSuccessAlert(title, message);
+                break;
+        }
+    }
+
+    hideModalAlert() {
+        this.modalAlert = this.modalAlertService.hideAlert();
+    }
+
+    loadData() {
             this.loading.set(true);
 
             // Cargar tanto subcategorías como categorías de manera sincronizada
@@ -582,10 +922,17 @@ export class SubcategoriasCrudComponent implements OnInit {
         this.subcategory = {
             nombre: '',
             categoria_id: 0,
+            descripcion: '',
             is_active: true // Siempre activa por defecto para nuevas subcategorías
         };
         this.selectedCategory = null;
         this.isEditMode = false;
+        this.subcategoryForm.reset({
+            nombre: '',
+            descripcion: '',
+            categoria_id: null,
+            is_active: true
+        });
         this.subcategoryDialog = true;
     }
 
@@ -619,16 +966,24 @@ export class SubcategoriasCrudComponent implements OnInit {
             categoria_id: subcategory.categoria_id,
             is_active: subcategory.is_active // Mantener el estado actual, no modificable desde modal
         };
-        this.selectedCategory = this.categories().find(c => c.id === subcategory.categoria_id) || null;
+        this.selectedCategory = subcategory.categoria_id;
         this.isEditMode = true;
+        this.subcategoryForm.patchValue({
+            nombre: subcategory.nombre,
+            descripcion: subcategory.descripcion || '',
+            categoria_id: subcategory.categoria_id,
+            is_active: subcategory.is_active
+        });
         this.subcategoryDialog = true;
     }
 
     onCategoryChange(event: any) {
         if (event.value) {
-            this.subcategory.categoria_id = parseInt(event.value.id);
+            this.subcategory.categoria_id = parseInt(event.value);
+            this.subcategoryForm.patchValue({ categoria_id: parseInt(event.value) });
         } else {
             this.subcategory.categoria_id = 0;
+            this.subcategoryForm.patchValue({ categoria_id: null });
         }
     }
 
@@ -680,102 +1035,78 @@ export class SubcategoriasCrudComponent implements OnInit {
         this.subcategory = {
             nombre: '',
             categoria_id: 0,
+            descripcion: '',
             is_active: true
         };
         this.selectedCategory = null;
+        this.subcategoryForm.reset();
     }
 
     saveSubcategory() {
-        if (!this.subcategory) return;
+        // Validar formulario reactivo
+        if (this.subcategoryForm.invalid) {
+            this.markFormGroupTouched();
+            return;
+        }
 
-        // ✅ VALIDACIONES DE SEGURIDAD PARA DESCRIPCIÓN
-        if (this.subcategory.descripcion) {
-            // Limpiar espacios al inicio y final
-            this.subcategory.descripcion = this.subcategory.descripcion.trim();
+        this.saving.set(true);
+        const formValue = this.subcategoryForm.value;
 
-            // Validar longitud máxima
-            if (this.subcategory.descripcion.length > 5000) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error de Validación',
-                    detail: 'La descripción no puede exceder 5000 caracteres'
-                });
-                return;
-            }
+        // Sanitizar datos antes de enviar
+        const nombreSanitizado = formValue.nombre ? formValue.nombre.replace(/\s+/g, ' ').trim() : '';
+        const descripcionSanitizada = formValue.descripcion ? formValue.descripcion.replace(/\s+/g, ' ').trim() : '';
 
-            // Validar caracteres peligrosos
-            const dangerousChars = /[<>'"`;\\]/;
-            if (dangerousChars.test(this.subcategory.descripcion)) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error de Validación',
-                    detail: 'La descripción contiene caracteres no permitidos por seguridad'
-                });
-                return;
-            }
-
-            // Si la descripción queda vacía después del trim, establecer como null
-            if (this.subcategory.descripcion.length === 0) {
-                this.subcategory.descripcion = '';
-            }
+        // Validar que el nombre no esté vacío después de sanitizar
+        if (!nombreSanitizado) {
+            this.showModalAlert('error', 'Error de validación', 'El nombre no puede estar vacío');
+            this.saving.set(false);
+            return;
         }
 
         if (this.subcategory.id) {
             // Actualizar
             const updateData = {
-                nombre: this.subcategory.nombre,
-                descripcion: this.subcategory.descripcion || '', // Asegurar string vacío en lugar de null
-                categoria_id: parseInt(this.subcategory.categoria_id as any) || 0,
-                is_active: this.subcategory.is_active
+                nombre: nombreSanitizado,
+                descripcion: descripcionSanitizada,
+                categoria_id: formValue.categoria_id,
+                is_active: formValue.is_active
             };
 
             this.subcategoryService.updateSubcategory(this.subcategory.id, updateData).subscribe({
                 next: (updatedSubcategory: any) => {
                     this.loadData(); // Recargar todos los datos para obtener la información actualizada
 
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Subcategoría actualizada correctamente'
-                    });
+                    this.showModalAlert('success', 'Éxito', 'Subcategoría actualizada correctamente');
                     this.hideDialog();
+                    this.saving.set(false);
                 },
                 error: (error) => {
                     console.error('❌ Error al actualizar subcategoría:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Error al actualizar la subcategoría'
-                    });
+                    this.showModalAlert('error', 'Error', 'Error al actualizar la subcategoría');
+                    this.saving.set(false);
                 }
             });
         } else {
             // Crear
             const createData = {
-                nombre: this.subcategory.nombre || '',
-                descripcion: this.subcategory.descripcion || '', // Asegurar string vacío en lugar de null
-                categoria_id: this.subcategory.categoria_id || 0,
+                nombre: nombreSanitizado,
+                descripcion: descripcionSanitizada,
+                categoria_id: formValue.categoria_id,
                 is_active: true // Siempre activa por defecto para nuevas subcategorías
             };
+
+            console.log('🔍 Datos para crear subcategoría:', createData);
 
             this.subcategoryService.createSubcategory(createData).subscribe({
                 next: (newSubcategory: any) => {
                     this.loadData(); // Recargar todos los datos para obtener la información actualizada
 
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Subcategoría creada correctamente'
-                    });
+                    this.showModalAlert('success', 'Éxito', 'Subcategoría creada correctamente');
                     this.hideDialog();
                 },
                 error: (error) => {
                     console.error('❌ Error al crear subcategoría:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Error al crear la subcategoría'
-                    });
+                    this.showModalAlert('error', 'Error', 'Error al crear la subcategoría');
                 }
             });
         }

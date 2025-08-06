@@ -267,4 +267,114 @@ html, body, #app, .layout-main-container, .layout-main {
   background: #fff !important;
 }
 
+/* ===== ESTILOS GLOBALES PARA TOAST ===== */
+/* Asegurar que el toast de PrimeNG se muestre correctamente en todas las pantallas */
+::ng-deep .p-toast {
+  z-index: 9999999 !important;
+  position: fixed !important;
+}
+
+::ng-deep .p-toast .p-toast-message {
+  z-index: 9999999 !important;
+  position: relative !important;
+}
+
+::ng-deep .p-toast .p-toast-message-content {
+  z-index: 9999999 !important;
+}
+
+::ng-deep .p-toast-top-right,
+::ng-deep .p-toast-top-left,
+::ng-deep .p-toast-top-center,
+::ng-deep .p-toast-bottom-right,
+::ng-deep .p-toast-bottom-left,
+::ng-deep .p-toast-bottom-center {
+  z-index: 9999999 !important;
+}
+
+/* Asegurar que el overlay del toast también tenga z-index alto */
+::ng-deep .p-toast .p-toast-message .p-toast-message-content .p-toast-detail {
+  z-index: 9999999 !important;
+}
+
+/* Asegurar que los iconos del toast también tengan z-index alto */
+::ng-deep .p-toast .p-toast-message .p-toast-message-content .p-toast-icon {
+  z-index: 9999999 !important;
+}
+
+/* ===== ESTILOS PARA SOLUCIONAR EL PROBLEMA DE SCROLL AUTOMÁTICO CON DROPDOWNS ===== */
+/* Prevenir que los dropdowns causen scroll automático hacia arriba */
+::ng-deep .p-dropdown-panel {
+  position: fixed !important;
+  transform: none !important;
+  z-index: 1000 !important;
+  scroll-behavior: auto !important;
+}
+
+::ng-deep .p-dropdown-items-wrapper {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  scroll-behavior: auto !important;
+}
+
+::ng-deep .p-dropdown-items {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que los dropdowns no interfieran con el scroll de la página */
+::ng-deep .p-dropdown:focus-within {
+  z-index: 1000 !important;
+  scroll-behavior: auto !important;
+}
+
+::ng-deep .p-dropdown.p-focus {
+  z-index: 1000 !important;
+  scroll-behavior: auto !important;
+}
+
+/* Prevenir scroll automático cuando se abre un dropdown */
+::ng-deep .p-dropdown-panel {
+  scroll-margin-top: 0 !important;
+  scroll-margin-bottom: 0 !important;
+}
+
+/* Asegurar que el body no tenga scroll automático */
+body {
+  scroll-behavior: auto !important;
+}
+
+/* Prevenir scroll automático en contenedores principales */
+.layout-main-container,
+.layout-main,
+#app {
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que los modales no causen scroll automático */
+::ng-deep .p-dialog {
+  scroll-behavior: auto !important;
+}
+
+::ng-deep .p-dialog-content {
+  scroll-behavior: auto !important;
+}
+
+/* Prevenir scroll automático en formularios */
+::ng-deep form {
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que los dropdowns no causen scroll automático al abrirse */
+::ng-deep .p-dropdown {
+  scroll-behavior: auto !important;
+}
+
+/* Asegurar que el contenedor del dropdown no cause scroll */
+::ng-deep .p-dropdown-container {
+  scroll-behavior: auto !important;
+  overflow: visible !important;
+}
+
 

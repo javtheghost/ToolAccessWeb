@@ -26,6 +26,8 @@ import { UserService } from '../service/user.service';
 import { RoleService, Role } from '../service/role.service';
 import { OAuthService } from '../service/oauth.service';
 import { User, UserCreateRequest, UserUpdateRequest, AVAILABLE_ROLES } from '../interfaces';
+import { ModalAlertService, ModalAlert } from '../utils/modal-alert.service';
+import { ModalAlertComponent } from '../utils/modal-alert.component';
 
 interface Column {
     field: string;
@@ -58,7 +60,8 @@ interface Column {
         MultiSelectModule,
         TagModule,
         AvatarModule,
-        InputSwitchModule
+        InputSwitchModule,
+        ModalAlertComponent
     ],
     providers: [MessageService, ConfirmationService],
     template: `
@@ -266,6 +269,12 @@ interface Column {
     [draggable]="false">
 
     <ng-template pTemplate="content">
+        <!-- Alerta Modal -->
+        <app-modal-alert 
+            [alert]="modalAlert" 
+            (close)="hideModalAlert()">
+        </app-modal-alert>
+        
         <form [formGroup]="userForm" class="grid formgrid p-4">
             <!-- Nombre -->
             <div class="field col-12 md:col-6">
@@ -479,6 +488,7 @@ export class UsersCrudComponent implements OnInit {
 
     // Filtros
     showOnlyActive = true;
+    modalAlert: ModalAlert = { show: false, type: 'error', title: '', message: '' };
 
     // Columnas de la tabla
     cols: Column[] = [
@@ -494,7 +504,8 @@ export class UsersCrudComponent implements OnInit {
         private confirmationService: ConfirmationService,
         private fb: FormBuilder,
         private roleService: RoleService,
-        private oauthService: OAuthService
+        private oauthService: OAuthService,
+        private modalAlertService: ModalAlertService
     ) {
         this.initForms();
     }
@@ -503,6 +514,27 @@ export class UsersCrudComponent implements OnInit {
         this.loadCurrentUser();
         this.loadUsers();
         this.loadRolesDb();
+    }
+
+    showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
+        switch (type) {
+            case 'error':
+                this.modalAlert = this.modalAlertService.createErrorAlert(title, message);
+                break;
+            case 'warning':
+                this.modalAlert = this.modalAlertService.createWarningAlert(title, message);
+                break;
+            case 'info':
+                this.modalAlert = this.modalAlertService.createInfoAlert(title, message);
+                break;
+            case 'success':
+                this.modalAlert = this.modalAlertService.createSuccessAlert(title, message);
+                break;
+        }
+    }
+
+    hideModalAlert() {
+        this.modalAlert = this.modalAlertService.hideAlert();
     }
 
     loadCurrentUser() {
@@ -581,12 +613,7 @@ export class UsersCrudComponent implements OnInit {
             },
             error: (error) => {
                 console.error('❌ Error cargando usuarios desde API:', error);
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error de conexión',
-                    detail: 'Error al cargar los usuarios: ' + error.message,
-                    life: 3000
-                });
+                this.showModalAlert('error', 'Error de conexión', 'Error al cargar los usuarios: ' + error.message);
                 this.loading.set(false);
             }
         });
@@ -846,23 +873,13 @@ export class UsersCrudComponent implements OnInit {
 
             this.userService.updateUser(this.selectedUser.id, updateData).subscribe({
                 next: (updatedUser) => {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Usuario actualizado correctamente',
-                        life: 3000
-                    });
+                    this.showModalAlert('success', 'Éxito', 'Usuario actualizado correctamente');
                     this.loadUsers();
                     this.hideDialog();
                     this.saving.set(false);
                 },
                 error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Error al actualizar el usuario: ' + error.message,
-                        life: 3000
-                    });
+                    this.showModalAlert('error', 'Error', 'Error al actualizar el usuario: ' + error.message);
                     this.saving.set(false);
                 }
             });
@@ -880,23 +897,13 @@ export class UsersCrudComponent implements OnInit {
 
             this.userService.createUser(createData).subscribe({
                 next: (newUser) => {
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Usuario creado correctamente',
-                        life: 3000
-                    });
+                    this.showModalAlert('success', 'Éxito', 'Usuario creado correctamente');
                     this.loadUsers();
                     this.hideDialog();
                     this.saving.set(false);
                 },
                 error: (error) => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Error al crear el usuario: ' + error.message,
-                        life: 3000
-                    });
+                    this.showModalAlert('error', 'Error', 'Error al crear el usuario: ' + error.message);
                     this.saving.set(false);
                 }
             });

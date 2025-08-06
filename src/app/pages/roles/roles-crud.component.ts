@@ -153,24 +153,46 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
     </p-table>
     <div class="flex justify-center mt-6"></div>
 </div>
-<p-dialog [(visible)]="roleDialog" [style]="{ width: '500px' }" [header]="isEditMode ? 'Editar Rol' : 'Nuevo Rol'" [modal]="true" [draggable]="false" headerStyleClass="!text-[var(--primary-color)]">
+<p-dialog [(visible)]="roleDialog" [style]="{ width: '95vw', maxWidth: '600px' }" [modal]="true" [draggable]="false">
+    <ng-template pTemplate="header">
+        <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
+            {{ isEditMode ? 'Editar Rol' : 'Nuevo Rol' }}
+        </span>
+    </ng-template>
     <ng-template pTemplate="content">
-        <div class="grid grid-cols-2 gap-4 ">
-            <div class="relative col-span-2 py-2 mt-2">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
-                <input type="text" id="name" name="name" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="role.nombre" />
-                <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+        <form (ngSubmit)="saveRole()">
+            <div class="grid grid-cols-1 gap-4">
+                <div class="relative col-span-1 py-2 mt-2">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        placeholder=" "
+                        aria-label="Nombre"
+                        [(ngModel)]="role.nombre" />
+                    <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
+                </div>
+                <div class="relative col-span-1">
+                    <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="3"
+                        class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        placeholder=" "
+                        aria-label="Descripción"
+                        [(ngModel)]="role.descripcion"></textarea>
+                    <label for="description" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción <span class="text-gray-400">(opcional)</span></label>
+                </div>
             </div>
-            <div class="relative col-span-2">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
-                <textarea id="description" name="description" rows="2" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="role.descripcion"></textarea>
-                <label for="description" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-sm text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
+            <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+                <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
+                <button pButton type="submit" class="p-button w-full sm:w-24">Guardar</button>
             </div>
-        </div>
-        <div class="flex justify-end gap-4 mt-6">
-            <button pButton type="button" class="custom-cancel-btn min-w-[120px] text-center" (click)="hideDialog()">Cancelar</button>
-            <button pButton type="button" class="p-button min-w-[120px] text-center font-semibold" (click)="saveRole()">Guardar</button>
-        </div>
+        </form>
     </ng-template>
 </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
