@@ -140,14 +140,49 @@ import { Category } from './interfaces';
         <ng-template pTemplate="header">
             <tr class="bg-[#6ea1cc] text-white">
                 <th class="text-center p-3" style="min-width: 80px;">Imagen</th>
-                <th class="text-left p-3" style="min-width: 150px;">Nombre</th>
+                <th pSortableColumn="nombre" class="text-left p-3" style="min-width: 150px;">
+                    <div class="flex justify-content-center align-items-center">
+                        Nombre
+                        <p-sortIcon field="nombre"></p-sortIcon>
+                    </div>
+                </th>
                 <th class="text-left p-3" style="min-width: 200px;">Descripción</th>
-                <th class="text-center p-3" style="min-width: 120px;">Folio</th>
-                <th class="text-left p-3" style="min-width: 120px;">Categoría</th>
-                <th class="text-left p-3" style="min-width: 120px;">Subcategoría</th>
-                <th class="text-center p-3" style="min-width: 80px;">Stock</th>
-                <th class="text-center p-3" style="min-width: 140px;">Valor Reposición</th>
-                <th class="text-center p-3" style="min-width: 80px;">Activo</th>
+                <th pSortableColumn="folio" class="text-center p-3" style="min-width: 120px;">
+                    <div class="flex justify-content-center align-items-center">
+                        Folio
+                        <p-sortIcon field="folio"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="categoria_nombre" class="text-left p-3" style="min-width: 120px;">
+                    <div class="flex justify-content-center align-items-center">
+                        Categoría
+                        <p-sortIcon field="categoria_nombre"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="subcategoria_nombre" class="text-left p-3" style="min-width: 120px;">
+                    <div class="flex justify-content-center align-items-center">
+                        Subcategoría
+                        <p-sortIcon field="subcategoria_nombre"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="stock" class="text-center p-3" style="min-width: 80px;">
+                    <div class="flex justify-content-center align-items-center">
+                        Stock
+                        <p-sortIcon field="stock"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="valor_reposicion" class="text-center p-3" style="min-width: 140px;">
+                    <div class="flex justify-content-center align-items-center">
+                        Valor Reposición
+                        <p-sortIcon field="valor_reposicion"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="is_active" class="text-center p-3" style="min-width: 80px;">
+                    <div class="flex justify-content-center align-items-center">
+                        Estado
+                        <p-sortIcon field="is_active"></p-sortIcon>
+                    </div>
+                </th>
                 <th class="text-center p-3" style="min-width: 120px;">Acción</th>
             </tr>
         </ng-template>
@@ -231,6 +266,36 @@ import { Category } from './interfaces';
     </span>
   </ng-template>
   <ng-template pTemplate="content">
+    <!-- Sistema de alertas en modal -->
+    <div *ngIf="modalAlert.show" class="mb-4 p-4 rounded-lg border-l-4 flex items-start gap-3"
+         [ngClass]="{
+           'bg-red-50 border-red-400 text-red-800': modalAlert.type === 'error',
+           'bg-yellow-50 border-yellow-400 text-yellow-800': modalAlert.type === 'warning',
+           'bg-blue-50 border-blue-400 text-blue-800': modalAlert.type === 'info',
+           'bg-green-50 border-green-400 text-green-800': modalAlert.type === 'success'
+         }">
+      <div class="flex-shrink-0">
+        <i class="material-symbols-outlined text-xl"
+           [ngClass]="{
+             'text-red-500': modalAlert.type === 'error',
+             'text-yellow-500': modalAlert.type === 'warning',
+             'text-blue-500': modalAlert.type === 'info',
+             'text-green-500': modalAlert.type === 'success'
+           }">
+          {{ modalAlert.type === 'error' ? 'error' :
+             modalAlert.type === 'warning' ? 'warning' :
+             modalAlert.type === 'info' ? 'info' : 'check_circle' }}
+        </i>
+      </div>
+      <div class="flex-1">
+        <h4 class="text-sm font-semibold mb-1">{{ modalAlert.title }}</h4>
+        <p class="text-sm">{{ modalAlert.message }}</p>
+      </div>
+      <button type="button" (click)="hideModalAlert()" class="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600">
+        <i class="material-symbols-outlined text-lg">close</i>
+      </button>
+    </div>
+
     <form [formGroup]="toolForm" (ngSubmit)="saveTool()">
         <div class="grid grid-cols-1 gap-4">
             <div class="relative col-span-1 py-2 mt-2">
@@ -244,7 +309,7 @@ import { Category } from './interfaces';
                     aria-label="Nombre"
                     [class.border-red-500]="isFieldInvalid('nombre')"
                     [class.border-gray-300]="!isFieldInvalid('nombre')" />
-                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
                 <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
             </div>
 
@@ -259,7 +324,7 @@ import { Category } from './interfaces';
                     aria-label="Descripción"
                     [class.border-red-500]="isFieldInvalid('descripcion')"
                     [class.border-gray-300]="!isFieldInvalid('descripcion')"></textarea>
-                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
+                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción... <span class="text-gray-400">(opcional)</span></label>
                 <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
             </div>
 
@@ -299,6 +364,7 @@ import { Category } from './interfaces';
                         </div>
                     </ng-template>
                 </p-dropdown>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Subcategoría <span class="text-red-500">*</span></label>
                 <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('subcategoria_id') }}</div>
             </div>
 
@@ -311,7 +377,7 @@ import { Category } from './interfaces';
                     class="peer block w-full h-12 rounded-lg border bg-gray-100 px-10 text-sm text-gray-600 focus:outline-none"
                     placeholder=" "
                     readonly />
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-500 duration-300 bg-white px-1">Folio (Solo lectura)</label>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-500 duration-300 bg-white px-1">Folio (Solo lectura) <span class="text-gray-400">(opcional)</span></label>
                 <div class="text-xs text-gray-500 mt-1 ml-10">Folio generado automáticamente</div>
             </div>
 
@@ -328,7 +394,7 @@ import { Category } from './interfaces';
                     aria-label="Stock"
                     [class.border-red-500]="isFieldInvalid('stock')"
                     [class.border-gray-300]="!isFieldInvalid('stock')" />
-                <label for="stock" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Stock</label>
+                <label for="stock" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Stock <span class="text-red-500">*</span></label>
                 <div *ngIf="isFieldInvalid('stock')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('stock') }}</div>
             </div>
 
@@ -347,19 +413,20 @@ import { Category } from './interfaces';
                     [locale]="'es-MX'"
                     styleClass="custom-inputnumber">
                 </p-inputnumber>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Valor Reposición</label>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Valor Reposición <span class="text-red-500">*</span></label>
                 <div *ngIf="isFieldInvalid('valor_reposicion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_reposicion') }}</div>
             </div>
 
             <!-- Switch removido del dialog - ahora se maneja desde la tabla -->
 
             <div class="col-span-1">
-                <label class="block mb-2">Selecciona la imagen</label>
+                <label class="block mb-2">Selecciona la imagen <span class="text-gray-400">(opcional)</span></label>
                 <div class="flex flex-col items-center">
                     <label class="border-2 border-dashed border-gray-400 rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center hover:border-[var(--primary-color)] transition-colors" style="width: 150px; height: 150px;">
                         <span class="material-symbols-outlined text-4xl mb-2 text-gray-400">cloud_upload</span>
                         <span class="text-sm text-gray-500">Click para subir imagen</span>
                         <span class="text-xs text-gray-400 mt-1">Máx. 5MB</span>
+                        <span class="text-xs text-gray-400">JPG, PNG, WEBP</span>
                         <input type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden" />
                     </label>
 
@@ -374,6 +441,12 @@ import { Category } from './interfaces';
                             <span class="material-symbols-outlined text-sm">close</span>
                         </button>
                     </div>
+                </div>
+                <!-- ✅ INFORMACIÓN ADICIONAL SOBRE IMÁGENES -->
+                <div class="mt-2 text-xs text-gray-500 text-center">
+                    <p>Formatos permitidos: JPG, JPEG, PNG, WEBP</p>
+                    <p>Tamaño máximo: 5MB</p>
+                    <p><span class="text-gray-400">Campo opcional</span></p>
                 </div>
             </div>
         </div>
@@ -619,6 +692,19 @@ export class ToolsCrudComponent implements OnInit {
     imagePreview: string | null = null;
     hasNewImage: boolean = false; // Para rastrear si se seleccionó una nueva imagen
 
+    // Sistema de alertas en modal
+    modalAlert: {
+        show: boolean;
+        type: 'error' | 'warning' | 'info' | 'success';
+        message: string;
+        title: string;
+    } = {
+        show: false,
+        type: 'error',
+        message: '',
+        title: ''
+    };
+
     // Variable removida - ya no necesaria
 
     constructor(
@@ -635,6 +721,13 @@ export class ToolsCrudComponent implements OnInit {
     ngOnInit() {
         this.loadTools();
         this.loadCategories();
+
+        //  LISTENER PARA CAMBIOS EN STOCK
+        this.stock?.valueChanges.subscribe(value => {
+            if (value !== null && value !== undefined) {
+                this.showStockWarning(value);
+            }
+        });
     }
 
     initForm() {
@@ -646,26 +739,49 @@ export class ToolsCrudComponent implements OnInit {
                 Validators.maxLength(100)
             ]],
             descripcion: ['', [
-                Validators.pattern(/^[\wáéíóúÁÉÍÓÚñÑ\s¡!¿?@#$%&*()\-_=+.,:;'"\n\r]{3,200}$/),
-                Validators.minLength(3),
-                Validators.maxLength(200)
+                // Para campo text: permitir prácticamente cualquier carácter excepto los peligrosos para seguridad
+                Validators.pattern(/^[^<>'"`;\\]*$/), // Solo excluir caracteres potencialmente peligrosos
+                Validators.maxLength(1000) // Aumentar límite para campo text
             ]],
             folio: [''],
             subcategoria_id: [null, [Validators.required]],
-            stock: [1, [
+            stock: [1, [ // ✅ VALOR POR DEFECTO 1 SEGÚN BD
                 Validators.required,
-                Validators.pattern(/^(0|[1-9]\d{0,3})$/),
+                Validators.pattern(/^([1-9]\d{0,3}|0)$/), // ✅ PERMITE 0 Y 1-9999
                 Validators.min(0),
                 Validators.max(9999)
             ]],
             valor_reposicion: [0, [
                 Validators.required,
-                Validators.pattern(/^\d{1,6}(\.\d{1,2})?$/),
                 Validators.min(0),
                 Validators.max(999999.99)
             ]]
-            // is_active removido del formulario - ahora se maneja desde la tabla
         });
+    }
+
+    //  MÉTODO PARA ACTUALIZAR VALIDACIONES SEGÚN MODO
+    updateStockValidation() {
+        const stockControl = this.toolForm.get('stock');
+        if (stockControl) {
+            if (this.isEditMode) {
+                // ✅ MODO EDICIÓN: Permite stock = 0 (para agotar)
+                stockControl.setValidators([
+                    Validators.required,
+                    Validators.pattern(/^([1-9]\d{0,3}|0)$/),
+                    Validators.min(0),
+                    Validators.max(9999)
+                ]);
+            } else {
+                //  MODO CREACIÓN: Mínimo stock = 1 (para disponibilidad)
+                stockControl.setValidators([
+                    Validators.required,
+                    Validators.pattern(/^[1-9]\d{0,3}$/), //  SOLO 1-9999
+                    Validators.min(1),
+                    Validators.max(9999)
+                ]);
+            }
+            stockControl.updateValueAndValidity();
+        }
     }
 
     // Getters para acceder fácilmente a los controles del formulario
@@ -675,65 +791,78 @@ export class ToolsCrudComponent implements OnInit {
     get subcategoria_id() { return this.toolForm.get('subcategoria_id'); }
     get stock() { return this.toolForm.get('stock'); }
     get valor_reposicion() { return this.toolForm.get('valor_reposicion'); }
-    // get is_active() removido - ahora se maneja desde la tabla
 
-    // Métodos de validación personalizados
+    // ✅ MÉTODOS DE VALIDACIÓN PERSONALIZADOS MEJORADOS
     getErrorMessage(controlName: string): string {
         const control = this.toolForm.get(controlName);
         if (control?.errors && control.touched) {
             if (control.errors['required']) {
-                if (controlName === 'nombre') {
-                    return 'Este campo es requerido';
+                switch (controlName) {
+                    case 'nombre':
+                        return 'El nombre es requerido';
+                    case 'subcategoria_id':
+                        return 'Debes seleccionar una subcategoría';
+                    case 'stock':
+                        return 'El stock es requerido';
+                    case 'valor_reposicion':
+                        return 'El valor de reposición es requerido';
+                    default:
+                        return 'Este campo es requerido';
                 }
-                if (controlName === 'subcategoria_id') {
-                    return 'Debes seleccionar una subcategoría';
-                }
-                return 'Este campo es requerido';
             }
             if (control.errors['minlength']) {
-                if (controlName === 'nombre') {
-                    return 'Mínimo 3 caracteres';
+                switch (controlName) {
+                    case 'nombre':
+                        return 'El nombre debe tener al menos 3 caracteres';
+                    default:
+                        return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
                 }
-                if (controlName === 'descripcion') {
-                    return 'Mínimo 3 caracteres';
-                }
-                return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
             }
             if (control.errors['maxlength']) {
-                if (controlName === 'nombre') {
-                    return 'Máximo 100 caracteres';
+                switch (controlName) {
+                    case 'nombre':
+                        return 'El nombre no puede exceder 100 caracteres';
+                    case 'descripcion':
+                        return 'La descripción no puede exceder 200 caracteres';
+                    default:
+                        return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
                 }
-                if (controlName === 'descripcion') {
-                    return 'Máximo 200 caracteres';
-                }
-                return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
             }
             if (control.errors['pattern']) {
-                if (controlName === 'nombre') {
-                    return 'Solo letras, números, guiones y puntos';
+                switch (controlName) {
+                    case 'nombre':
+                        return 'El nombre contiene caracteres no permitidos. Solo letras, números, espacios, guiones y puntos';
+                    case 'stock':
+                        return this.isEditMode
+                            ? 'El stock debe ser un número entre 0 y 9999 (0 = agotado)'
+                            : 'El stock debe ser un número entre 1 y 9999 (mínimo 1 para disponibilidad)';
+                    case 'descripcion':
+                        return 'La descripción contiene caracteres no permitidos';
+                    default:
+                        return 'Formato no válido';
                 }
-                if (controlName === 'stock') {
-                    return 'Solo números del 0 al 9999';
-                }
-                if (controlName === 'valor_reposicion') {
-                    return 'Solo números con máximo dos decimales';
-                }
-                if (controlName === 'descripcion') {
-                    return 'Solo caracteres permitidos';
-                }
-                return 'Formato no válido';
             }
             if (control.errors['min']) {
-                if (controlName === 'valor_reposicion') {
-                    return `Valor mínimo: ${control.errors['min'].min}`;
+                switch (controlName) {
+                    case 'stock':
+                        return this.isEditMode
+                            ? 'El stock debe ser mayor o igual a 0'
+                            : 'El stock debe ser mayor o igual a 1 para disponibilidad';
+                    case 'valor_reposicion':
+                        return 'El valor de reposición debe ser mayor o igual a 0';
+                    default:
+                        return `Valor mínimo: ${control.errors['min'].min}`;
                 }
-                return `Valor mínimo: ${control.errors['min'].min}`;
             }
             if (control.errors['max']) {
-                if (controlName === 'valor_reposicion') {
-                    return `Valor máximo: ${control.errors['max'].max}`;
+                switch (controlName) {
+                    case 'stock':
+                        return 'El stock no puede exceder 9999';
+                    case 'valor_reposicion':
+                        return 'El valor de reposición debe ser un número entre 0 y 999999.99';
+                    default:
+                        return `Valor máximo: ${control.errors['max'].max}`;
                 }
-                return `Valor máximo: ${control.errors['max'].max}`;
             }
         }
         return '';
@@ -744,12 +873,117 @@ export class ToolsCrudComponent implements OnInit {
         return !!(control?.invalid && control?.touched);
     }
 
+    // ✅ MÉTODO DE VALIDACIÓN ADICIONAL PARA COINCIDIR CON LA BD
+    validateFormData(data: any): string[] {
+        const errors: string[] = [];
+
+        // Validar nombre (REQUERIDO según BD)
+        if (!data.nombre || typeof data.nombre !== 'string' || data.nombre.trim().length === 0) {
+            errors.push('El nombre es requerido');
+        } else if (data.nombre.trim().length < 3) {
+            errors.push('El nombre debe tener al menos 3 caracteres');
+        } else if (data.nombre.trim().length > 100) {
+            errors.push('El nombre no puede exceder 100 caracteres');
+        } else if (!/^[\wáéíóúÁÉÍÓÚñÑ\s\-.,]{3,100}$/.test(data.nombre.trim())) {
+            errors.push('El nombre contiene caracteres no permitidos. Solo letras, números, espacios, guiones y puntos');
+        }
+
+        // Validar subcategoria_id (REQUERIDO según BD)
+        if (!data.subcategoria_id || typeof data.subcategoria_id !== 'number' || data.subcategoria_id <= 0) {
+            errors.push('El ID de subcategoría es requerido y debe ser un número positivo');
+        }
+
+        // Validar stock (OPCIONAL pero con restricciones según BD)
+        if (data.stock !== undefined) {
+            if (typeof data.stock !== 'number') {
+                errors.push('El stock debe ser un número válido');
+            } else if (data.stock < 0 || data.stock > 9999) {
+                errors.push('El stock debe ser un número entre 0 y 9999');
+            } else if (!/^([1-9]\d{0,3}|0)$/.test(data.stock.toString())) {
+                errors.push('El stock debe ser un número válido entre 0 y 9999');
+            }
+
+            // ✅ VALIDACIÓN ESPECÍFICA SEGÚN MODO (si se proporciona isEditMode)
+            if (this.isEditMode === false && data.stock === 0) {
+                errors.push('No se puede crear una herramienta con stock = 0. El stock mínimo para nuevas herramientas es 1');
+            }
+        }
+
+        // Validar valor_reposicion (OPCIONAL pero con restricciones según BD)
+        if (data.valor_reposicion !== undefined) {
+            if (typeof data.valor_reposicion !== 'number' || data.valor_reposicion < 0 || data.valor_reposicion > 999999.99) {
+                errors.push('El valor de reposición debe ser un número entre 0 y 999999.99');
+            } else if (!/^\d{1,6}(\.\d{1,2})?$/.test(data.valor_reposicion.toString())) {
+                errors.push('El valor de reposición debe tener máximo 6 dígitos enteros y 2 decimales');
+            }
+        }
+
+        // Validar descripción (OPCIONAL pero con validaciones si se proporciona)
+        if (data.descripcion !== undefined && data.descripcion !== null && data.descripcion.trim().length > 0) {
+            if (typeof data.descripcion !== 'string') {
+                errors.push('La descripción debe ser un texto');
+            } else if (data.descripcion.trim().length < 3) {
+                errors.push('La descripción debe tener al menos 3 caracteres si se proporciona');
+            } else if (data.descripcion.trim().length > 200) {
+                errors.push('La descripción no puede exceder 200 caracteres');
+            } else if (!/^[\wáéíóúÁÉÍÓÚñÑ\s¡!¿?@#$%&*()\-_=+.,:;'"\n\r\/]{3,200}$/.test(data.descripcion.trim())) {
+                errors.push('La descripción contiene caracteres no permitidos');
+            }
+        }
+
+        return errors;
+    }
+
+    // ✅ MÉTODO PARA MANEJAR ERRORES DEL SERVIDOR
+    handleServerError(error: any, action: 'crear' | 'actualizar' | 'activar' | 'desactivar'): void {
+        console.error(`Error al ${action} herramienta:`, error);
+
+        let errorMessage = `Error al ${action} la herramienta`;
+
+        if (error.error) {
+            // Error del servidor con estructura específica
+            if (error.error.errors && Array.isArray(error.error.errors)) {
+                errorMessage = error.error.errors.join(', ');
+            } else if (error.error.message) {
+                errorMessage = error.error.message;
+            } else if (typeof error.error === 'string') {
+                errorMessage = error.error;
+            }
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+
+        this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: errorMessage,
+            life: 5000
+        });
+    }
+
     loadTools() {
+        // ✅ VALIDACIÓN: Evitar múltiples cargas simultáneas
+        if (this.loading) {
+            return;
+        }
+
         this.loading = true;
+
         // Cargar herramientas según el filtro de vista activa
         this.toolsService.getTools(undefined, this.showOnlyActive).subscribe({
             next: (tools) => {
-                this.tools = tools;
+                // ✅ VALIDACIÓN: Verificar que tools es un array válido
+                if (!Array.isArray(tools)) {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Formato de respuesta inválido del servidor',
+                        life: 3000
+                    });
+                    this.tools = [];
+                } else {
+                    this.tools = tools;
+                }
                 this.loading = false;
             },
             error: (error) => {
@@ -760,20 +994,58 @@ export class ToolsCrudComponent implements OnInit {
                     life: 3000
                 });
                 this.loading = false;
+                // ✅ RESETEO EN CASO DE ERROR
+                this.tools = [];
             }
         });
     }
 
     toggleActiveView() {
+        // ✅ VALIDACIÓN: Verificar que no esté cargando actualmente
+        if (this.loading) {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Información',
+                detail: 'Espera a que termine la carga actual',
+                life: 2000
+            });
+            return;
+        }
+
         this.showOnlyActive = !this.showOnlyActive;
+
+        // ✅ MOSTRAR INDICADOR DE CARGA
+        this.messageService.add({
+            severity: 'info',
+            summary: 'Cargando',
+            detail: this.showOnlyActive ? 'Cargando solo herramientas activas...' : 'Cargando todas las herramientas...',
+            life: 1000
+        });
+
         this.loadTools();
     }
 
     loadCategories() {
+        // ✅ VALIDACIÓN: Evitar múltiples cargas simultáneas
+        if (this.loadingCategories) {
+            return;
+        }
+
         this.loadingCategories = true;
         this.categoryService.getCategories().subscribe({
             next: (categories) => {
-                this.categories = categories;
+                // ✅ VALIDACIÓN: Verificar que categories es un array válido
+                if (!Array.isArray(categories)) {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Formato de respuesta inválido para categorías',
+                        life: 3000
+                    });
+                    this.categories = [];
+                } else {
+                    this.categories = categories;
+                }
                 // Cargar subcategorías después de las categorías
                 this.loadSubcategories();
             },
@@ -785,6 +1057,8 @@ export class ToolsCrudComponent implements OnInit {
                     life: 3000
                 });
                 this.loadingCategories = false;
+                // ✅ RESETEO EN CASO DE ERROR
+                this.categories = [];
             }
         });
     }
@@ -792,7 +1066,18 @@ export class ToolsCrudComponent implements OnInit {
     loadSubcategories() {
         this.subcategoryService.getAllSubcategories().subscribe({
             next: (subcategories) => {
-                this.subcategories = subcategories;
+                // ✅ VALIDACIÓN: Verificar que subcategories es un array válido
+                if (!Array.isArray(subcategories)) {
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'Formato de respuesta inválido para subcategorías',
+                        life: 3000
+                    });
+                    this.subcategories = [];
+                } else {
+                    this.subcategories = subcategories;
+                }
                 this.loadingCategories = false;
             },
             error: (error) => {
@@ -803,34 +1088,109 @@ export class ToolsCrudComponent implements OnInit {
                     life: 3000
                 });
                 this.loadingCategories = false;
+                // ✅ RESETEO EN CASO DE ERROR
+                this.subcategories = [];
             }
         });
     }
 
     onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+        // ✅ VALIDACIÓN: Verificar que el evento y la tabla son válidos
+        if (!table || !event) {
+            return;
+        }
+
+        const target = event.target as HTMLInputElement;
+        if (!target) {
+            return;
+        }
+
+        // ✅ VALIDACIÓN: Limpiar espacios en blanco y normalizar búsqueda
+        const searchValue = target.value.trim();
+
+        // ✅ VALIDACIÓN: Limitar longitud de búsqueda para evitar problemas de rendimiento
+        if (searchValue.length > 100) {
+            this.messageService.add({
+                severity: 'warning',
+                summary: 'Advertencia',
+                detail: 'El término de búsqueda es demasiado largo',
+                life: 2000
+            });
+            return;
+        }
+
+        table.filterGlobal(searchValue, 'contains');
     }
 
     openNew() {
+        // ✅ VALIDACIÓN: Verificar que las subcategorías están cargadas
+        if (!this.subcategories || this.subcategories.length === 0) {
+            this.messageService.add({
+                severity: 'warning',
+                summary: 'Advertencia',
+                detail: 'Cargando subcategorías...',
+                life: 2000
+            });
+
+            // Recargar subcategorías si no están disponibles
+            this.loadSubcategories();
+        }
+
         this.tool = this.emptyTool();
         this.selectedSubcategory = null;
         this.isEditMode = false;
         this.selectedImage = null;
         this.imagePreview = null;
         this.hasNewImage = false;
+        this.hideModalAlert(); // Limpiar alertas del modal
+
+        // ✅ RESETEO COMPLETO DEL FORMULARIO CON VALORES POR DEFECTO
         this.toolForm.reset({
             nombre: '',
             descripcion: '',
             folio: '',
             subcategoria_id: null,
-            stock: 1,
+            stock: 1, // ✅ VALOR POR DEFECTO SEGÚN BD
             valor_reposicion: 0
         });
+
+        // ✅ MARCAR CAMPOS COMO UNTOUCHED PARA EVITAR ERRORES PREMATUROS
+        Object.keys(this.toolForm.controls).forEach(key => {
+            const control = this.toolForm.get(key);
+            control?.markAsUntouched();
+        });
+
+        // ✅ APLICAR VALIDACIONES CORRECTAS PARA CREACIÓN
+        this.updateStockValidation();
+
         this.toolDialog = true;
     }
 
     editTool(tool: Tool) {
+        // ✅ VALIDACIÓN: Verificar que la herramienta existe y es válida
+        if (!tool || !tool.id || tool.id <= 0) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Herramienta inválida para editar',
+                life: 3000
+            });
+            return;
+        }
+
+        // ✅ VALIDACIÓN: Verificar que la herramienta tiene datos válidos
+        if (!tool.nombre || tool.nombre.trim().length === 0) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'La herramienta no tiene un nombre válido',
+                life: 3000
+            });
+            return;
+        }
+
         this.tool = { ...tool };
+
         // Buscar la subcategoría seleccionada
         if (tool.subcategoria_id) {
             this.selectedSubcategory = this.subcategories.find(s => s.id === tool.subcategoria_id) || null;
@@ -850,6 +1210,11 @@ export class ToolsCrudComponent implements OnInit {
         this.imagePreview = null;
         this.hasNewImage = false;
         this.isEditMode = true;
+        this.hideModalAlert(); // Limpiar alertas del modal
+
+        // ✅ APLICAR VALIDACIONES CORRECTAS PARA EDICIÓN
+        this.updateStockValidation();
+
         this.toolDialog = true;
     }
 
@@ -859,6 +1224,17 @@ export class ToolsCrudComponent implements OnInit {
 
         // Método para cambiar el estado de la herramienta directamente
     toggleToolStatus(tool: Tool) {
+        // ✅ VALIDACIÓN: Verificar que la herramienta existe
+        if (!tool || !tool.id || tool.id <= 0) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Herramienta inválida',
+                life: 3000
+            });
+            return;
+        }
+
         const newStatus = tool.is_active;
 
         if (newStatus) {
@@ -877,12 +1253,7 @@ export class ToolsCrudComponent implements OnInit {
                 error: (error) => {
                     // Revertir el switch si hay error
                     tool.is_active = !newStatus;
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al activar herramienta',
-                        life: 3000
-                    });
+                    this.handleServerError(error, 'activar');
                 }
             });
         } else {
@@ -901,18 +1272,23 @@ export class ToolsCrudComponent implements OnInit {
                 error: (error) => {
                     // Revertir el switch si hay error
                     tool.is_active = !newStatus;
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: error.message || 'Error al desactivar herramienta',
-                        life: 3000
-                    });
+                    this.handleServerError(error, 'desactivar');
                 }
             });
         }
     }
 
     hideDialog() {
+        // ✅ VALIDACIÓN: Verificar si hay cambios sin guardar
+        if (this.toolForm.dirty) {
+            this.messageService.add({
+                severity: 'info',
+                summary: 'Información',
+                detail: 'Los cambios no guardados se han descartado',
+                life: 2000
+            });
+        }
+
         this.toolDialog = false;
         this.isEditMode = false;
         this.selectedSubcategory = null;
@@ -920,34 +1296,104 @@ export class ToolsCrudComponent implements OnInit {
         this.imagePreview = null;
         this.hasNewImage = false;
         this.showCustomConfirm = false;
-        this.toolForm.reset();
+        this.hideModalAlert(); // Limpiar alertas del modal
+
+        // ✅ RESETEO COMPLETO DEL FORMULARIO
+        this.toolForm.reset({
+            nombre: '',
+            descripcion: '',
+            folio: '',
+            subcategoria_id: null,
+            stock: 1, // ✅ VALOR POR DEFECTO SEGÚN BD
+            valor_reposicion: 0
+        });
+
+        // ✅ MARCAR CAMPOS COMO UNTOUCHED
+        Object.keys(this.toolForm.controls).forEach(key => {
+            const control = this.toolForm.get(key);
+            control?.markAsUntouched();
+        });
+
+        // ✅ APLICAR VALIDACIONES CORRECTAS PARA CREACIÓN
+        this.updateStockValidation();
+    }
+
+    // ✅ MÉTODOS PARA MANEJAR ALERTAS EN MODAL
+    showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
+        this.modalAlert = {
+            show: true,
+            type,
+            title,
+            message
+        };
+    }
+
+    hideModalAlert() {
+        this.modalAlert.show = false;
     }
 
     saveTool() {
         if (this.toolForm.valid) {
             const formValue = this.toolForm.value;
 
-            // Validar que subcategoria_id sea un número válido
-            if (!formValue.subcategoria_id || formValue.subcategoria_id <= 0) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Debes seleccionar una subcategoría válida',
-                    life: 3000
-                });
+            // ✅ VALIDACIONES ADICIONALES ANTES DE ENVIAR
+            const validationErrors = this.validateFormData(formValue);
+            if (validationErrors.length > 0) {
+                this.showModalAlert('error', 'Error de Validación', validationErrors.join(', '));
                 return;
             }
 
-            // Asegurar que subcategoria_id sea un número
-            const subcategoriaId = Number(formValue.subcategoria_id);
-            if (isNaN(subcategoriaId) || subcategoriaId <= 0) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'El ID de subcategoría debe ser un número válido',
-                    life: 3000
-                });
+            // ✅ VALIDACIÓN ESPECÍFICA DE SUBCATEGORÍA
+            if (!formValue.subcategoria_id || formValue.subcategoria_id <= 0) {
+                this.showModalAlert('error', 'Error de Validación', 'Debes seleccionar una subcategoría válida');
                 return;
+            }
+
+            // ✅ VALIDACIÓN DE TIPOS DE DATOS
+            const subcategoriaId = Number(formValue.subcategoria_id);
+            const stockValue = Number(formValue.stock);
+            const valorReposicionValue = Number(formValue.valor_reposicion);
+
+            if (isNaN(subcategoriaId) || subcategoriaId <= 0) {
+                this.showModalAlert('error', 'Error de Validación', 'El ID de subcategoría debe ser un número válido');
+                return;
+            }
+
+            // ✅ VALIDACIÓN DE STOCK SEGÚN MODO
+            if (isNaN(stockValue)) {
+                this.showModalAlert('error', 'Error de Validación', 'El stock debe ser un número válido');
+                return;
+            }
+
+            if (this.isEditMode) {
+                // ✅ MODO EDICIÓN: Permite stock = 0 (para agotar)
+                if (stockValue < 0 || stockValue > 9999) {
+                    this.showModalAlert('error', 'Error de Stock', 'El stock debe ser un número entre 0 y 9999 (0 = agotado)');
+                    return;
+                }
+            } else {
+                // ✅ MODO CREACIÓN: Mínimo stock = 1 (para disponibilidad)
+                if (stockValue < 1 || stockValue > 9999) {
+                    this.showModalAlert('error', 'Stock Inválido', 'No se puede crear una herramienta con stock = 0. El stock mínimo para nuevas herramientas es 1 para garantizar disponibilidad.');
+                    return;
+                }
+            }
+
+            if (isNaN(valorReposicionValue) || valorReposicionValue < 0 || valorReposicionValue > 999999.99) {
+                this.showModalAlert('error', 'Error de Validación', 'El valor de reposición debe ser un número entre 0 y 999,999.99');
+                return;
+            }
+
+            // ✅ VALIDACIÓN DE DESCRIPCIÓN (si se proporciona)
+            if (formValue.descripcion && formValue.descripcion.trim().length > 0) {
+                if (formValue.descripcion.trim().length < 3) {
+                    this.showModalAlert('error', 'Error de Validación', 'La descripción debe tener al menos 3 caracteres si se proporciona');
+                    return;
+                }
+                if (formValue.descripcion.trim().length > 200) {
+                    this.showModalAlert('error', 'Error de Validación', 'La descripción no puede exceder 200 caracteres');
+                    return;
+                }
             }
 
             if (this.tool.id) {
@@ -963,12 +1409,12 @@ export class ToolsCrudComponent implements OnInit {
                 this.confirmMessage = confirmMessage;
                 this.confirmAction = () => {
                     const updateData: ToolUpdateRequest = {
-                        nombre: formValue.nombre,
+                        nombre: formValue.nombre.trim(),
                         subcategoria_id: subcategoriaId,
                         folio: formValue.folio,
-                        stock: formValue.stock,
-                        valor_reposicion: formValue.valor_reposicion,
-                        descripcion: formValue.descripcion,
+                        stock: stockValue,
+                        valor_reposicion: valorReposicionValue,
+                        descripcion: formValue.descripcion?.trim() || '',
                         imagen: this.hasNewImage && this.selectedImage ? this.selectedImage : undefined,
                         is_active: true // Siempre crear como activa, el estado se maneja desde la tabla
                     };
@@ -980,7 +1426,7 @@ export class ToolsCrudComponent implements OnInit {
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Éxito',
-                                detail: 'Herramienta actualizada',
+                                detail: 'Herramienta actualizada exitosamente',
                                 life: 3000
                             });
                             this.toolDialog = false;
@@ -993,12 +1439,8 @@ export class ToolsCrudComponent implements OnInit {
                             this.toolForm.reset();
                         },
                         error: (error) => {
-                            this.messageService.add({
-                                severity: 'error',
-                                summary: 'Error',
-                                detail: error.message || 'Error al actualizar herramienta',
-                                life: 3000
-                            });
+                            // ✅ MANEJO MEJORADO DE ERRORES DEL SERVIDOR
+                            this.handleServerError(error, 'actualizar');
                         }
                     });
                 };
@@ -1006,12 +1448,12 @@ export class ToolsCrudComponent implements OnInit {
             } else {
                 // Crear nueva herramienta
                 const createData: ToolCreateRequest = {
-                    nombre: formValue.nombre,
+                    nombre: formValue.nombre.trim(),
                     subcategoria_id: subcategoriaId,
                     folio: formValue.folio,
-                    stock: formValue.stock,
-                    valor_reposicion: formValue.valor_reposicion,
-                    descripcion: formValue.descripcion,
+                    stock: stockValue,
+                    valor_reposicion: valorReposicionValue,
+                    descripcion: formValue.descripcion?.trim() || '',
                     imagen: this.selectedImage || undefined,
                     is_active: true // Siempre crear como activa, el estado se maneja desde la tabla
                 };
@@ -1022,7 +1464,7 @@ export class ToolsCrudComponent implements OnInit {
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Éxito',
-                            detail: 'Herramienta creada',
+                            detail: 'Herramienta creada exitosamente',
                             life: 3000
                         });
                         this.toolDialog = false;
@@ -1035,12 +1477,8 @@ export class ToolsCrudComponent implements OnInit {
                         this.toolForm.reset();
                     },
                     error: (error) => {
-                        this.messageService.add({
-                            severity: 'error',
-                            summary: 'Error',
-                            detail: error.message || 'Error al crear herramienta',
-                            life: 3000
-                        });
+                        // ✅ MANEJO MEJORADO DE ERRORES DEL SERVIDOR
+                        this.handleServerError(error, 'crear');
                     }
                 });
             }
@@ -1060,49 +1498,62 @@ export class ToolsCrudComponent implements OnInit {
         }
     }
 
+    // ✅ MÉTODO DE VALIDACIÓN DE IMÁGENES MEJORADO
+    validateImageFile(file: File): { isValid: boolean; error?: string } {
+        // Validar tipo de archivo
+        if (!file.type.startsWith('image/')) {
+            return { isValid: false, error: 'Solo se permiten archivos de imagen' };
+        }
+
+        // Validar extensión del archivo
+        const fileName = file.name.toLowerCase();
+        const validExtensions = /\.(jpg|jpeg|png|webp)$/;
+        if (!validExtensions.test(fileName)) {
+            return { isValid: false, error: 'Solo se permiten archivos JPG, JPEG, PNG y WEBP' };
+        }
+
+        // Validar tamaño (máximo 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            return { isValid: false, error: 'La imagen no puede exceder 5MB' };
+        }
+
+        // Validar nombre del archivo (máximo 255 caracteres según BD)
+        if (fileName.length > 255) {
+            return { isValid: false, error: 'El nombre del archivo es demasiado largo' };
+        }
+
+        // Validar caracteres especiales en el nombre del archivo
+        const invalidChars = /[<>:"/\\|?*]/;
+        if (invalidChars.test(fileName)) {
+            return { isValid: false, error: 'El nombre del archivo contiene caracteres no permitidos' };
+        }
+
+        // Validación básica sin verificar dimensiones (para evitar problemas de async)
+        return { isValid: true };
+    }
+
     onImageSelected(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files && input.files[0]) {
             const file = input.files[0];
 
-            // Validar tipo de archivo
-            if (!file.type.startsWith('image/')) {
+            // ✅ VALIDACIONES MEJORADAS PARA IMÁGENES
+            const validationResult = this.validateImageFile(file);
+            if (!validationResult.isValid) {
                 this.messageService.add({
                     severity: 'error',
-                    summary: 'Error',
-                    detail: 'Solo se permiten archivos de imagen',
-                    life: 3000
+                    summary: 'Error de imagen',
+                    detail: validationResult.error,
+                    life: 5000
                 });
-                return;
-            }
-
-            // Validar extensión del archivo
-            const fileName = file.name.toLowerCase();
-            const validExtensions = /\.(jpg|png|webp)$/;
-            if (!validExtensions.test(fileName)) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'Solo se permiten archivos JPG, PNG y WEBP',
-                    life: 3000
-                });
-                return;
-            }
-
-            // Validar tamaño (máximo 5MB)
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            if (file.size > maxSize) {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'La imagen no puede exceder 5MB',
-                    life: 3000
-                });
+                // Limpiar el input
+                input.value = '';
                 return;
             }
 
             this.selectedImage = file;
-            this.hasNewImage = true; // Marcar que se seleccionó una nueva imagen
+            this.hasNewImage = true;
 
             // Crear preview
             const reader = new FileReader();
@@ -1199,20 +1650,53 @@ export class ToolsCrudComponent implements OnInit {
     }
 
     onCustomConfirmAccept() {
+        // ✅ VALIDACIÓN: Verificar que la acción existe
+        if (!this.confirmAction) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Acción de confirmación no válida',
+                life: 3000
+            });
+            return;
+        }
+
         if (this.confirmAction) this.confirmAction();
         this.showCustomConfirm = false;
     }
+
     onCustomConfirmReject() {
         this.showCustomConfirm = false;
     }
 
     // Métodos para confirmación de eliminación de imagen
     onImageDeleteConfirmAccept() {
+        // ✅ VALIDACIÓN: Verificar que la acción existe
+        if (!this.imageDeleteConfirmAction) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Acción de eliminación de imagen no válida',
+                life: 3000
+            });
+            return;
+        }
+
         if (this.imageDeleteConfirmAction) this.imageDeleteConfirmAction();
         this.showImageDeleteConfirm = false;
     }
+
     onImageDeleteConfirmReject() {
         this.showImageDeleteConfirm = false;
+    }
+
+    // ✅ MÉTODO PARA MOSTRAR ADVERTENCIAS DE STOCK
+    showStockWarning(stockValue: number): void {
+        if (!this.isEditMode && stockValue === 0) {
+            this.showModalAlert('warning', 'Advertencia de Stock', 'No se puede crear una herramienta con stock = 0. El stock mínimo para nuevas herramientas es 1 para garantizar disponibilidad.');
+        } else if (this.isEditMode && stockValue === 0) {
+            this.showModalAlert('info', 'Información de Stock', 'Stock = 0 significa que la herramienta está agotada. Los usuarios no podrán solicitarla hasta que se reponga el stock.');
+        }
     }
 
     emptyTool(): Tool {
@@ -1223,14 +1707,19 @@ export class ToolsCrudComponent implements OnInit {
             descripcion: '',
             folio: '',
             foto_url: '',
-            stock: 1,
-            valor_reposicion: 0,
-            is_active: true
+            stock: 1, // ✅ VALOR POR DEFECTO SEGÚN BD
+            valor_reposicion: 0.00, // ✅ VALOR POR DEFECTO SEGÚN BD
+            is_active: true // ✅ VALOR POR DEFECTO SEGÚN BD
         };
     }
 
     @HostListener('document:keydown.escape')
     onEscapePress() {
+        // ✅ VALIDACIÓN: Verificar que no esté cargando
+        if (this.loading || this.loadingCategories) {
+            return;
+        }
+
         if (this.showCustomConfirm) {
             this.onCustomConfirmReject();
         } else if (this.showImageDeleteConfirm) {

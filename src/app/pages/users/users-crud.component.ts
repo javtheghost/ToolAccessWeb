@@ -21,8 +21,10 @@ import { DropdownModule } from 'primeng/dropdown';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
+import { InputSwitchModule } from 'primeng/inputswitch';
 import { UserService } from '../service/user.service';
 import { RoleService, Role } from '../service/role.service';
+import { OAuthService } from '../service/oauth.service';
 import { User, UserCreateRequest, UserUpdateRequest, AVAILABLE_ROLES } from '../interfaces';
 
 interface Column {
@@ -46,6 +48,7 @@ interface Column {
         PasswordModule,
         TextareaModule,
         DialogModule,
+        ConfirmDialogModule,
         IconFieldModule,
         InputIconModule,
         SkeletonModule,
@@ -54,11 +57,13 @@ interface Column {
         DropdownModule,
         MultiSelectModule,
         TagModule,
-        AvatarModule
+        AvatarModule,
+        InputSwitchModule
     ],
-    providers: [MessageService],
+    providers: [MessageService, ConfirmationService],
     template: `
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 <div class="p-6">
     <!-- Loading State -->
     <div *ngIf="loading()" class="space-y-4">
@@ -73,7 +78,7 @@ interface Column {
             </p-iconfield>
             <div class="flex gap-2">
                 <p-button label="Crear Usuario" icon="pi pi-plus" (onClick)="openNew()" [disabled]="true"></p-button>
-                <p-button 
+                <p-button
                     [label]="showOnlyActive ? 'Ver Todos' : 'Solo Activos'"
                     [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
                     severity="secondary"
@@ -126,7 +131,7 @@ interface Column {
             dataKey="id"
             currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} usuarios"
             [showCurrentPageReport]="true">
-            
+
             <ng-template pTemplate="caption">
                 <div class="space-y-4">
                     <!-- Header siempre visible -->
@@ -136,20 +141,20 @@ interface Column {
                     <div class="flex items-center justify-between gap-4 mt-2">
                         <p-iconfield>
                             <p-inputicon styleClass="pi pi-search" />
-                            <input 
-                                pInputText 
-                                type="text" 
-                                (input)="onGlobalFilter($event)" 
-                                placeholder="Buscar usuarios..." 
+                            <input
+                                pInputText
+                                type="text"
+                                (input)="onGlobalFilter($event)"
+                                placeholder="Buscar usuarios..."
                                 class="w-80" />
                         </p-iconfield>
                         <div class="flex gap-2">
-                            <p-button 
-                                label="Crear Usuario" 
-                                icon="pi pi-plus" 
+                            <p-button
+                                label="Crear Usuario"
+                                icon="pi pi-plus"
                                 (onClick)="openNew()">
                             </p-button>
-                            <p-button 
+                            <p-button
                                 [label]="showOnlyActive ? 'Ver Todos' : 'Solo Activos'"
                                 [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
                                 severity="secondary"
@@ -201,19 +206,24 @@ interface Column {
                         <span class="font-medium">{{ user.email }}</span>
                     </td>
                     <td class="text-center">
-                        <p-tag 
+                        <p-tag
                             [value]="getRoleName(user.rol_id)"
                             [severity]="getRoleSeverity(user.rol_id)"
                             [rounded]="true">
                         </p-tag>
+                        <!-- Indicador de último admin activo -->
+                        <div *ngIf="isLastActiveAdmin(user)" class="mt-1">
+                            <span class="text-xs text-orange-600 font-medium">⚠️ Último admin activo</span>
+                        </div>
                     </td>
                     <td class="text-center">
-                        <input 
-                            type="checkbox" 
-                            class="custom-toggle" 
-                            [checked]="user.is_active" 
-                            (click)="onToggleClick(user, $event)"
-                        />
+                        <p-inputswitch
+                            [(ngModel)]="user.is_active"
+                            (onChange)="handleUserStatusToggle(user)"
+                            [disabled]="shouldDisableUserToggle(user)"
+                            [pTooltip]="getUserToggleTooltip(user)"
+                            tooltipPosition="top">
+                        </p-inputswitch>
                     </td>
                     <td>
                         <div class="flex gap-2">
@@ -246,30 +256,30 @@ interface Column {
 </div>
 
 <!-- Modal para crear/editar usuario -->
-<p-dialog 
-    [(visible)]="showDialog" 
-    [style]="{width: '600px'}" 
-    [header]="isEditMode ? 'Editar Usuario' : 'Crear Usuario'" 
-    [modal]="true" 
+<p-dialog
+    [(visible)]="showDialog"
+    [style]="{width: '600px'}"
+    [header]="isEditMode ? 'Editar Usuario' : 'Crear Usuario'"
+    [modal]="true"
     styleClass="p-fluid"
     [dismissableMask]="true"
     [draggable]="false">
-    
+
     <ng-template pTemplate="content">
         <form [formGroup]="userForm" class="grid formgrid p-4">
             <!-- Nombre -->
             <div class="field col-12 md:col-6">
                 <label for="nombre" class="font-semibold">Nombre *</label>
-                <input 
+                <input
                     id="nombre"
-                    type="text" 
-                    pInputText 
+                    type="text"
+                    pInputText
                     formControlName="nombre"
                     placeholder="Ingrese nombre"
                     [class.ng-invalid]="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched"
                     class="w-full" />
-                <small 
-                    *ngIf="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched" 
+                <small
+                    *ngIf="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched"
                     class="p-error">
                     El nombre es requerido
                 </small>
@@ -278,16 +288,16 @@ interface Column {
             <!-- Apellido Paterno -->
             <div class="field col-12 md:col-6">
                 <label for="apellido_paterno" class="font-semibold">Apellido Paterno *</label>
-                <input 
+                <input
                     id="apellido_paterno"
-                    type="text" 
-                    pInputText 
+                    type="text"
+                    pInputText
                     formControlName="apellido_paterno"
                     placeholder="Ingrese apellido paterno"
                     [class.ng-invalid]="userForm.get('apellido_paterno')?.invalid && userForm.get('apellido_paterno')?.touched"
                     class="w-full" />
-                <small 
-                    *ngIf="userForm.get('apellido_paterno')?.invalid && userForm.get('apellido_paterno')?.touched" 
+                <small
+                    *ngIf="userForm.get('apellido_paterno')?.invalid && userForm.get('apellido_paterno')?.touched"
                     class="p-error">
                     El apellido paterno es requerido
                 </small>
@@ -296,10 +306,10 @@ interface Column {
             <!-- Apellido Materno -->
             <div class="field col-12 md:col-6">
                 <label for="apellido_materno" class="font-semibold">Apellido Materno</label>
-                <input 
+                <input
                     id="apellido_materno"
-                    type="text" 
-                    pInputText 
+                    type="text"
+                    pInputText
                     formControlName="apellido_materno"
                     placeholder="Ingrese apellido materno (opcional)"
                     class="w-full" />
@@ -308,16 +318,16 @@ interface Column {
             <!-- Email -->
             <div class="field col-12 md:col-6">
                 <label for="email" class="font-semibold">Email *</label>
-                <input 
+                <input
                     id="email"
-                    type="email" 
-                    pInputText 
+                    type="email"
+                    pInputText
                     formControlName="email"
                     placeholder="usuario@ejemplo.com"
                     [class.ng-invalid]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
                     class="w-full" />
-                <small 
-                    *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" 
+                <small
+                    *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched"
                     class="p-error">
                     Email válido es requerido
                 </small>
@@ -326,7 +336,7 @@ interface Column {
             <!-- Contraseña (solo para crear) -->
             <div *ngIf="!isEditMode" class="field col-12 md:col-6">
                 <label for="password" class="font-semibold">Contraseña *</label>
-                <p-password 
+                <p-password
                     id="password"
                     formControlName="password"
                     placeholder="Ingrese contraseña"
@@ -336,8 +346,8 @@ interface Column {
                     [feedback]="true"
                     [toggleMask]="true">
                 </p-password>
-                <small 
-                    *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" 
+                <small
+                    *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched"
                     class="p-error">
                     La contraseña es requerida (mínimo 8 caracteres)
                 </small>
@@ -346,11 +356,11 @@ interface Column {
             <!-- Rol -->
             <div class="field col-12 md:col-6">
                 <label for="rol_id" class="font-semibold">Rol *</label>
-                <p-dropdown 
+                <p-dropdown
                     id="rol_id"
-                    [options]="rolesDb" 
+                    [options]="rolesDb"
                     formControlName="rol_id"
-                    optionLabel="nombre" 
+                    optionLabel="nombre"
                     optionValue="id"
                     placeholder="Seleccionar rol"
                     [class.ng-invalid]="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched"
@@ -359,8 +369,8 @@ interface Column {
                     [virtualScroll]="false"
                     [appendTo]="'body'">
                 </p-dropdown>
-                <small 
-                    *ngIf="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched" 
+                <small
+                    *ngIf="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched"
                     class="p-error">
                     El rol es requerido
                 </small>
@@ -372,13 +382,13 @@ interface Column {
 
     <ng-template pTemplate="footer">
         <div class="flex gap-2 justify-content-end">
-            <p-button 
-                label="Cancelar" 
-                icon="pi pi-times" 
-                [text]="true" 
+            <p-button
+                label="Cancelar"
+                icon="pi pi-times"
+                [text]="true"
                 (onClick)="hideDialog()">
             </p-button>
-            <p-button 
+            <p-button
                 [label]="isEditMode ? 'Actualizar' : 'Crear'"
                 [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'"
                 [loading]="saving()"
@@ -390,13 +400,13 @@ interface Column {
 </p-dialog>
 
 <!-- Modal de confirmación personalizado -->
-<p-dialog 
-    [(visible)]="showCustomConfirm" 
-    [style]="{width: '400px'}" 
-    header="Confirmar Acción" 
+<p-dialog
+    [(visible)]="showCustomConfirm"
+    [style]="{width: '400px'}"
+    header="Confirmar Acción"
     [modal]="true"
     [dismissableMask]="false">
-    
+
     <ng-template pTemplate="content">
         <div class="flex align-items-center gap-3 p-4">
             <i class="pi pi-exclamation-triangle text-orange-500 text-2xl"></i>
@@ -406,15 +416,16 @@ interface Column {
 
     <ng-template pTemplate="footer">
         <div class="flex gap-2 justify-content-end">
-            <p-button 
-                label="Cancelar" 
-                icon="pi pi-times" 
-                [text]="true" 
+            <p-button
+                label="No"
+                icon="pi pi-times"
+                severity="danger"
+                [outlined]="true"
                 (onClick)="showCustomConfirm = false">
             </p-button>
-            <p-button 
-                label="Confirmar" 
-                icon="pi pi-check" 
+            <p-button
+                label="Sí"
+                icon="pi pi-check"
                 severity="danger"
                 (onClick)="executeConfirmAction()">
             </p-button>
@@ -422,36 +433,53 @@ interface Column {
     </ng-template>
 </p-dialog>
     `,
-    styleUrls: ['./users-crud.component.scss']
+    styleUrls: ['./users-crud.component.scss'],
+    styles: [
+        `/* Estilos para el switch personalizado con color verde */
+        :host ::ng-deep .p-inputswitch-slider {
+            background: #e5e7eb !important;
+            border-color: #e5e7eb !important;
+        }
+
+        :host ::ng-deep .p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+            background: #12A883 !important;
+            border-color: #12A883 !important;
+        }
+
+        :host ::ng-deep .p-inputswitch .p-inputswitch-slider:before {
+            background: #ffffff !important;
+        }`
+    ]
 })
 export class UsersCrudComponent implements OnInit {
     @ViewChild('dt') table!: Table;
-    
+
     // Signals para estados reactivos
     loading = signal<boolean>(false);
     saving = signal<boolean>(false);
     users = signal<User[]>([]);
     filteredUsers = signal<User[]>([]);
-    
+
     // Estados del modal
     showDialog = false;
     showCustomConfirm = false;
     isEditMode = false;
-    
+
     // Modal de confirmación personalizado
     confirmMessage = '';
     confirmAction: (() => void) | null = null;
-    
+
     // Formularios
     userForm!: FormGroup;
-    
+
     // Datos auxiliares
     selectedUser: User | null = null;
     rolesDb: Role[] = [];
-    
+    currentUserId: number | null = null; // Se obtiene del servicio de autenticación
+
     // Filtros
     showOnlyActive = true;
-    
+
     // Columnas de la tabla
     cols: Column[] = [
         { field: 'full_name', header: 'Nombre Completo' },
@@ -463,15 +491,29 @@ export class UsersCrudComponent implements OnInit {
     constructor(
         private userService: UserService,
         private messageService: MessageService,
+        private confirmationService: ConfirmationService,
         private fb: FormBuilder,
-        private roleService: RoleService
+        private roleService: RoleService,
+        private oauthService: OAuthService
     ) {
         this.initForms();
     }
 
     ngOnInit() {
+        this.loadCurrentUser();
         this.loadUsers();
         this.loadRolesDb();
+    }
+
+    loadCurrentUser() {
+        const currentUser = this.oauthService.getCurrentUser();
+        if (currentUser && currentUser.id) {
+            this.currentUserId = currentUser.id;
+            console.log('👤 Usuario actual cargado:', currentUser.nombre, 'ID:', currentUser.id);
+        } else {
+            console.warn('⚠️ No se pudo obtener el usuario actual');
+            this.currentUserId = null;
+        }
     }
 
     loadRolesDb() {
@@ -495,20 +537,20 @@ export class UsersCrudComponent implements OnInit {
         // Formulario principal de usuario
         this.userForm = this.fb.group({
             nombre: ['', [
-                Validators.required, 
-                Validators.minLength(2), 
+                Validators.required,
+                Validators.minLength(2),
                 Validators.maxLength(50)
             ]],
             apellido_paterno: ['', [
-                Validators.required, 
-                Validators.minLength(2), 
+                Validators.required,
+                Validators.minLength(2),
                 Validators.maxLength(50)
             ]],
             apellido_materno: ['', [
                 Validators.maxLength(50)
             ]],
             email: ['', [
-                Validators.required, 
+                Validators.required,
                 Validators.email
             ]],
             password: ['', [
@@ -525,10 +567,10 @@ export class UsersCrudComponent implements OnInit {
     loadUsers() {
         console.log('🔄 Iniciando carga de usuarios desde la API...');
         this.loading.set(true);
-        
+
         const filters = this.showOnlyActive ? { is_active: true } : {};
         console.log('🔍 Filtros aplicados:', filters);
-        
+
         this.userService.getUsers(filters).subscribe({
             next: (users) => {
                 console.log('✅ Usuarios recibidos de la API:', users);
@@ -560,13 +602,13 @@ export class UsersCrudComponent implements OnInit {
     updateFilteredUsers() {
         const users = this.users();
         console.log('📋 Usuarios antes del filtrado:', users);
-        
+
         if (this.showOnlyActive) {
             this.filteredUsers.set(users.filter(user => user.is_active));
         } else {
             this.filteredUsers.set(users);
         }
-        
+
         console.log('✅ Usuarios después del filtrado:', this.filteredUsers());
     }
 
@@ -575,30 +617,140 @@ export class UsersCrudComponent implements OnInit {
         this.table.filterGlobal(target.value, 'contains');
     }
 
-    onToggleChange(user: User, newValue: boolean) {
-        console.log(`🎯 Cambio en switch del usuario "${user.nombre}": ${user.is_active} → ${newValue}`);
-        
-        // Actualizar inmediatamente en la vista para dar feedback visual
-        user.is_active = newValue;
-        
-        // Llamar al método de toggle con el nuevo estado
-        this.toggleUserStatus(user);
+    // ===== VALIDACIONES DE SEGURIDAD =====
+
+    /**
+     * Verifica si un usuario es el último administrador activo
+     */
+    isLastActiveAdmin(user: User): boolean {
+        if (user.rol_id !== 1) return false; // Solo verificar administradores
+
+        const activeAdmins = this.users().filter(u =>
+            u.rol_id === 1 && u.is_active && u.id !== user.id
+        );
+
+        return activeAdmins.length === 0 && (user.is_active ?? false);
     }
 
-    onToggleClick(user: User, event: Event) {
-        // Prevenir el comportamiento por defecto del checkbox
-        event.preventDefault();
-        
-        // Capturar el estado ACTUAL antes del cambio
-        const currentStatus = user.is_active;
-        const newStatus = !currentStatus;
-        
-        console.log(`🎯 Click en toggle del usuario "${user.nombre}": ${currentStatus} → ${newStatus}`);
-        
-        // Actualizar inmediatamente en la vista para dar feedback visual
-        user.is_active = newStatus;
-        
-        // Llamar al método de toggle con el nuevo estado
+    /**
+     * Verifica si se debe deshabilitar el toggle de un usuario
+     */
+    shouldDisableUserToggle(user: User): boolean {
+        // 1. No permitir auto-desactivación
+        if (this.currentUserId && user.id === this.currentUserId) {
+            return true;
+        }
+
+        // 2. No permitir desactivar al último admin activo
+        if (this.isLastActiveAdmin(user)) {
+            return true;
+        }
+
+        // 3. No permitir si está cargando
+        if (this.loading()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtiene el tooltip apropiado para el toggle de usuario
+     */
+    getUserToggleTooltip(user: User): string {
+        if (this.currentUserId && user.id === this.currentUserId) {
+            return 'No puedes desactivarte a ti mismo';
+        }
+
+        if (this.isLastActiveAdmin(user)) {
+            return 'No puedes desactivar al último administrador activo';
+        }
+
+        if (this.loading()) {
+            return 'Cargando...';
+        }
+
+        return user.is_active ?
+            'Haz clic para desactivar' :
+            'Haz clic para reactivar';
+    }
+
+    /**
+     * Maneja el toggle de estado del usuario con validaciones
+     */
+    handleUserStatusToggle(user: User) {
+        const newStatus = user.is_active;
+        console.log(`🔄 Intentando cambiar estado del usuario "${user.nombre}" (ID: ${user.id}) a: ${newStatus ? 'ACTIVO' : 'INACTIVO'}`);
+
+        // Validaciones de seguridad
+        if (this.currentUserId && user.id === this.currentUserId) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Acción no permitida',
+                detail: 'No puedes desactivarte a ti mismo',
+                life: 3000
+            });
+            // Revertir el cambio
+            user.is_active = !newStatus;
+            return;
+        }
+
+        // Verificar si es el último admin activo
+        if (this.isLastActiveAdmin(user)) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: 'Acción no permitida',
+                detail: 'No puedes desactivar al último administrador activo',
+                life: 3000
+            });
+            // Revertir el cambio
+            user.is_active = !newStatus;
+            return;
+        }
+
+        // Confirmación para desactivar administradores
+        if (user.rol_id === 1 && !newStatus) {
+            this.confirmationService.confirm({
+                message: '¿Estás seguro de que quieres desactivar a este administrador?',
+                header: 'Confirmar desactivación',
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'Sí',
+                rejectLabel: 'No',
+                acceptButtonStyleClass: 'p-button-warning',
+                rejectButtonStyleClass: 'p-button-warning p-button-outlined',
+                accept: () => {
+                    this.toggleUserStatus(user);
+                },
+                reject: () => {
+                    // Revertir el cambio
+                    user.is_active = !newStatus;
+                }
+            });
+            return;
+        }
+
+        // Confirmación para desactivar usuarios normales
+        if (!newStatus) {
+            this.confirmationService.confirm({
+                message: `¿Estás seguro de que quieres desactivar al usuario "${user.nombre}"?`,
+                header: 'Confirmar desactivación',
+                icon: 'pi pi-exclamation-triangle',
+                acceptLabel: 'Sí',
+                rejectLabel: 'No',
+                acceptButtonStyleClass: 'p-button-warning',
+                rejectButtonStyleClass: 'p-button-warning p-button-outlined',
+                accept: () => {
+                    this.toggleUserStatus(user);
+                },
+                reject: () => {
+                    // Revertir el cambio
+                    user.is_active = !newStatus;
+                }
+            });
+            return;
+        }
+
+        // Si es activación, proceder directamente
         this.toggleUserStatus(user);
     }
 
@@ -607,11 +759,11 @@ export class UsersCrudComponent implements OnInit {
         // Capturar el estado actual que queremos enviar al backend
         const newStatus = user.is_active;
         console.log(`🔄 Cambiando estado del usuario "${user.nombre}" (ID: ${user.id}) a: ${newStatus ? 'ACTIVO' : 'INACTIVO'}`);
-        
+
         this.userService.toggleUserStatus(user.id!, newStatus!).subscribe({
             next: (updatedUser) => {
                 console.log('✅ Respuesta del servidor para usuario:', updatedUser);
-                
+
                 // Actualizar el usuario en la lista local
                 const users = this.users();
                 const index = users.findIndex(u => u.id === user.id);
@@ -620,7 +772,7 @@ export class UsersCrudComponent implements OnInit {
                     this.users.set([...users]);
                     this.updateFilteredUsers();
                 }
-                
+
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Estado actualizado',
@@ -630,10 +782,10 @@ export class UsersCrudComponent implements OnInit {
             },
             error: (error) => {
                 console.error('❌ Error al cambiar estado del usuario:', error);
-                
+
                 // Revertir el cambio en caso de error
                 user.is_active = !newStatus;
-                
+
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -649,14 +801,14 @@ export class UsersCrudComponent implements OnInit {
         this.selectedUser = null;
         this.isEditMode = false;
         this.resetForm();
-        
+
         // La contraseña es requerida solo al crear
         this.userForm.get('password')?.setValidators([
-            Validators.required, 
+            Validators.required,
             Validators.minLength(8)
         ]);
         this.userForm.get('password')?.updateValueAndValidity();
-        
+
         this.showDialog = true;
     }
 
@@ -664,11 +816,11 @@ export class UsersCrudComponent implements OnInit {
         this.selectedUser = { ...user };
         this.isEditMode = true;
         this.populateForm(user);
-        
+
         // La contraseña no es requerida al editar
         this.userForm.get('password')?.clearValidators();
         this.userForm.get('password')?.updateValueAndValidity();
-        
+
         this.showDialog = true;
     }
 
@@ -829,7 +981,7 @@ export class UsersCrudComponent implements OnInit {
     getRoleSeverity(rolId: number): 'success' | 'info' | 'warning' | 'danger' {
         switch (rolId) {
             case 1: return 'danger';   // Administrador - rojo
-            case 2: return 'info';     // Operador - azul  
+            case 2: return 'info';     // Operador - azul
             case 3: return 'warning';  // Recepcionista - amarillo
             default: return 'info';
         }

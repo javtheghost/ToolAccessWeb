@@ -121,11 +121,36 @@ import { Subject, takeUntil } from 'rxjs';
         </ng-template>
         <ng-template pTemplate="header">
             <tr class="bg-[#6ea1cc] text-white">
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Valor base</th>
-                <th>Activo</th>
+                <th pSortableColumn="id">
+                    <div class="flex justify-content-center align-items-center">
+                        ID
+                        <p-sortIcon field="id"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="nombre">
+                    <div class="flex justify-content-center align-items-center">
+                        Nombre
+                        <p-sortIcon field="nombre"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="categoria">
+                    <div class="flex justify-content-center align-items-center">
+                        Categoría
+                        <p-sortIcon field="categoria"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="valor_base">
+                    <div class="flex justify-content-center align-items-center">
+                        Valor base
+                        <p-sortIcon field="valor_base"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="is_active">
+                    <div class="flex justify-content-center align-items-center">
+                        Estado
+                        <p-sortIcon field="is_active"></p-sortIcon>
+                    </div>
+                </th>
                 <th>Acciones</th>
             </tr>
         </ng-template>

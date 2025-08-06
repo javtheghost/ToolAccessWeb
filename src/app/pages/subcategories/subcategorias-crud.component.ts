@@ -128,11 +128,31 @@ import { forkJoin } from 'rxjs';
             </ng-template>
             <ng-template pTemplate="header">
                 <tr class="bg-[#6ea1cc] text-white">
-                    <th class="text-center p-3">ID</th>
-                    <th class="text-left p-3">Nombre</th>
+                    <th pSortableColumn="id" class="text-center p-3">
+                        <div class="flex justify-content-center align-items-center">
+                            ID
+                            <p-sortIcon field="id"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="nombre" class="text-left p-3">
+                        <div class="flex justify-content-center align-items-center">
+                            Nombre
+                            <p-sortIcon field="nombre"></p-sortIcon>
+                        </div>
+                    </th>
                     <th class="hidden sm:table-cell text-left p-3">Descripción</th>
-                    <th class="hidden sm:table-cell text-left p-3">Categoría</th>
-                    <th class="hidden sm:table-cell text-center p-3">Activo</th>
+                    <th pSortableColumn="categoria_nombre" class="hidden sm:table-cell text-left p-3">
+                        <div class="flex justify-content-center align-items-center">
+                            Categoría
+                            <p-sortIcon field="categoria_nombre"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="is_active" class="hidden sm:table-cell text-center p-3">
+                        <div class="flex justify-content-center align-items-center">
+                            Estado
+                            <p-sortIcon field="is_active"></p-sortIcon>
+                        </div>
+                    </th>
                     <th class="text-center p-3">Acción</th>
                 </tr>
             </ng-template>
@@ -216,12 +236,21 @@ import { forkJoin } from 'rxjs';
             <div class="relative py-2 mt-2">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
                 <input type="text" id="nombre" name="nombre" required class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Nombre" [(ngModel)]="subcategory.nombre" />
-                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre</label>
+                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre *</label>
             </div>
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
-                <textarea id="descripcion" name="descripcion" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder=" " aria-label="Descripción" [(ngModel)]="subcategory.descripcion"></textarea>
-                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción...</label>
+                <textarea
+                    id="descripcion"
+                    name="descripcion"
+                    rows="3"
+                    maxlength="5000"
+                    class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    placeholder=" "
+                    aria-label="Descripción"
+                    [(ngModel)]="subcategory.descripcion">
+                </textarea>
+                <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción (Opcional)</label>
             </div>
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
@@ -258,11 +287,7 @@ import { forkJoin } from 'rxjs';
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría</label>
-            </div>
-            <div class="flex flex-col items-center justify-center py-2">
-                <label class="mb-2 text-sm font-medium">Activo</label>
-                <input type="checkbox" class="custom-toggle" [(ngModel)]="subcategory.is_active" />
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría *</label>
             </div>
         </div>
         <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
@@ -557,7 +582,7 @@ export class SubcategoriasCrudComponent implements OnInit {
         this.subcategory = {
             nombre: '',
             categoria_id: 0,
-            is_active: true
+            is_active: true // Siempre activa por defecto para nuevas subcategorías
         };
         this.selectedCategory = null;
         this.isEditMode = false;
@@ -592,7 +617,7 @@ export class SubcategoriasCrudComponent implements OnInit {
             nombre: subcategory.nombre,
             descripcion: subcategory.descripcion,
             categoria_id: subcategory.categoria_id,
-            is_active: subcategory.is_active
+            is_active: subcategory.is_active // Mantener el estado actual, no modificable desde modal
         };
         this.selectedCategory = this.categories().find(c => c.id === subcategory.categoria_id) || null;
         this.isEditMode = true;
@@ -663,11 +688,43 @@ export class SubcategoriasCrudComponent implements OnInit {
     saveSubcategory() {
         if (!this.subcategory) return;
 
+        // ✅ VALIDACIONES DE SEGURIDAD PARA DESCRIPCIÓN
+        if (this.subcategory.descripcion) {
+            // Limpiar espacios al inicio y final
+            this.subcategory.descripcion = this.subcategory.descripcion.trim();
+
+            // Validar longitud máxima
+            if (this.subcategory.descripcion.length > 5000) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error de Validación',
+                    detail: 'La descripción no puede exceder 5000 caracteres'
+                });
+                return;
+            }
+
+            // Validar caracteres peligrosos
+            const dangerousChars = /[<>'"`;\\]/;
+            if (dangerousChars.test(this.subcategory.descripcion)) {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error de Validación',
+                    detail: 'La descripción contiene caracteres no permitidos por seguridad'
+                });
+                return;
+            }
+
+            // Si la descripción queda vacía después del trim, establecer como null
+            if (this.subcategory.descripcion.length === 0) {
+                this.subcategory.descripcion = '';
+            }
+        }
+
         if (this.subcategory.id) {
             // Actualizar
             const updateData = {
                 nombre: this.subcategory.nombre,
-                descripcion: this.subcategory.descripcion,
+                descripcion: this.subcategory.descripcion || '', // Asegurar string vacío en lugar de null
                 categoria_id: parseInt(this.subcategory.categoria_id as any) || 0,
                 is_active: this.subcategory.is_active
             };
@@ -696,9 +753,9 @@ export class SubcategoriasCrudComponent implements OnInit {
             // Crear
             const createData = {
                 nombre: this.subcategory.nombre || '',
-                descripcion: this.subcategory.descripcion || '',
+                descripcion: this.subcategory.descripcion || '', // Asegurar string vacío en lugar de null
                 categoria_id: this.subcategory.categoria_id || 0,
-                is_active: this.subcategory.is_active || true
+                is_active: true // Siempre activa por defecto para nuevas subcategorías
             };
 
             this.subcategoryService.createSubcategory(createData).subscribe({

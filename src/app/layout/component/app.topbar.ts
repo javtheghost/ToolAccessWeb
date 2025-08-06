@@ -43,7 +43,7 @@ import { MessageService } from 'primeng/api';
             </div>
 
             <!-- Botón de notificaciones -->
-            <div class="relative" *ngIf="!minimal && !isAuthRoute && isAuthenticated">
+            <!-- <div class="relative" *ngIf="!minimal && !isAuthRoute && isAuthenticated">
                 <button
                     class="layout-topbar-action relative"
                     pStyleClass="@next"
@@ -56,7 +56,7 @@ import { MessageService } from 'primeng/api';
                 >
                     <i class="pi pi-bell"></i>
                     <!-- Badge de notificaciones no leídas -->
-                    <span
+                    <!-- <span
                         *ngIf="unreadCount > 0"
                         class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold shadow-lg notification-badge"
                         style="min-width: 24px; min-height: 24px;"
@@ -66,12 +66,12 @@ import { MessageService } from 'primeng/api';
                 </button>
 
                 <!-- Menú desplegable de notificaciones -->
-                <div
+                <!-- <div
                     class="hidden absolute right-0 mt-2 w-80 border rounded-lg shadow-lg z-50 max-h-96 text-black bg-white"
                     style="color: var(--text-color); background-color: white;"
                 >
                     <!-- Header del menú -->
-                    <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white">
+                    <!-- <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white">
                         <div class="flex justify-between items-center">
                             <h3 class="text-lg font-semibold" style="color: var(--primary-color);">Notificaciones</h3>
                             <button
@@ -86,9 +86,9 @@ import { MessageService } from 'primeng/api';
                     </div>
 
                     <!-- Lista de notificaciones con scroll -->
-                    <div class="max-h-64 overflow-y-auto">
+                    <!-- <div class="max-h-64 overflow-y-auto">
                         <!-- Notificación 1 -->
-                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(1)">
+                        <!-- <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(1)">
                             <div class="flex items-start space-x-3">
                                 <div class="flex-shrink-0">
                                     <i class="pi pi-tools text-lg" style="color: var(--primary-color);"></i>
@@ -107,7 +107,7 @@ import { MessageService } from 'primeng/api';
                         </div>
 
                         <!-- Notificación 2 -->
-                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(2)">
+                        <!-- <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(2)">
                             <div class="flex items-start space-x-3">
                                 <div class="flex-shrink-0">
                                     <i class="pi pi-check-circle text-lg" style="color: var(--primary-color);"></i>
@@ -126,7 +126,7 @@ import { MessageService } from 'primeng/api';
                         </div>
 
                         <!-- Notificación 3 -->
-                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(3)">
+                        <!-- <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(3)">
                             <div class="flex items-start space-x-3">
                                 <div class="flex-shrink-0">
                                     <i class="pi pi-exclamation-triangle text-lg" style="color: var(--primary-color);"></i>
@@ -142,7 +142,7 @@ import { MessageService } from 'primeng/api';
                         </div>
 
                         <!-- Notificación 4 -->
-                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(4)">
+                        <!-- <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(4)">
                             <div class="flex items-start space-x-3">
                                 <div class="flex-shrink-0">
                                     <i class="pi pi-undo text-lg" style="color: var(--primary-color);"></i>
@@ -158,7 +158,7 @@ import { MessageService } from 'primeng/api';
                         </div>
 
                         <!-- Notificación 5 -->
-                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(5)">
+                        <!-- <div class="p-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 dark:hover:bg-gray-700 cursor-pointer transition-colors" (click)="markAsRead(5)">
                             <div class="flex items-start space-x-3">
                                 <div class="flex-shrink-0">
                                     <i class="pi pi-plus-circle text-lg" style="color: var(--primary-color);"></i>
@@ -178,7 +178,7 @@ import { MessageService } from 'primeng/api';
                     </div>
 
                     <!-- Footer -->
-                    <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-white">
+                    <!-- <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-white">
                         <button
                             (click)="viewAllNotifications()"
                             class="w-full text-center text-sm " style="color: var(--primary-color);"
@@ -187,7 +187,7 @@ import { MessageService } from 'primeng/api';
                         </button>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Menú de usuario - Solo mostrar si está autenticado -->
             <div class="relative" *ngIf="!minimal && isAuthenticated">
@@ -218,7 +218,7 @@ import { MessageService } from 'primeng/api';
                         </li>
                         <li >
                             <a
-                                routerLink="/profile"
+                                routerLink="/dashboard/pages/profile"
                                 class="block px-4 py-2 cursor-pointer hover-bg-secundary"
                                 style="color: #fff;"
                             >
@@ -295,7 +295,7 @@ import { MessageService } from 'primeng/api';
         }
 
         /* Estilos para el badge de notificaciones */
-        @keyframes notification-pulse {
+        /* @keyframes notification-pulse {
             0%, 100% {
                 transform: scale(1);
                 opacity: 1;
@@ -313,16 +313,16 @@ import { MessageService } from 'primeng/api';
 
         .notification-badge:hover {
             transform: scale(1.05);
-        }
+        } */
     `]
 })
 export class AppTopbar implements OnDestroy {
     @Input() minimal: boolean = false;
 
-    unreadCount: number = 3; // Hardcodeado: 3 notificaciones no leídas
+    // unreadCount: number = 3; // Hardcodeado: 3 notificaciones no leídas
 
     // Simular notificaciones nuevas cada cierto tiempo
-    private notificationInterval: any;
+    // private notificationInterval: any;
     showLogoutDialog = false;
 
     constructor(
@@ -331,7 +331,7 @@ export class AppTopbar implements OnDestroy {
         private messageService: MessageService
     ) {
         // Iniciar simulación de notificaciones nuevas
-        this.startNotificationSimulation();
+        // this.startNotificationSimulation();
     }
 
     // Verifica si la ruta actual es de autenticación
@@ -348,59 +348,59 @@ export class AppTopbar implements OnDestroy {
         return user ? user.nombre : 'Usuario';
     }
 
-    toggleNotifications() {
-        // La funcionalidad de toggle se maneja automáticamente con pStyleClass
-    }
+    // toggleNotifications() {
+    //     // La funcionalidad de toggle se maneja automáticamente con pStyleClass
+    // }
 
-    markAsRead(notificationId: number) {
-        // Simular marcar como leído
-        this.unreadCount = Math.max(0, this.unreadCount - 1);
-    }
+    // markAsRead(notificationId: number) {
+    //     // Simular marcar como leído
+    //     this.unreadCount = Math.max(0, this.unreadCount - 1);
+    // }
 
-    markAllAsRead() {
-        // Simular marcar todas como leídas
-        this.unreadCount = 0;
-    }
+    // markAllAsRead() {
+    //     // Simular marcar todas como leídas
+    //     this.unreadCount = 0;
+    // }
 
-    viewAllNotifications() {
-        // Navegar a una página de todas las notificaciones
-    }
+    // viewAllNotifications() {
+    //     // Navegar a una página de todas las notificaciones
+    // }
 
     /**
      * Simula la llegada de nuevas notificaciones
      */
-    private startNotificationSimulation() {
-        // Simular nuevas notificaciones cada 30 segundos (solo para demostración)
-        this.notificationInterval = setInterval(() => {
-            // Solo agregar notificaciones si el usuario está autenticado
-            if (this.isAuthenticated && !this.isAuthRoute) {
-                this.unreadCount += Math.floor(Math.random() * 2) + 1; // 1-2 notificaciones nuevas
+    // private startNotificationSimulation() {
+    //     // Simular nuevas notificaciones cada 30 segundos (solo para demostración)
+    //     this.notificationInterval = setInterval(() => {
+    //         // Solo agregar notificaciones si el usuario está autenticado
+    //         if (this.isAuthenticated && !this.isAuthRoute) {
+    //             this.unreadCount += Math.floor(Math.random() * 2) + 1; // 1-2 notificaciones nuevas
 
-                // Mostrar mensaje de notificación nueva
-                this.messageService.add({
-                    severity: 'info',
-                    summary: 'Nueva notificación',
-                    detail: `Tienes ${this.unreadCount} notificaciones no leídas`,
-                    life: 3000
-                });
-            }
-        }, 30000); // 30 segundos
-    }
+    //         // Mostrar mensaje de notificación nueva
+    //         this.messageService.add({
+    //             severity: 'info',
+    //             summary: 'Nueva notificación',
+    //             detail: `Tienes ${this.unreadCount} notificaciones no leídas`,
+    //             life: 3000
+    //         });
+    //         }
+    //     }, 30000); // 30 segundos
+    // }
 
     /**
      * Detiene la simulación de notificaciones
      */
-    private stopNotificationSimulation() {
-        if (this.notificationInterval) {
-            clearInterval(this.notificationInterval);
-        }
-    }
+    // private stopNotificationSimulation() {
+    //     if (this.notificationInterval) {
+    //         clearInterval(this.notificationInterval);
+    //     }
+    // }
 
     /**
      * Limpia los recursos cuando el componente se destruye
      */
     ngOnDestroy() {
-        this.stopNotificationSimulation();
+        // this.stopNotificationSimulation();
     }
 
     toggleDarkMode() {

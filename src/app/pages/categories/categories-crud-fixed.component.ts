@@ -245,20 +245,6 @@ interface Column {
                         [class.peer-focus:text-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched">
                         Nombre *
                     </label>
-                    <!-- Contador de caracteres para nombre -->
-                    <div class="flex justify-between items-center mt-1">
-                        <div class="text-xs text-gray-500">
-                            <span [class.text-red-500]="getNombreCharsRemaining() < 0">
-                                {{ categoryForm.get('nombre')?.value?.length || 0 }} / 255 caracteres
-                            </span>
-                        </div>
-                        <div *ngIf="getNombreCharsRemaining() < 50 && getNombreCharsRemaining() >= 0" class="text-xs text-orange-500">
-                            {{ getNombreCharsRemaining() }} caracteres restantes
-                        </div>
-                        <div *ngIf="getNombreCharsRemaining() < 0" class="text-xs text-red-500">
-                            Límite excedido por {{ Math.abs(getNombreCharsRemaining()) }} caracteres
-                        </div>
-                    </div>
                     <!-- Mensajes de error para nombre -->
                     <div *ngIf="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched" class="mt-1 text-sm text-red-600">
                         <div *ngIf="categoryForm.get('nombre')?.errors?.['required']">El nombre es requerido</div>
@@ -296,22 +282,8 @@ interface Column {
                          [class.text-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
                          [class.peer-focus:text-[var(--primary-color)]="categoryForm.get('descripcion')?.valid || !categoryForm.get('descripcion')?.touched"
                          [class.peer-focus:text-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched">
-                         Descripción (Opcional)...
+                         Descripción (Opcional)
                      </label>
-                     <!-- Contador de caracteres para descripción -->
-                     <div class="flex justify-between items-center mt-1">
-                         <div class="text-xs text-gray-500">
-                             <span [class.text-red-500]="getDescripcionCharsRemaining() < 0">
-                                 {{ categoryForm.get('descripcion')?.value?.length || 0 }} / 5000 caracteres
-                             </span>
-                         </div>
-                         <div *ngIf="getDescripcionCharsRemaining() < 200 && getDescripcionCharsRemaining() >= 0" class="text-xs text-orange-500">
-                             {{ getDescripcionCharsRemaining() }} caracteres restantes
-                         </div>
-                         <div *ngIf="getDescripcionCharsRemaining() < 0" class="text-xs text-red-500">
-                             Límite excedido por {{ Math.abs(getDescripcionCharsRemaining()) }} caracteres
-                         </div>
-                     </div>
                     <!-- Mensajes de error para descripción -->
                     <div *ngIf="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched" class="mt-1 text-sm text-red-600">
                         <div *ngIf="categoryForm.get('descripcion')?.errors?.['minlength']">La descripción debe tener al menos 3 caracteres si se proporciona</div>
@@ -321,6 +293,12 @@ interface Column {
                         <div *ngIf="categoryForm.get('descripcion')?.errors?.['maliciousContent']">La descripción contiene contenido no permitido por seguridad</div>
                         <div *ngIf="categoryForm.get('descripcion')?.errors?.['sqlInjection']">La descripción contiene caracteres que podrían ser peligrosos</div>
                     </div>
+                </div>
+
+                <!-- Campo Activo -->
+                <div class="flex flex-col items-center justify-center py-2">
+                    <label class="mb-2 text-sm font-medium">Estado Activo *</label>
+                    <input type="checkbox" class="custom-toggle" formControlName="is_active" />
                 </div>
             </div>
 
@@ -595,6 +573,10 @@ export class CategoriesCrudComponent implements OnInit {
                 this.noOnlySpacesValidatorOptional,
                 this.noMaliciousContentValidator,
                 this.noSQLInjectionValidator
+            ]],
+            // Campo is_active: boolean con default true en BD
+            is_active: [true, [
+                Validators.required // Siempre debe tener un valor boolean
             ]]
         });
     }
@@ -605,7 +587,8 @@ export class CategoriesCrudComponent implements OnInit {
     private resetForm() {
         this.categoryForm.reset({
             nombre: '',
-            descripcion: ''
+            descripcion: '',
+            is_active: true
         });
     }
 
@@ -733,7 +716,8 @@ export class CategoriesCrudComponent implements OnInit {
         // Cargar datos en el formulario
         this.categoryForm.patchValue({
             nombre: category.nombre || '',
-            descripcion: category.descripcion || ''
+            descripcion: category.descripcion || '',
+            is_active: category.is_active !== undefined ? category.is_active : true
         });
     }
 
@@ -821,9 +805,7 @@ export class CategoriesCrudComponent implements OnInit {
         const sanitizedData = {
             nombre: this.sanitizeInput(formValue.nombre),
             descripcion: this.sanitizeInput(formValue.descripcion || ''),
-            // Para nuevas categorías, is_active siempre será true
-            // Para edición, mantener el valor actual sin modificar desde el modal
-            is_active: this.isEditMode ? this.category.is_active : true
+            is_active: formValue.is_active
         };
 
         // Validación adicional en el frontend (capa de seguridad extra)

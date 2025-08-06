@@ -75,14 +75,54 @@
             </ng-template>
             <ng-template pTemplate="header">
                 <tr class="bg-[#6ea1cc] text-white">
-                    <th>ID</th>
-                    <th>Folio</th>
-                    <th>Usuario</th>
-                    <th>Estado</th>
-                    <th>Fecha Solicitud</th>
-                    <th>Fecha Aprobación</th>
-                    <th>Fecha Devolución Estimada</th>
-                    <th>Fecha Devolución Real</th>
+                    <th pSortableColumn="id">
+                        <div class="flex justify-content-center align-items-center">
+                            ID
+                            <p-sortIcon field="id"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="folio">
+                        <div class="flex justify-content-center align-items-center">
+                            Folio
+                            <p-sortIcon field="folio"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="usuario_nombre">
+                        <div class="flex justify-content-center align-items-center">
+                            Usuario
+                            <p-sortIcon field="usuario_nombre"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="estado">
+                        <div class="flex justify-content-center align-items-center">
+                            Estado
+                            <p-sortIcon field="estado"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="fecha_solicitud">
+                        <div class="flex justify-content-center align-items-center">
+                            Fecha Solicitud
+                            <p-sortIcon field="fecha_solicitud"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="fecha_aprobacion">
+                        <div class="flex justify-content-center align-items-center">
+                            Fecha Aprobación
+                            <p-sortIcon field="fecha_aprobacion"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="fecha_devolucion_estimada">
+                        <div class="flex justify-content-center align-items-center">
+                            Fecha Devolución Estimada
+                            <p-sortIcon field="fecha_devolucion_estimada"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th pSortableColumn="fecha_devolucion_real">
+                        <div class="flex justify-content-center align-items-center">
+                            Fecha Devolución Real
+                            <p-sortIcon field="fecha_devolucion_real"></p-sortIcon>
+                        </div>
+                    </th>
                     <th>Tiempo Solicitado</th>
                     <th>Tiempo Aprobado</th>
                     <th>Acción</th>

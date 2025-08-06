@@ -117,11 +117,31 @@ import { Subject, takeUntil } from 'rxjs';
         </ng-template>
         <ng-template pTemplate="header">
             <tr class="bg-[#6ea1cc] text-white">
-                <th>ID</th>
-                <th>Nombre</th>
+                <th pSortableColumn="id">
+                    <div class="flex justify-content-center align-items-center">
+                        ID
+                        <p-sortIcon field="id"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="nombre">
+                    <div class="flex justify-content-center align-items-center">
+                        Nombre
+                        <p-sortIcon field="nombre"></p-sortIcon>
+                    </div>
+                </th>
                 <th>Descripción</th>
-                <th>Porcentaje</th>
-                <th>Activo</th>
+                <th pSortableColumn="porcentaje_dano">
+                    <div class="flex justify-content-center align-items-center">
+                        Porcentaje
+                        <p-sortIcon field="porcentaje_dano"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="is_active">
+                    <div class="flex justify-content-center align-items-center">
+                        Estado
+                        <p-sortIcon field="is_active"></p-sortIcon>
+                    </div>
+                </th>
                 <th>Acciones</th>
             </tr>
         </ng-template>

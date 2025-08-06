@@ -138,13 +138,43 @@ interface DamageHistory {
         </ng-template>
         <ng-template pTemplate="header">
             <tr class="bg-[#6ea1cc] text-white">
-                <th>ID</th>
-                <th>Herramienta</th>
-                <th>Orden</th>
-                <th>Tipo Daño</th>
+                <th pSortableColumn="id">
+                    <div class="flex justify-content-center align-items-center">
+                        ID
+                        <p-sortIcon field="id"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="herramienta_id">
+                    <div class="flex justify-content-center align-items-center">
+                        Herramienta
+                        <p-sortIcon field="herramienta_id"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="orden_prestamo_id">
+                    <div class="flex justify-content-center align-items-center">
+                        Orden
+                        <p-sortIcon field="orden_prestamo_id"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="tipo_dano_id">
+                    <div class="flex justify-content-center align-items-center">
+                        Tipo Daño
+                        <p-sortIcon field="tipo_dano_id"></p-sortIcon>
+                    </div>
+                </th>
                 <th>Descripción</th>
-                <th>Costo Rep.</th>
-                <th>Estado</th>
+                <th pSortableColumn="costo_reparacion">
+                    <div class="flex justify-content-center align-items-center">
+                        Costo Rep.
+                        <p-sortIcon field="costo_reparacion"></p-sortIcon>
+                    </div>
+                </th>
+                <th pSortableColumn="status">
+                    <div class="flex justify-content-center align-items-center">
+                        Estado
+                        <p-sortIcon field="status"></p-sortIcon>
+                    </div>
+                </th>
                 <th>Acciones</th>
             </tr>
         </ng-template>

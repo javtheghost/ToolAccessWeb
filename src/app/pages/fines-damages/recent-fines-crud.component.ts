@@ -128,14 +128,54 @@ import { Subject, takeUntil } from 'rxjs';
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr class="bg-[#6ea1cc] text-white">
-                        <th>Usuario</th>
-                        <th>Orden</th>
-                        <th class="hidden md:table-cell">Configuración</th>
-                        <th>Monto</th>
-                        <th>Estado</th>
-                        <th class="hidden lg:table-cell">Fecha Aplicación</th>
-                        <th class="hidden xl:table-cell">Fecha Vencimiento</th>
-                        <th class="hidden xl:table-cell">Fecha Pago</th>
+                        <th pSortableColumn="usuario_nombre">
+                            <div class="flex justify-content-center align-items-center">
+                                Usuario
+                                <p-sortIcon field="usuario_nombre"></p-sortIcon>
+                            </div>
+                        </th>
+                        <th pSortableColumn="orden_folio">
+                            <div class="flex justify-content-center align-items-center">
+                                Orden
+                                <p-sortIcon field="orden_folio"></p-sortIcon>
+                            </div>
+                        </th>
+                        <th pSortableColumn="configuracion_nombre" class="hidden md:table-cell">
+                            <div class="flex justify-content-center align-items-center">
+                                Configuración
+                                <p-sortIcon field="configuracion_nombre"></p-sortIcon>
+                            </div>
+                        </th>
+                        <th pSortableColumn="monto_total">
+                            <div class="flex justify-content-center align-items-center">
+                                Monto
+                                <p-sortIcon field="monto_total"></p-sortIcon>
+                            </div>
+                        </th>
+                        <th pSortableColumn="estado">
+                            <div class="flex justify-content-center align-items-center">
+                                Estado
+                                <p-sortIcon field="estado"></p-sortIcon>
+                            </div>
+                        </th>
+                        <th pSortableColumn="fecha_aplicacion" class="hidden lg:table-cell">
+                            <div class="flex justify-content-center align-items-center">
+                                Fecha Aplicación
+                                <p-sortIcon field="fecha_aplicacion"></p-sortIcon>
+                            </div>
+                        </th>
+                        <th pSortableColumn="fecha_vencimiento" class="hidden xl:table-cell">
+                            <div class="flex justify-content-center align-items-center">
+                                Fecha Vencimiento
+                                <p-sortIcon field="fecha_vencimiento"></p-sortIcon>
+                            </div>
+                        </th>
+                        <th pSortableColumn="fecha_pago" class="hidden xl:table-cell">
+                            <div class="flex justify-content-center align-items-center">
+                                Fecha Pago
+                                <p-sortIcon field="fecha_pago"></p-sortIcon>
+                            </div>
+                        </th>
                         <th>Acciones</th>
                     </tr>
                 </ng-template>

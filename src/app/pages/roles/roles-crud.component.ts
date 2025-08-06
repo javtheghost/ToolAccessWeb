@@ -63,8 +63,8 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                         <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar roles..." class="w-80" />
                     </p-iconfield>
                     <div class="flex gap-2">
-                        <p-button 
-                            [label]="showActiveOnly ? 'Mostrar Todos' : 'Solo Activos'" 
+                        <p-button
+                            [label]="showActiveOnly ? 'Mostrar Todos' : 'Solo Activos'"
                             [icon]="showActiveOnly ? 'pi pi-eye' : 'pi pi-eye-slash'"
                             severity="secondary"
                             [outlined]="true"
@@ -106,12 +106,13 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                     <span class="font-medium">{{ role.descripcion }}</span>
                 </td>
                 <td class="text-center">
-                    <input 
-                        type="checkbox" 
-                        class="custom-toggle" 
-                        [checked]="role.is_active" 
-                        (click)="onToggleClick(role, $event)"
-                        [disabled]="role.id === 1" />
+                    <p-inputswitch
+                        [(ngModel)]="role.is_active"
+                        (onChange)="toggleRoleStatus(role)"
+                        [disabled]="role.id === 1"
+                        pTooltip="Cambiar estado del rol"
+                        tooltipPosition="top">
+                    </p-inputswitch>
                 </td>
                 <td>
                     <div class="flex gap-2 justify-center">
@@ -132,16 +133,16 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                 </td>
             </tr>
         </ng-template>
-        
+
         <ng-template pTemplate="emptymessage">
             <tr>
                 <td colspan="4" class="text-center p-4">
                     <div class="flex flex-column align-items-center gap-3">
                         <i class="pi pi-shield text-4xl text-gray-400"></i>
                         <span class="text-gray-500">No se encontraron roles</span>
-                        <p-button 
-                            label="Crear primer rol" 
-                            icon="pi pi-plus" 
+                        <p-button
+                            label="Crear primer rol"
+                            icon="pi pi-plus"
                             size="small"
                             (onClick)="openNew()">
                         </p-button>
@@ -218,6 +219,21 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
 
         :host ::ng-deep .p-dialog .p-dialog-content {
             border-radius: 0 0 12px 12px !important;
+        }
+
+        /* Estilos para el switch personalizado con color verde */
+        :host ::ng-deep .p-inputswitch-slider {
+            background: #e5e7eb !important;
+            border-color: #e5e7eb !important;
+        }
+
+        :host ::ng-deep .p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+            background: #12A883 !important;
+            border-color: #12A883 !important;
+        }
+
+        :host ::ng-deep .p-inputswitch .p-inputswitch-slider:before {
+            background: #ffffff !important;
         }`
     ]
 })
@@ -318,7 +334,7 @@ export class RolesCrudComponent implements OnInit {
         ];
         this.applyActiveFilter();
         console.log('📋 Datos de demostración cargados:', this.allRoles);
-        
+
         this.messageService.add({
             severity: 'info',
             summary: 'Modo demostración',
@@ -330,20 +346,20 @@ export class RolesCrudComponent implements OnInit {
     applyActiveFilter() {
         console.log(`🔍 Aplicando filtro: ${this.showActiveOnly ? 'Solo Activos' : 'Todos'}`);
         console.log('📋 Todos los roles disponibles:', this.allRoles);
-        
+
         if (this.showActiveOnly) {
             this.roles = this.allRoles.filter(role => role.is_active);
         } else {
             this.roles = [...this.allRoles];
         }
-        
+
         console.log('✅ Roles después del filtro:', this.roles);
     }
 
     toggleActiveFilter() {
         this.showActiveOnly = !this.showActiveOnly;
         this.applyActiveFilter();
-        
+
         this.messageService.add({
             severity: 'info',
             summary: 'Filtro actualizado',
@@ -356,22 +372,7 @@ export class RolesCrudComponent implements OnInit {
         table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
     }
 
-    onToggleClick(role: Role, event: Event) {
-        // Prevenir el comportamiento por defecto del checkbox
-        event.preventDefault();
-        
-        // Capturar el estado ACTUAL antes del cambio
-        const currentStatus = role.is_active;
-        const newStatus = !currentStatus;
-        
-        console.log(`🎯 Click en toggle del rol "${role.nombre}": ${currentStatus} → ${newStatus}`);
-        
-        // Actualizar inmediatamente en la vista para dar feedback visual
-        role.is_active = newStatus;
-        
-        // Llamar al método de toggle con el nuevo estado
-        this.toggleRoleStatus(role);
-    }
+
 
     toggleRoleStatus(role: Role) {
         // No permitir cambiar el estado del rol de administrador (ID = 1)
@@ -382,11 +383,11 @@ export class RolesCrudComponent implements OnInit {
                 detail: 'No se puede cambiar el estado del rol de Administrador por seguridad',
                 life: 3000
             });
-            
+
             // Encontrar el estado original del rol en nuestras listas
             const originalRoleAll = this.allRoles.find(r => r.id === 1);
             const originalRoleFiltered = this.roles.find(r => r.id === 1);
-            
+
             // Revertir a su estado original en ambas listas
             if (originalRoleAll) {
                 role.is_active = originalRoleAll.is_active;
@@ -394,33 +395,33 @@ export class RolesCrudComponent implements OnInit {
             if (originalRoleFiltered) {
                 originalRoleFiltered.is_active = role.is_active;
             }
-            
+
             return;
         }
 
         // Capturar el estado actual que queremos enviar al backend
         const newStatus = role.is_active;
         console.log(`🔄 Cambiando estado del rol "${role.nombre}" (ID: ${role.id}) a: ${newStatus ? 'ACTIVO' : 'INACTIVO'}`);
-        
+
         this.roleService.toggleRoleStatus(role.id!, newStatus).subscribe({
             next: (updatedRole) => {
                 console.log('✅ Respuesta del servidor:', updatedRole);
-                
+
                 // Actualizar el rol en la lista completa
                 const indexAll = this.allRoles.findIndex(r => r.id === role.id);
                 if (indexAll !== -1) {
                     this.allRoles[indexAll] = { ...updatedRole };
                 }
-                
+
                 // Actualizar el rol en la lista filtrada
                 const index = this.roles.findIndex(r => r.id === role.id);
                 if (index !== -1) {
                     this.roles[index] = { ...updatedRole };
                 }
-                
+
                 // Reapliar filtro por si el cambio de estado afecta la visibilidad
                 this.applyActiveFilter();
-                
+
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Estado actualizado',
@@ -430,21 +431,21 @@ export class RolesCrudComponent implements OnInit {
             },
             error: (error) => {
                 console.error('❌ Error al cambiar estado del rol:', error);
-                
+
                 // Revertir el cambio en caso de error
                 role.is_active = !newStatus;
-                
+
                 // También revertir en las listas para mantener consistencia
                 const indexAll = this.allRoles.findIndex(r => r.id === role.id);
                 if (indexAll !== -1) {
                     this.allRoles[indexAll].is_active = !newStatus;
                 }
-                
+
                 const index = this.roles.findIndex(r => r.id === role.id);
                 if (index !== -1) {
                     this.roles[index].is_active = !newStatus;
                 }
-                
+
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -472,7 +473,7 @@ export class RolesCrudComponent implements OnInit {
             });
             return;
         }
-        
+
         this.role = { ...role };
         this.isEditMode = true;
         this.roleDialog = true;
@@ -496,20 +497,20 @@ export class RolesCrudComponent implements OnInit {
                         descripcion: this.role.descripcion,
                         is_active: this.role.is_active
                     };
-                    
+
                     this.roleService.updateRole(this.role.id!, updateData).subscribe({
                         next: (updatedRole) => {
                             // Actualizar en la lista completa
                             const idxAll = this.allRoles.findIndex(r => r.id === this.role.id);
                             if (idxAll > -1) this.allRoles[idxAll] = updatedRole;
-                            
+
                             // Actualizar en la lista filtrada
                             const idx = this.roles.findIndex(r => r.id === this.role.id);
                             if (idx > -1) this.roles[idx] = updatedRole;
-                            
+
                             // Reapliar filtro
                             this.applyActiveFilter();
-                            
+
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Éxito',
@@ -539,16 +540,16 @@ export class RolesCrudComponent implements OnInit {
                     descripcion: this.role.descripcion,
                     is_active: this.role.is_active
                 };
-                
+
                 this.roleService.createRole(createData).subscribe({
                     next: (newRole) => {
                         // Agregar a ambas listas
                         this.allRoles.push(newRole);
                         this.roles.push(newRole);
-                        
+
                         // Reapliar filtro
                         this.applyActiveFilter();
-                        
+
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Éxito',
