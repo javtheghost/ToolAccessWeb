@@ -13,6 +13,7 @@ import autoTable from 'jspdf-autotable';
 import { OAuthService } from '../service/oauth.service';
 import { CustomDateRangeComponent } from '../utils/custom-date-range.component';
 import { Subject, takeUntil } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-reports-page',
@@ -43,11 +44,13 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
   estados = [
     { label: 'Todos', value: '' },
-    { label: 'Activo', value: 'activo' },
-    { label: 'Devuelto', value: 'devuelto' },
-    { label: 'Vencido', value: 'vencido' },
     { label: 'Pendiente', value: 'pendiente' },
-    { label: 'Pagada', value: 'pagada' }
+    { label: 'Aprobado', value: 'aprobado' },
+    { label: 'Rechazado', value: 'rechazado' },
+    { label: 'Terminado', value: 'terminado' },
+    { label: 'Vencido', value: 'vencido' },
+    { label: 'Pagado', value: 'pagado' },
+    { label: 'Exonerada', value: 'exonerada' }
   ];
 
   // Formulario reactivo
@@ -117,121 +120,279 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  private updateValidators(tipoReporte: string) {
-    const limiteControl = this.reportForm.get('limiteHerramientas');
-    const estadoControl = this.reportForm.get('estado');
-    const rangoFechasControl = this.reportForm.get('rangoFechas');
+     private updateValidators(tipoReporte: string) {
+     const limiteControl = this.reportForm.get('limiteHerramientas');
+     const estadoControl = this.reportForm.get('estado');
+     const rangoFechasControl = this.reportForm.get('rangoFechas');
 
-    // Resetear validadores
-    limiteControl?.clearValidators();
-    estadoControl?.clearValidators();
-    rangoFechasControl?.clearValidators();
+     // Resetear validadores
+     limiteControl?.clearValidators();
+     estadoControl?.clearValidators();
+     rangoFechasControl?.clearValidators();
 
-    // Aplicar validadores según el tipo de reporte
-    switch (tipoReporte) {
-      case 'herramientas-populares':
-        limiteControl?.setValidators([
-          Validators.required,
-          Validators.min(1),
-          Validators.max(100),
-          Validators.pattern(/^\d+$/)
-        ]);
-        break;
-      case 'prestamos':
-      case 'multas':
-        // Para préstamos y multas, el rango de fechas es opcional pero debe ser válido si se proporciona
-        rangoFechasControl?.setValidators([this.validateOptionalDateRange.bind(this)]);
-        break;
-      default:
-        break;
-    }
+     // Actualizar opciones de estado según el tipo de reporte
+     this.updateEstadoOptions(tipoReporte);
 
-    // Actualizar validadores
-    limiteControl?.updateValueAndValidity();
-    estadoControl?.updateValueAndValidity();
-    rangoFechasControl?.updateValueAndValidity();
-  }
+           // Aplicar validadores según el tipo de reporte
+      switch (tipoReporte) {
+        case 'herramientas-populares':
+          limiteControl?.setValidators([
+            Validators.required,
+            Validators.min(1),
+            Validators.max(100),
+            Validators.pattern(/^\d+$/)
+          ]);
+          // Para herramientas populares, el rango de fechas es opcional pero si se proporciona debe ser válido
+          rangoFechasControl?.setValidators([
+            this.validateOptionalDateRange.bind(this)
+          ]);
+          break;
+        case 'prestamos':
+          // Para préstamos, el rango de fechas es obligatorio
+          rangoFechasControl?.setValidators([
+            Validators.required,
+            this.validateRequiredDateRange.bind(this)
+          ]);
 
-  // Validador personalizado para rango de fechas
-  private validateDateRange(control: AbstractControl): ValidationErrors | null {
-    const rangoFechas = control.get('rangoFechas')?.value;
-    const tipoReporte = control.get('tipoReporte')?.value;
+          // Asignar fechas por defecto si no hay fechas seleccionadas
+          if (!rangoFechasControl?.value) {
+            const today = new Date();
+            const lastMonth = new Date();
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-    if (!rangoFechas || !tipoReporte) {
-      return null;
-    }
+            rangoFechasControl?.setValue({
+              startDate: lastMonth,
+              endDate: today
+            });
+          }
+          break;
+        case 'multas':
+          // Para multas, el rango de fechas es obligatorio
+          rangoFechasControl?.setValidators([
+            Validators.required,
+            this.validateRequiredDateRange.bind(this)
+          ]);
 
-    // Solo validar rango de fechas para reportes que lo requieren
-    if (['prestamos', 'multas'].includes(tipoReporte)) {
-      if (rangoFechas.startDate && rangoFechas.endDate) {
-        const startDate = new Date(rangoFechas.startDate);
-        const endDate = new Date(rangoFechas.endDate);
-        const today = new Date();
+          // Asignar fechas por defecto si no hay fechas seleccionadas
+          if (!rangoFechasControl?.value) {
+            const today = new Date();
+            const lastMonth = new Date();
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-        // Validar que la fecha de inicio no sea futura
-        if (startDate > today) {
-          return { futureStartDate: true };
-        }
-
-        // Validar que la fecha de fin no sea futura
-        if (endDate > today) {
-          return { futureEndDate: true };
-        }
-
-        // Validar que la fecha de inicio no sea mayor que la fecha de fin
-        if (startDate > endDate) {
-          return { invalidDateRange: true };
-        }
-
-        // Validar que el rango no sea mayor a 1 año
-        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        if (diffDays > 365) {
-          return { dateRangeTooLarge: true };
-        }
-      }
-    }
-
-    return null;
-  }
-
-  // Validador para rango de fechas opcional
-  private validateOptionalDateRange(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-
-    if (!value) {
-      return null; // Es opcional
-    }
-
-    if (value.startDate && value.endDate) {
-      const startDate = new Date(value.startDate);
-      const endDate = new Date(value.endDate);
-      const today = new Date();
-
-      if (startDate > endDate) {
-        return { invalidDateRange: true };
+            rangoFechasControl?.setValue({
+              startDate: lastMonth,
+              endDate: today
+            });
+          }
+          break;
+        default:
+          break;
       }
 
-      if (startDate > today || endDate > today) {
-        return { futureDate: true };
-      }
-    }
+           // Actualizar validadores
+      limiteControl?.updateValueAndValidity();
+      estadoControl?.updateValueAndValidity();
+      rangoFechasControl?.updateValueAndValidity();
 
-    return null;
-  }
+      // Forzar la actualización del estado del formulario
+      this.reportForm.updateValueAndValidity();
+   }
+
+   // Función para actualizar las opciones de estado según el tipo de reporte
+   private updateEstadoOptions(tipoReporte: string) {
+     const todosOption = { label: 'Todos', value: '' };
+
+     switch (tipoReporte) {
+       case 'prestamos':
+         this.estados = [
+           todosOption,
+           { label: 'Pendiente', value: 'pendiente' },
+           { label: 'Aprobado', value: 'aprobado' },
+           { label: 'Rechazado', value: 'rechazado' },
+           { label: 'Terminado', value: 'terminado' },
+           { label: 'Vencido', value: 'vencido' }
+         ];
+         break;
+       case 'multas':
+         this.estados = [
+           todosOption,
+           { label: 'Pendiente', value: 'pendiente' },
+           { label: 'Pagado', value: 'pagado' },
+           { label: 'Exonerada', value: 'exonerada' }
+         ];
+         break;
+       case 'herramientas-populares':
+         // Para herramientas populares, usar estados de órdenes de préstamo
+         this.estados = [
+           todosOption,
+           { label: 'Pendiente', value: 'pendiente' },
+           { label: 'Aprobado', value: 'aprobado' },
+           { label: 'Rechazado', value: 'rechazado' },
+           { label: 'Terminado', value: 'terminado' },
+           { label: 'Vencido', value: 'vencido' }
+         ];
+         break;
+       default:
+         // Estados por defecto (todos)
+         this.estados = [
+           todosOption,
+           { label: 'Pendiente', value: 'pendiente' },
+           { label: 'Aprobado', value: 'aprobado' },
+           { label: 'Rechazado', value: 'rechazado' },
+           { label: 'Terminado', value: 'terminado' },
+           { label: 'Vencido', value: 'vencido' },
+           { label: 'Pagado', value: 'pagado' },
+           { label: 'Exonerada', value: 'exonerada' }
+         ];
+         break;
+     }
+   }
+
+     // Validador personalizado para rango de fechas
+   private validateDateRange(control: AbstractControl): ValidationErrors | null {
+     const rangoFechas = control.get('rangoFechas')?.value;
+     const tipoReporte = control.get('tipoReporte')?.value;
+
+     if (!tipoReporte) {
+       return null;
+     }
+
+     // Solo validar rango de fechas para reportes que lo requieren
+     if (['prestamos', 'multas'].includes(tipoReporte)) {
+       // Para estos reportes, el rango de fechas es obligatorio
+       if (!rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate) {
+         return { required: true };
+       }
+
+       const startDate = new Date(rangoFechas.startDate);
+       const endDate = new Date(rangoFechas.endDate);
+       const today = new Date();
+
+       // Validar que la fecha de inicio no sea futura
+       if (startDate > today) {
+         return { futureStartDate: true };
+       }
+
+       // Validar que la fecha de fin no sea futura
+       if (endDate > today) {
+         return { futureEndDate: true };
+       }
+
+       // Validar que la fecha de inicio no sea mayor que la fecha de fin
+       if (startDate > endDate) {
+         return { invalidDateRange: true };
+       }
+
+       // Validar que el rango no sea mayor a 1 año
+       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+       if (diffDays > 365) {
+         return { dateRangeTooLarge: true };
+       }
+     }
+
+     return null;
+   }
+
+     // Validador para rango de fechas obligatorio
+   private validateRequiredDateRange(control: AbstractControl): ValidationErrors | null {
+     const value = control.value;
+
+     if (!value) {
+       return { required: true };
+     }
+
+     if (!value.startDate || !value.endDate) {
+       return { required: true };
+     }
+
+     const startDate = new Date(value.startDate);
+     const endDate = new Date(value.endDate);
+     const today = new Date();
+
+     if (startDate > endDate) {
+       return { invalidDateRange: true };
+     }
+
+     if (startDate > today || endDate > today) {
+       return { futureDate: true };
+     }
+
+     // Validar que el rango no sea mayor a 1 año
+     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+     if (diffDays > 365) {
+       return { dateRangeTooLarge: true };
+     }
+
+     return null;
+   }
+
+   // Validador para rango de fechas opcional
+   private validateOptionalDateRange(control: AbstractControl): ValidationErrors | null {
+     const value = control.value;
+
+     if (!value) {
+       return null; // Es opcional
+     }
+
+     if (value.startDate && value.endDate) {
+       const startDate = new Date(value.startDate);
+       const endDate = new Date(value.endDate);
+       const today = new Date();
+
+       if (startDate > endDate) {
+         return { invalidDateRange: true };
+       }
+
+       if (startDate > today || endDate > today) {
+         return { futureDate: true };
+       }
+     }
+
+     return null;
+   }
 
   // Getters para facilitar el acceso a los controles del formulario
   get f() {
     return this.reportForm.controls;
   }
 
-  get isFormValid(): boolean {
-    return this.reportForm.valid && !this.loading;
-  }
+     get isFormValid(): boolean {
+     if (!this.reportForm.valid || this.loading) {
+       return false;
+     }
 
-  get hasFormErrors(): boolean {
-    return this.formSubmitted && this.reportForm.invalid;
-  }
+     const tipoReporte = this.reportForm.get('tipoReporte')?.value;
+     const rangoFechas = this.reportForm.get('rangoFechas')?.value;
+
+     // Para reportes de préstamos y multas, las fechas son obligatorias
+     if (['prestamos', 'multas'].includes(tipoReporte)) {
+       if (!rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate) {
+         return false;
+       }
+     }
+
+     // Para herramientas populares, las fechas son opcionales
+     // Si se proporcionan fechas, deben ser válidas (esto se valida en validateOptionalDateRange)
+
+     return true;
+   }
+
+     get hasFormErrors(): boolean {
+     return this.formSubmitted && this.reportForm.invalid;
+   }
+
+   get showDateRangeErrors(): boolean {
+     const tipoReporte = this.reportForm.get('tipoReporte')?.value;
+     const rangoFechas = this.reportForm.get('rangoFechas')?.value;
+
+     if (['prestamos', 'multas'].includes(tipoReporte)) {
+       return !rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate;
+     }
+
+     return false;
+   }
 
   // Métodos para obtener mensajes de error
   getErrorMessage(controlName: string): string {
@@ -265,48 +426,54 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           return 'El límite debe estar entre 1 y 100';
         }
         break;
-      case 'rangoFechas':
-        if (errors['futureStartDate']) {
-          return 'La fecha de inicio no puede ser futura';
-        }
-        if (errors['futureEndDate']) {
-          return 'La fecha de fin no puede ser futura';
-        }
-        if (errors['invalidDateRange']) {
-          return 'La fecha de inicio no puede ser mayor que la fecha de fin';
-        }
-        if (errors['dateRangeTooLarge']) {
-          return 'El rango de fechas no puede ser mayor a 1 año';
-        }
-        if (errors['futureDate']) {
-          return 'Las fechas no pueden ser futuras';
-        }
-        break;
+             case 'rangoFechas':
+         if (errors['required']) {
+           return 'El rango de fechas es obligatorio';
+         }
+         if (errors['futureStartDate']) {
+           return 'La fecha de inicio no puede ser futura';
+         }
+         if (errors['futureEndDate']) {
+           return 'La fecha de fin no puede ser futura';
+         }
+         if (errors['invalidDateRange']) {
+           return 'La fecha de inicio no puede ser mayor que la fecha de fin';
+         }
+         if (errors['dateRangeTooLarge']) {
+           return 'El rango de fechas no puede ser mayor a 1 año';
+         }
+         if (errors['futureDate']) {
+           return 'Las fechas no pueden ser futuras';
+         }
+         break;
     }
 
     return '';
   }
 
-  getFormErrors(): string[] {
-    const errors: string[] = [];
+     getFormErrors(): string[] {
+     const errors: string[] = [];
 
-    if (this.reportForm.errors) {
-      if (this.reportForm.errors['futureStartDate']) {
-        errors.push('La fecha de inicio no puede ser futura');
-      }
-      if (this.reportForm.errors['futureEndDate']) {
-        errors.push('La fecha de fin no puede ser futura');
-      }
-      if (this.reportForm.errors['invalidDateRange']) {
-        errors.push('La fecha de inicio no puede ser mayor que la fecha de fin');
-      }
-      if (this.reportForm.errors['dateRangeTooLarge']) {
-        errors.push('El rango de fechas no puede ser mayor a 1 año');
-      }
-    }
+     if (this.reportForm.errors) {
+       if (this.reportForm.errors['required']) {
+         errors.push('El rango de fechas es obligatorio');
+       }
+       if (this.reportForm.errors['futureStartDate']) {
+         errors.push('La fecha de inicio no puede ser futura');
+       }
+       if (this.reportForm.errors['futureEndDate']) {
+         errors.push('La fecha de fin no puede ser futura');
+       }
+       if (this.reportForm.errors['invalidDateRange']) {
+         errors.push('La fecha de inicio no puede ser mayor que la fecha de fin');
+       }
+       if (this.reportForm.errors['dateRangeTooLarge']) {
+         errors.push('El rango de fechas no puede ser mayor a 1 año');
+       }
+     }
 
-    return errors;
-  }
+     return errors;
+   }
 
   async cargarEstadisticas() {
     try {
@@ -348,18 +515,18 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
     localStorage.setItem('reportes_generados', JSON.stringify(this.reportes));
   }
 
-  async generarReporte() {
-    this.formSubmitted = true;
+     async generarReporte() {
+     this.formSubmitted = true;
 
-    // Validar formulario
-    if (this.reportForm.invalid) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'Por favor corrige los errores en el formulario'
-      });
-      return;
-    }
+     // Validar formulario
+     if (this.reportForm.invalid || !this.isFormValid) {
+       this.messageService.add({
+         severity: 'warn',
+         summary: 'Advertencia',
+         detail: 'Por favor corrige los errores en el formulario'
+       });
+       return;
+     }
 
     // Verificar autenticación
     if (!this.oauthService.isAuthenticated()) {
@@ -412,48 +579,162 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       next: (data: Estadisticas) => {
         const doc = new jsPDF();
 
-        // Título
-        doc.setFontSize(20);
-        doc.text('Reporte de Estadísticas Generales', 20, 20);
-
-        // Información del reporte
-        doc.setFontSize(12);
-        doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 20, 35);
-        doc.text(`Generado por: ${(this.oauthService.getCurrentUser() as any)?.email || 'Usuario'}`, 20, 45);
-
-        // Estadísticas
-        doc.setFontSize(14);
-        doc.text('Estadísticas del Sistema:', 20, 65);
-
-        doc.setFontSize(10);
-        let y = 80;
-
-        if (data.herramientas) {
-          doc.text(`Total de herramientas: ${data.herramientas.total_herramientas || 0}`, 20, y);
-          y += 10;
-          doc.text(`Herramientas disponibles: ${data.herramientas.disponibles || 0}`, 20, y);
-          y += 10;
-          doc.text(`Herramientas prestadas: ${data.herramientas.prestadas || 0}`, 20, y);
-          y += 15;
+        // Agregar logo
+        try {
+          const logo = new Image();
+          logo.src = 'assets/logos/logopdf.png';
+          doc.addImage(logo, 'PNG', 20, 18, 30, 34);
+        } catch (error) {
+          console.log('No se pudo cargar el logo');
         }
 
-        if (data.prestamos) {
-          doc.text(`Total de préstamos: ${data.prestamos.total_prestamos || 0}`, 20, y);
-          y += 10;
-          doc.text(`Préstamos activos: ${data.prestamos.activos || 0}`, 20, y);
-          y += 10;
-          doc.text(`Préstamos vencidos: ${data.prestamos.vencidos || 0}`, 20, y);
-          y += 15;
-        }
+                 // Título del reporte - Posicionado a la derecha del logo
+         doc.setFontSize(18);
+         doc.setTextColor(3, 52, 110); // Color primario #03346E
+         doc.text('Reporte de Estadísticas Generales', 65, 25);
 
-        if (data.multas) {
-          doc.text(`Total de multas: ${data.multas.total_multas || 0}`, 20, y);
-          y += 10;
-          doc.text(`Multas pagadas: ${data.multas.pagadas || 0}`, 20, y);
-          y += 10;
-          doc.text(`Multas pendientes: ${data.multas.pendientes || 0}`, 20, y);
-          y += 15;
-        }
+         // Información del reporte - Posicionada debajo del título
+         doc.setFontSize(12);
+         doc.setTextColor(0, 0, 0); // Color negro para texto normal
+         doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 65, 40);
+         doc.text(`Generado por: ${this.getNombreCompletoUsuario()}`, 65, 50);
+
+         // Estadísticas de Herramientas
+         doc.setFontSize(14);
+         doc.setTextColor(3, 52, 110); // Color primario
+         doc.text('Estadísticas de Herramientas:', 20, 70);
+
+         let currentY = 80;
+
+         if (data.herramientas) {
+           const herramientasData = [
+             ['Métrica', 'Cantidad'],
+             ['Total de herramientas', data.herramientas.total_herramientas || 0],
+             ['Herramientas disponibles', data.herramientas.disponibles || 0],
+             ['Herramientas prestadas', data.herramientas.prestadas || 0],
+             ['Herramientas dañadas', data.herramientas.danadas || 0]
+           ];
+
+           autoTable(doc, {
+             head: [['Métrica', 'Cantidad']],
+             body: herramientasData.slice(1), // Excluir el header que ya está en head
+             startY: currentY,
+             styles: { fontSize: 10 },
+             headStyles: {
+               fillColor: [3, 52, 110], // Color primario
+               textColor: [255, 255, 255] // Texto blanco
+             },
+             alternateRowStyles: {
+               fillColor: [248, 250, 252] // Color gris claro para filas alternas
+             }
+           });
+
+           // Calcular la posición Y después de la tabla
+           currentY = currentY + (herramientasData.length * 8) + 25;
+         }
+
+         // Estadísticas de Préstamos
+         doc.setFontSize(14);
+         doc.setTextColor(3, 52, 110); // Color primario
+         doc.text('Estadísticas de Préstamos:', 20, currentY);
+
+         if (data.prestamos) {
+           const prestamosData = [
+             ['Métrica', 'Cantidad'],
+             ['Total de préstamos', data.prestamos.total_prestamos || 0],
+             ['Préstamos activos', data.prestamos.activos || 0],
+             ['Préstamos devueltos', data.prestamos.devueltos || 0],
+             ['Préstamos vencidos', data.prestamos.vencidos || 0]
+           ];
+
+           autoTable(doc, {
+             head: [['Métrica', 'Cantidad']],
+             body: prestamosData.slice(1),
+             startY: currentY + 10,
+             styles: { fontSize: 10 },
+             headStyles: {
+               fillColor: [3, 52, 110], // Color primario
+               textColor: [255, 255, 255] // Texto blanco
+             },
+             alternateRowStyles: {
+               fillColor: [248, 250, 252] // Color gris claro para filas alternas
+             }
+           });
+
+           currentY = currentY + (prestamosData.length * 8) + 35;
+         }
+
+         // Estadísticas de Multas
+         doc.setFontSize(14);
+         doc.setTextColor(3, 52, 110); // Color primario
+         doc.text('Estadísticas de Multas:', 20, currentY);
+
+         if (data.multas) {
+           const multasData = [
+             ['Métrica', 'Cantidad', 'Monto'],
+             ['Total de multas', data.multas.total_multas || 0, `$${data.multas.monto_pendiente + data.multas.monto_cobrado || 0}`],
+             ['Multas pagadas', data.multas.pagadas || 0, `$${data.multas.monto_cobrado || 0}`],
+             ['Multas pendientes', data.multas.pendientes || 0, `$${data.multas.monto_pendiente || 0}`]
+           ];
+
+           autoTable(doc, {
+             head: [['Métrica', 'Cantidad', 'Monto']],
+             body: multasData.slice(1),
+             startY: currentY + 10,
+             styles: { fontSize: 10 },
+             headStyles: {
+               fillColor: [3, 52, 110], // Color primario
+               textColor: [255, 255, 255] // Texto blanco
+             },
+             alternateRowStyles: {
+               fillColor: [248, 250, 252] // Color gris claro para filas alternas
+             }
+           });
+
+           currentY = currentY + (multasData.length * 8) + 35;
+         }
+
+         // Estadísticas de Usuarios
+         doc.setFontSize(14);
+         doc.setTextColor(3, 52, 110); // Color primario
+         doc.text('Estadísticas de Usuarios:', 20, currentY);
+
+         if (data.usuarios) {
+           const usuariosData = [
+             ['Métrica', 'Cantidad'],
+             ['Total de usuarios', data.usuarios.total_usuarios || 0],
+             ['Usuarios activos', data.usuarios.activos || 0]
+           ];
+
+           autoTable(doc, {
+             head: [['Métrica', 'Cantidad']],
+             body: usuariosData.slice(1),
+             startY: currentY + 10,
+             styles: { fontSize: 10 },
+             headStyles: {
+               fillColor: [3, 52, 110], // Color primario
+               textColor: [255, 255, 255] // Texto blanco
+             },
+             alternateRowStyles: {
+               fillColor: [248, 250, 252] // Color gris claro para filas alternas
+             }
+           });
+
+           currentY = currentY + (usuariosData.length * 8) + 35;
+         }
+
+         // Resumen ejecutivo
+         currentY = currentY + 20;
+         doc.setFontSize(12);
+         doc.setTextColor(3, 52, 110); // Color primario
+         doc.text('Resumen Ejecutivo:', 20, currentY);
+
+         doc.setFontSize(10);
+         doc.setTextColor(0, 0, 0); // Color negro
+         doc.text(`• El sistema cuenta con ${data.herramientas?.total_herramientas || 0} herramientas en total`, 20, currentY + 10);
+         doc.text(`• Se han realizado ${data.prestamos?.total_prestamos || 0} préstamos en total`, 20, currentY + 20);
+         doc.text(`• Se han generado ${data.multas?.total_multas || 0} multas por un total de $${(data.multas?.monto_pendiente || 0) + (data.multas?.monto_cobrado || 0)}`, 20, currentY + 30);
+         doc.text(`• El sistema tiene ${data.usuarios?.total_usuarios || 0} usuarios registrados`, 20, currentY + 40);
 
         const nombreArchivo = `estadisticas_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(nombreArchivo);
@@ -489,7 +770,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
   async generarReportePrestamos(formValue: any) {
     const params = new URLSearchParams();
-    if (formValue.estado) params.append('estado', formValue.estado);
+    if (formValue.estado && formValue.estado !== '') params.append('estado', formValue.estado);
     if (formValue.rangoFechas?.startDate) params.append('fecha_inicio', formValue.rangoFechas.startDate.toISOString());
     if (formValue.rangoFechas?.endDate) params.append('fecha_fin', formValue.rangoFechas.endDate.toISOString());
 
@@ -497,14 +778,24 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       next: (data: Prestamo[]) => {
         const doc = new jsPDF();
 
-        // Título
-        doc.setFontSize(20);
-        doc.text('Reporte de Préstamos', 20, 20);
+        // Agregar logo
+        try {
+          const logo = new Image();
+          logo.src = 'assets/logos/logopdf.png';
+          doc.addImage(logo, 'PNG', 20, 18, 30, 34);
+        } catch (error) {
+          console.log('No se pudo cargar el logo');
+        }
 
-        // Información del reporte
+        // Título del reporte - Posicionado a la derecha del logo
+        doc.setFontSize(18);
+        doc.setTextColor(3, 52, 110); // Color primario #03346E
+        doc.text('Reporte de Préstamos', 65, 25);
+
+        // Información del reporte - Posicionada debajo del título
         doc.setFontSize(12);
-        doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 20, 35);
-        doc.text(`Generado por: ${(this.oauthService.getCurrentUser() as any)?.email || 'Usuario'}`, 20, 45);
+        doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 65, 40);
+        doc.text(`Generado por: ${this.getNombreCompletoUsuario()}`, 65, 50);
 
         if (data.length > 0) {
           // Tabla de préstamos
@@ -520,13 +811,13 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           autoTable(doc, {
             head: [['ID', 'Folio', 'Usuario', 'Fecha Solicitud', 'Fecha Devolución', 'Estado']],
             body: tableData,
-            startY: 60,
+            startY: 90,
             styles: { fontSize: 8 },
-            headStyles: { fillColor: [41, 128, 185] }
+            headStyles: { fillColor: [3, 52, 110] }
           });
         } else {
           doc.setFontSize(12);
-          doc.text('No se encontraron préstamos con los filtros aplicados', 20, 60);
+          doc.text('No se encontraron préstamos con los filtros aplicados', 20, 90);
         }
 
         const nombreArchivo = `prestamos_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -563,7 +854,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
   async generarReporteMultas(formValue: any) {
     const params = new URLSearchParams();
-    if (formValue.estado) params.append('estado', formValue.estado);
+    if (formValue.estado && formValue.estado !== '') params.append('estado', formValue.estado);
     if (formValue.rangoFechas?.startDate) params.append('fecha_inicio', formValue.rangoFechas.startDate.toISOString());
     if (formValue.rangoFechas?.endDate) params.append('fecha_fin', formValue.rangoFechas.endDate.toISOString());
 
@@ -571,14 +862,24 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       next: (data: Multa[]) => {
         const doc = new jsPDF();
 
-        // Título
-        doc.setFontSize(20);
-        doc.text('Reporte de Multas', 20, 20);
+        // Agregar logo
+        try {
+          const logo = new Image();
+          logo.src = 'assets/logos/logopdf.png';
+          doc.addImage(logo, 'PNG', 20, 18, 30, 34);
+        } catch (error) {
+          console.log('No se pudo cargar el logo');
+        }
 
-        // Información del reporte
+        // Título del reporte - Posicionado a la derecha del logo
+        doc.setFontSize(18);
+        doc.setTextColor(3, 52, 110); // Color primario #03346E
+        doc.text('Reporte de Multas', 65, 25);
+
+        // Información del reporte - Posicionada debajo del título
         doc.setFontSize(12);
-        doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 20, 35);
-        doc.text(`Generado por: ${(this.oauthService.getCurrentUser() as any)?.email || 'Usuario'}`, 20, 45);
+        doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 65, 40);
+        doc.text(`Generado por: ${this.getNombreCompletoUsuario()}`, 65, 50);
 
         if (data.length > 0) {
           // Tabla de multas
@@ -586,7 +887,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
             multa.id || '',
             multa.usuario_nombre || '',
             multa.monto ? `$${multa.monto}` : '',
-            multa.motivo || '',
+            multa.motivo || 'N/A', // Mostrar "N/A" cuando no hay motivo
             multa.fecha_creacion ? new Date(multa.fecha_creacion).toLocaleDateString() : '',
             multa.estado || ''
           ]);
@@ -594,13 +895,13 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           autoTable(doc, {
             head: [['ID', 'Usuario', 'Monto', 'Motivo', 'Fecha', 'Estado']],
             body: tableData,
-            startY: 60,
+            startY: 90,
             styles: { fontSize: 8 },
-            headStyles: { fillColor: [231, 76, 60] }
+            headStyles: { fillColor: [3, 52, 110] }
           });
         } else {
           doc.setFontSize(12);
-          doc.text('No se encontraron multas con los filtros aplicados', 20, 60);
+          doc.text('No se encontraron multas con los filtros aplicados', 20, 90);
         }
 
         const nombreArchivo = `multas_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -637,42 +938,176 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
   async generarReporteHerramientasPopulares(formValue: any) {
     const params = new URLSearchParams();
-    if (formValue.limiteHerramientas) params.append('limite', formValue.limiteHerramientas.toString());
+
+    // Agregar límite de herramientas
+    if (formValue.limiteHerramientas) {
+      params.append('limite', formValue.limiteHerramientas.toString());
+    }
+
+    // Agregar filtros de fecha si están disponibles
+    if (formValue.rangoFechas && formValue.rangoFechas.startDate && formValue.rangoFechas.endDate) {
+      const startDate = new Date(formValue.rangoFechas.startDate);
+      const endDate = new Date(formValue.rangoFechas.endDate);
+
+      params.append('fecha_inicio', startDate.toISOString().split('T')[0]);
+      params.append('fecha_fin', endDate.toISOString().split('T')[0]);
+    }
+
+    // Agregar filtro de estado si está seleccionado
+    if (formValue.estado && formValue.estado !== '') {
+      params.append('estado', formValue.estado);
+    }
 
     this.reportsService.getHerramientasPopulares(params.toString()).subscribe({
-      next: (data: HerramientaPopular[]) => {
+      next: async (data: HerramientaPopular[]) => {
         const doc = new jsPDF();
 
-        // Título
-        doc.setFontSize(20);
-        doc.text('Reporte de Herramientas Más Prestadas', 20, 20);
+        // Agregar logo
+        try {
+          const logo = new Image();
+          logo.src = 'assets/logos/logopdf.png';
+          doc.addImage(logo, 'PNG', 20, 18, 30, 34);
+        } catch (error) {
+          console.log('No se pudo cargar el logo');
+        }
 
-        // Información del reporte
+        // Título del reporte - Posicionado a la derecha del logo
+        doc.setFontSize(18);
+        doc.setTextColor(3, 52, 110); // Color primario #03346E
+        doc.text('Reporte de Herramientas Más Prestadas', 65, 25);
+
+        // Información del reporte - Posicionada debajo del título
         doc.setFontSize(12);
-        doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 20, 35);
-        doc.text(`Generado por: ${(this.oauthService.getCurrentUser() as any)?.email || 'Usuario'}`, 20, 45);
+        doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 65, 40);
+        doc.text(`Generado por: ${this.getNombreCompletoUsuario()}`, 65, 50);
+
+        // Agregar información de filtros aplicados
+        let filtrosInfo = '';
+        if (formValue.rangoFechas && formValue.rangoFechas.startDate && formValue.rangoFechas.endDate) {
+          const startDate = new Date(formValue.rangoFechas.startDate).toLocaleDateString();
+          const endDate = new Date(formValue.rangoFechas.endDate).toLocaleDateString();
+          filtrosInfo += `Período: ${startDate} - ${endDate}`;
+        }
+        if (formValue.estado && formValue.estado !== '') {
+          filtrosInfo += filtrosInfo ? ` | Estado: ${formValue.estado}` : `Estado: ${formValue.estado}`;
+        }
+        if (filtrosInfo) {
+          doc.text(`Filtros aplicados: ${filtrosInfo}`, 65, 60);
+        }
 
         if (data.length > 0) {
-          // Tabla de herramientas populares
-          const tableData = data.map((herramienta: any) => [
-            herramienta.nombre || '',
-            herramienta.folio || '',
-            herramienta.categoria || '',
-            herramienta.subcategoria || '',
-            herramienta.veces_prestada || 0,
-            herramienta.stock || 0
-          ]);
+          // Debug: Verificar qué datos llegan del backend
+          console.log('Datos de herramientas populares:', data);
+          console.log('Primera herramienta:', data[0]);
+          console.log('foto_url de la primera herramienta:', data[0]?.foto_url);
 
+          // Crear tabla de herramientas con imágenes en columna
+          const tableData = [];
+          const imagenesBase64: (string | null)[] = [];
+
+          // Cargar todas las imágenes primero
+          for (let i = 0; i < data.length; i++) {
+            const herramienta = data[i];
+            let imagenBase64: string | null = null;
+
+            if (herramienta.foto_url) {
+              const imagenUrl = this.getImagenUrl(herramienta.foto_url);
+              if (imagenUrl) {
+                try {
+                  imagenBase64 = await this.cargarImagenComoBase64(imagenUrl);
+                  console.log(`Imagen cargada para ${herramienta.nombre}: ${imagenBase64 ? 'OK' : 'NULL'}`);
+                } catch (error) {
+                  console.warn(`Error al cargar imagen para ${herramienta.nombre}:`, error);
+                }
+              }
+            }
+
+            imagenesBase64.push(imagenBase64);
+          }
+
+          // Crear filas de datos
+          for (let i = 0; i < data.length; i++) {
+            const herramienta = data[i];
+            const row = [
+              i + 1, // Número
+              '', // Celda vacía para la imagen (sin texto de fondo)
+              herramienta.nombre,
+              herramienta.folio,
+              `${herramienta.categoria} - ${herramienta.subcategoria}`,
+              herramienta.veces_prestada,
+              herramienta.stock
+            ];
+            tableData.push(row);
+          }
+
+          // Crear la tabla con columna de imagen
           autoTable(doc, {
-            head: [['Herramienta', 'Folio', 'Categoría', 'Subcategoría', 'Veces Prestada', 'Stock']],
+            head: [['#', 'Imagen', 'Herramienta', 'Folio', 'Categoría', 'Veces Prestada', 'Stock']],
             body: tableData,
-            startY: 60,
+            startY: filtrosInfo ? 80 : 70,
             styles: { fontSize: 8 },
-            headStyles: { fillColor: [46, 204, 113] }
+            headStyles: {
+              fillColor: [3, 52, 110], // Color primario
+              textColor: [255, 255, 255] // Texto blanco
+            },
+            alternateRowStyles: {
+              fillColor: [248, 250, 252] // Color gris claro para filas alternas
+            },
+            columnStyles: {
+              0: { cellWidth: 10 }, // Número
+              1: { cellWidth: 20 }, // Imagen
+              2: { cellWidth: 45 }, // Nombre
+              3: { cellWidth: 25 }, // Folio
+              4: { cellWidth: 40 }, // Categoría
+              5: { cellWidth: 20 }, // Veces prestada
+              6: { cellWidth: 15 }  // Stock
+            },
+            didDrawCell: (cellData) => {
+              // Agregar imágenes en la columna de imagen
+              // Solo procesar filas de datos (no el encabezado) y asegurar que hay imagen disponible
+              if (cellData.column.index === 1 && cellData.row.index > 0 && cellData.row.index <= imagenesBase64.length) {
+                const rowIndex = cellData.row.index - 1; // Ajustar índice porque las filas de datos empiezan en 1
+                const imagenBase64 = imagenesBase64[rowIndex];
+
+                // Debug: Verificar el mapeo de índices
+                console.log(`Fila tabla: ${cellData.row.index}, Índice array: ${rowIndex}, Herramienta: ${data[rowIndex]?.nombre}`);
+
+                if (imagenBase64) {
+                  try {
+                    // Calcular posición para centrar la imagen en la celda
+                    const cellWidth = cellData.cell.width;
+                    const cellHeight = cellData.cell.height;
+
+                    // Reducir el tamaño de la imagen para que quepa bien en la celda
+                    const maxWidth = Math.min(cellWidth - 2, 12); // 2px de margen
+                    const maxHeight = Math.min(cellHeight - 2, 12); // 2px de margen
+
+                    // Mantener proporción de aspecto
+                    const aspectRatio = 1; // Asumimos imágenes cuadradas
+                    let width = maxWidth;
+                    let height = maxHeight;
+
+                    if (width / aspectRatio > height) {
+                      width = height * aspectRatio;
+                    } else {
+                      height = width / aspectRatio;
+                    }
+
+                    // Centrar la imagen en la celda
+                    const x = cellData.cell.x + (cellWidth - width) / 2;
+                    const y = cellData.cell.y + (cellHeight - height) / 2;
+
+                    doc.addImage(imagenBase64, 'JPEG', x, y, width, height);
+                  } catch (error) {
+                    console.warn(`Error al agregar imagen en celda para fila ${rowIndex}:`, error);
+                  }
+                }
+              }
+            }
           });
         } else {
           doc.setFontSize(12);
-          doc.text('No se encontraron herramientas populares', 20, 60);
+          doc.text('No se encontraron herramientas populares', 20, filtrosInfo ? 80 : 70);
         }
 
         const nombreArchivo = `herramientas_populares_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -707,17 +1142,88 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  limpiarFiltros() {
-    this.formSubmitted = false;
-    this.reportForm.reset({
-      tipoReporte: '',
-      estado: '',
-      rangoFechas: null,
-      limiteHerramientas: 10
-    });
-  }
+     limpiarFiltros() {
+     this.formSubmitted = false;
+     const currentTipoReporte = this.reportForm.get('tipoReporte')?.value;
+
+     this.reportForm.reset({
+       tipoReporte: '',
+       estado: '',
+       rangoFechas: null,
+       limiteHerramientas: 10
+     });
+
+     // Si había un tipo de reporte seleccionado, restaurarlo y aplicar fechas por defecto
+     if (currentTipoReporte && ['prestamos', 'multas'].includes(currentTipoReporte)) {
+       this.reportForm.patchValue({
+         tipoReporte: currentTipoReporte
+       });
+       this.updateValidators(currentTipoReporte);
+     }
+   }
 
   trackByReporte(index: number, reporte: any): string {
     return reporte.nombre || index.toString();
+  }
+
+  // Función helper para obtener el nombre completo del usuario
+  private getNombreCompletoUsuario(): string {
+    const currentUser = this.oauthService.getCurrentUser() as any;
+    let nombreCompleto = 'Usuario';
+
+    if (currentUser) {
+      const nombre = currentUser.nombre || '';
+      const apellidoPaterno = currentUser.apellido_paterno || '';
+      const apellidoMaterno = currentUser.apellido_materno || '';
+
+      if (nombre || apellidoPaterno || apellidoMaterno) {
+        nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+      } else if (currentUser.email) {
+        nombreCompleto = currentUser.email;
+      }
+    }
+
+    return nombreCompleto;
+  }
+
+  // Función helper para obtener la URL completa de la imagen
+  private getImagenUrl(imagen: string | null | undefined): string {
+    if (!imagen) {
+      return '';
+    }
+
+    // Si ya es una URL completa, la devolvemos tal como está
+    if (imagen.startsWith('http://') || imagen.startsWith('https://')) {
+      return imagen;
+    }
+
+    // Si es solo el nombre del archivo, construimos la URL completa
+    // Usar la URL del environment para el API Service General
+    const baseUrl = environment.apiServiceGeneralUrl;
+    return `${baseUrl}/uploads/${imagen}`;
+  }
+
+  // Función helper para cargar imagen como base64
+  private async cargarImagenComoBase64(url: string): Promise<string | null> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.warn(`No se pudo cargar la imagen: ${url}`);
+        return null;
+      }
+
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          resolve(base64);
+        };
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.warn(`Error al cargar imagen ${url}:`, error);
+      return null;
+    }
   }
 }

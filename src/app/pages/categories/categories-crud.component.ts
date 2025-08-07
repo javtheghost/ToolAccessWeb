@@ -254,20 +254,7 @@ interface Column {
                         [class.peer-focus:text-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched">
                         Nombre *
                     </label>
-                    <!-- Contador de caracteres para nombre -->
-                    <div class="flex justify-between items-center mt-1">
-                        <div class="text-xs text-gray-500">
-                            <span [class.text-red-500]="getNombreCharsRemaining() < 0">
-                                {{ categoryForm.get('nombre')?.value?.length || 0 }} / 255 caracteres
-                            </span>
-                        </div>
-                        <div *ngIf="getNombreCharsRemaining() < 50 && getNombreCharsRemaining() >= 0" class="text-xs text-orange-500">
-                            {{ getNombreCharsRemaining() }} caracteres restantes
-                        </div>
-                        <div *ngIf="getNombreCharsRemaining() < 0" class="text-xs text-red-500">
-                            Límite excedido por {{ Math.abs(getNombreCharsRemaining()) }} caracteres
-                        </div>
-                    </div>
+
                     <!-- Mensajes de error para nombre -->
                     <div *ngIf="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched" class="mt-1 text-sm text-red-600">
                         <div *ngIf="categoryForm.get('nombre')?.errors?.['required']">El nombre es requerido</div>
@@ -307,20 +294,7 @@ interface Column {
                          [class.peer-focus:text-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched">
                          Descripción (Opcional)...
                      </label>
-                     <!-- Contador de caracteres para descripción -->
-                     <div class="flex justify-between items-center mt-1">
-                         <div class="text-xs text-gray-500">
-                             <span [class.text-red-500]="getDescripcionCharsRemaining() < 0">
-                                 {{ categoryForm.get('descripcion')?.value?.length || 0 }} / 5000 caracteres
-                             </span>
-                         </div>
-                         <div *ngIf="getDescripcionCharsRemaining() < 200 && getDescripcionCharsRemaining() >= 0" class="text-xs text-orange-500">
-                             {{ getDescripcionCharsRemaining() }} caracteres restantes
-                         </div>
-                         <div *ngIf="getDescripcionCharsRemaining() < 0" class="text-xs text-red-500">
-                             Límite excedido por {{ Math.abs(getDescripcionCharsRemaining()) }} caracteres
-                         </div>
-                     </div>
+
                     <!-- Mensajes de error para descripción -->
                     <div *ngIf="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched" class="mt-1 text-sm text-red-600">
                         <div *ngIf="categoryForm.get('descripcion')?.errors?.['minlength']">La descripción debe tener al menos 3 caracteres si se proporciona</div>
@@ -396,6 +370,78 @@ interface Column {
 
         :host ::ng-deep .p-dialog .p-dialog-content {
             border-radius: 0 0 12px 12px !important;
+        }
+
+        /* Estilos para el modal y manejo de scroll */
+        :host ::ng-deep .p-dialog {
+            max-height: 90vh !important;
+            overflow: hidden !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-header {
+            flex-shrink: 0 !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-content {
+            overflow-y: auto !important;
+            max-height: calc(90vh - 120px) !important;
+            padding: 1.5rem !important;
+        }
+
+        /* Prevenir scroll en el modal cuando el dropdown está abierto */
+        :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open {
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open .p-dropdown {
+            pointer-events: auto !important;
+        }
+
+        /* Configurar el panel del dropdown para evitar conflictos de scroll */
+        :host ::ng-deep .p-dropdown-panel {
+            z-index: 1000 !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Prevenir que el scroll del modal interfiera con el dropdown */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items-wrapper {
+            max-height: 180px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Asegurar que el dropdown se muestre por encima del modal */
+        :host ::ng-deep .p-dropdown-panel.p-component {
+            position: fixed !important;
+            z-index: 1001 !important;
+        }
+
+        /* Mejorar la experiencia de scroll en el dropdown */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items {
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e0 #f7fafc !important;
+        }
+
+        /* Estilos para el scrollbar del dropdown en WebKit */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar {
+            width: 6px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-track {
+            background: #f7fafc !important;
+            border-radius: 3px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb {
+            background: #cbd5e0 !important;
+            border-radius: 3px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0 !important;
         }
 
         /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */`
@@ -771,12 +817,14 @@ export class CategoriesCrudComponent implements OnInit {
         this.isEditMode = false;
         this.categoryDialog = true;
         this.resetForm();
+        this.hideModalAlert(); // Restablecer alertas al abrir modal
     }
 
     editCategory(category: Category) {
         this.category = { ...category };
         this.isEditMode = true;
         this.categoryDialog = true;
+        this.hideModalAlert(); // Restablecer alertas al abrir modal
 
         // Cargar datos en el formulario
         this.categoryForm.patchValue({
@@ -835,6 +883,7 @@ export class CategoriesCrudComponent implements OnInit {
             is_active: true
         };
         this.resetForm();
+        this.hideModalAlert(); // Restablecer alertas al cerrar modal
     }
 
     createId(): string {
@@ -1135,5 +1184,23 @@ export class CategoriesCrudComponent implements OnInit {
 
     hideModalAlert() {
         this.modalAlert = this.modalAlertService.hideAlert();
+    }
+
+    // Método para manejar el scroll cuando se abre un dropdown
+    onDropdownOpen(event: any) {
+        // Prevenir el scroll del modal cuando el dropdown está abierto
+        const modalContent = document.querySelector('.p-dialog .p-dialog-content');
+        if (modalContent) {
+            modalContent.classList.add('p-dropdown-open');
+        }
+    }
+
+    // Método para restaurar el scroll cuando se cierra un dropdown
+    onDropdownClose(event: any) {
+        // Restaurar el scroll del modal cuando el dropdown se cierra
+        const modalContent = document.querySelector('.p-dialog .p-dialog-content');
+        if (modalContent) {
+            modalContent.classList.remove('p-dropdown-open');
+        }
     }
 }

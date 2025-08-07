@@ -15,7 +15,7 @@ export class CategoryService {
 
     // GET - Obtener todas las categorías
     getCategories(): Observable<Category[]> {
-        return this.http.get<CategoryResponse>(this.apiUrl).pipe(
+        return this.http.get<CategoryResponse>(`${this.apiUrl}?only_active=true`).pipe(
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data : [response.data];

@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { OAuthService } from './oauth.service';
+import { RateLimitingService } from './rate-limiting.service';
+import { getRateLimitConfig } from './rate-limiting-config';
 
 // Interfaces para órdenes de préstamo
 export interface Loan {
@@ -11,6 +13,7 @@ export interface Loan {
     folio: string;
     usuario_id: number;
     usuario_nombre: string;
+    usuario_email?: string;
     estado: string;
     fecha_solicitud: string;
     fecha_aprobacion?: string;
@@ -20,6 +23,7 @@ export interface Loan {
     tiempo_aprobado?: number;
     detalles?: string;
     justificacion?: string;
+    observaciones?: string;
     created_at?: string;
     updated_at?: string;
     herramientas?: LoanDetail[];
@@ -30,7 +34,10 @@ export interface LoanDetail {
     orden_prestamo_id: number;
     herramienta_id: number;
     herramienta_nombre: string;
+    categoria_nombre?: string;
+    subcategoria_nombre?: string;
     cantidad: number;
+    observaciones?: string;
     created_at?: string;
 }
 
@@ -73,7 +80,11 @@ export interface LoanResponse {
 export class LoansService {
     private apiUrl = `${environment.apiServiceGeneralUrl}/api/loan-orders`;
 
-    constructor(private http: HttpClient, private oauthService: OAuthService) {}
+    constructor(
+        private http: HttpClient,
+        private oauthService: OAuthService,
+        private rateLimitingService: RateLimitingService
+    ) {}
 
     // Método privado para obtener headers con token
     private getHeaders(): HttpHeaders {
@@ -89,6 +100,14 @@ export class LoansService {
 
     // GET - Obtener todas las órdenes de préstamo (ADMIN)
     getLoans(search?: string, estado?: string): Observable<Loan[]> {
+        // ✅ RATE LIMITING: Verificar límites antes de hacer petición
+        const endpoint = 'loans-load';
+        const config = getRateLimitConfig(endpoint);
+
+        if (!this.rateLimitingService.canMakeRequest(endpoint, config)) {
+            return throwError(() => new Error('Rate limit alcanzado para cargar préstamos'));
+        }
+
         let params = new HttpParams();
         if (search) {
             params = params.set('search', search);
@@ -108,6 +127,8 @@ export class LoansService {
                     throw new Error(response.message || 'Error al obtener órdenes de préstamo');
                 }
             }),
+            // ✅ RATE LIMITING: Registrar petición exitosa
+            tap(() => this.rateLimitingService.recordRequest(endpoint)),
             catchError(this.handleError)
         );
     }

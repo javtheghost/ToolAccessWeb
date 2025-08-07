@@ -23,6 +23,7 @@ import { Category } from '../interfaces';
 import { MobileDetectionService } from '../service/mobile-detection.service';
 import { CommunicationService } from '../service/communication.service';
 import { Subject, takeUntil } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-fines-config-crud',
@@ -211,9 +212,15 @@ import { Subject, takeUntil } from 'rxjs';
 </div>
 <p-dialog
   [(visible)]="fineConfigDialog"
-  [style]="{ width: '95vw', maxWidth: '600px' }"
+  [style]="{
+    width: '40vw',
+    maxWidth: '450px',
+    height: isMobile ? '90vh' : '55vh',
+    maxHeight: isMobile ? '500px' : '600px'
+  }"
   [modal]="true"
   [draggable]="false"
+  [resizable]="false"
 >
   <ng-template pTemplate="header">
     <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
@@ -349,6 +356,17 @@ import { Subject, takeUntil } from 'rxjs';
         :host ::ng-deep .p-dialog .p-dialog-content {
             border-radius: 0 0 12px 12px !important;
             background: #fff !important;
+            max-height: 500px !important;
+            overflow-y: auto !important;
+            padding: 1.5rem !important;
+        }
+
+        /* Estilos responsive para móviles */
+        @media (max-width: 768px) {
+            :host ::ng-deep .p-dialog .p-dialog-content {
+                padding: 1rem !important;
+                max-height: 400px !important;
+            }
         }
 
         /* Estilos para que los dropdowns se vean como selects */
@@ -393,6 +411,25 @@ import { Subject, takeUntil } from 'rxjs';
             border-radius: 8px !important;
             border: 1px solid #d1d5db !important;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Estilos para el scroll del dropdown */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items {
+            max-height: 180px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Estilos para el scroll en móviles */
+        @media (max-width: 768px) {
+            :host ::ng-deep .p-dropdown-panel {
+                max-height: 150px !important;
+            }
+
+            :host ::ng-deep .p-dropdown-panel .p-dropdown-items {
+                max-height: 130px !important;
+            }
         }
 
         :host ::ng-deep .p-dropdown .p-dropdown-label.p-inputtext {
@@ -652,7 +689,8 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
         private mobileDetectionService: MobileDetectionService,
         private communicationService: CommunicationService,
         private fb: FormBuilder,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private sanitizer: DomSanitizer
     ) {
         this.initForm();
     }
@@ -701,8 +739,18 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
 
     initForm() {
         this.fineConfigForm = this.fb.group({
-            nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
-            valor_base: [null, [Validators.required, Validators.min(0), Validators.max(999999.99)]],
+            nombre: ['', [
+                Validators.required,
+                Validators.minLength(3),
+                Validators.maxLength(50),
+                Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\d\-_()]+$/) // Solo letras, números, espacios, guiones y paréntesis
+            ]],
+            valor_base: [null, [
+                Validators.required,
+                Validators.min(0),
+                Validators.max(999999.99),
+                Validators.pattern(/^\d+(\.\d{1,2})?$/) // Solo números con máximo 2 decimales
+            ]],
             aplica_a_categoria_id: [null, [Validators.required]],
             is_active: [true]
         });
@@ -754,6 +802,12 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
                 return `Valor máximo: ${control.errors['max'].max}`;
             }
             if (control.errors['pattern']) {
+                if (controlName === 'nombre') {
+                    return 'El nombre solo puede contener letras, números, espacios, guiones y paréntesis';
+                }
+                if (controlName === 'valor_base') {
+                    return 'El valor debe ser un número válido con máximo 2 decimales';
+                }
                 return 'Formato inválido';
             }
         }
@@ -775,14 +829,15 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
         this.loading = true;
         this.finesConfigService.getFinesConfigs(undefined, this.showOnlyActive).subscribe({
             next: (data: FinesConfig[]) => {
-                this.finesConfig = data;
+                // Sanitizar datos recibidos
+                this.finesConfig = data.map(config => this.sanitizeFinesConfig(config));
                 this.loading = false;
             },
             error: (error: any) => {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: error.message || 'Error al cargar configuraciones de multas'
+                    detail: this.sanitizeMessage(error.message || 'Error al cargar configuraciones de multas')
                 });
                 this.loading = false;
             }
@@ -792,13 +847,14 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
     loadCategories() {
         this.categoryService.getCategories().subscribe({
             next: (data: Category[]) => {
-                this.categories = data;
+                // Sanitizar categorías
+                this.categories = data.map(category => this.sanitizeCategory(category));
             },
             error: (error: any) => {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: error.message || 'Error al cargar categorías'
+                    detail: this.sanitizeMessage(error.message || 'Error al cargar categorías')
                 });
             }
         });
@@ -824,7 +880,7 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
             this.finesConfigService.reactivateFinesConfig(fine.id).subscribe({
                 next: (updatedFine: FinesConfig) => {
                     const idx = this.finesConfig.findIndex(f => f.id === fine.id);
-                    if (idx > -1) this.finesConfig[idx] = updatedFine;
+                    if (idx > -1) this.finesConfig[idx] = this.sanitizeFinesConfig(updatedFine);
                     this.messageService.add({
                         severity: 'success',
                         summary: 'Éxito',
@@ -838,7 +894,7 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: error.message || 'Error al activar configuración',
+                        detail: this.sanitizeMessage(error.message || 'Error al activar configuración'),
                         life: 3000
                     });
                 }
@@ -862,7 +918,7 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: error.message || 'Error al desactivar configuración',
+                        detail: this.sanitizeMessage(error.message || 'Error al desactivar configuración'),
                         life: 3000
                     });
                 }
@@ -887,7 +943,7 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
     }
 
     editFineConfig(fine: FinesConfig) {
-        this.fineConfig = { ...fine };
+        this.fineConfig = this.sanitizeFinesConfig({ ...fine });
         this.isEditMode = true;
         this.fineConfigForm.patchValue({
             nombre: fine.nombre,
@@ -900,7 +956,8 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
 
     deleteFineConfig(fine: FinesConfig) {
         this.confirmIcon = 'delete';
-        this.confirmMessage = `¿Estás seguro de eliminar la configuración de multa <span class='text-primary'>${fine.nombre}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
+        const sanitizedName = this.sanitizeString(fine.nombre);
+        this.confirmMessage = `¿Estás seguro de eliminar la configuración de multa <span class='text-primary'>${sanitizedName}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
         this.confirmAction = () => {
             this.finesConfigService.deleteFinesConfig(fine.id).subscribe({
                 next: () => {
@@ -915,7 +972,7 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: error.message || 'Error al eliminar configuración de multa'
+                        detail: this.sanitizeMessage(error.message || 'Error al eliminar configuración de multa')
                     });
                 }
             });
@@ -939,16 +996,25 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
         this.saving = true;
         const formValue = this.fineConfigForm.value;
 
+        // Sanitizar datos antes de enviar
+        const sanitizedFormValue = {
+            nombre: this.sanitizeString(formValue.nombre),
+            valor_base: this.sanitizeNumber(formValue.valor_base),
+            aplica_a_categoria_id: this.sanitizeNumber(formValue.aplica_a_categoria_id),
+            is_active: Boolean(formValue.is_active)
+        };
+
         if (this.isEditMode) {
             // Modo edición - mostrar confirmación
             this.confirmIcon = 'warning';
-            this.confirmMessage = `¿Estás seguro que deseas actualizar la configuración de multa <span class='text-primary'>${formValue.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+            const sanitizedName = this.sanitizeString(sanitizedFormValue.nombre);
+            this.confirmMessage = `¿Estás seguro que deseas actualizar la configuración de multa <span class='text-primary'>${sanitizedName}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
             this.confirmAction = () => {
                 const updateRequest: FinesConfigUpdateRequest = {
-                    nombre: formValue.nombre,
-                    valor_base: formValue.valor_base,
-                    aplica_a_categoria_id: formValue.aplica_a_categoria_id,
-                    is_active: formValue.is_active
+                    nombre: sanitizedFormValue.nombre,
+                    valor_base: sanitizedFormValue.valor_base,
+                    aplica_a_categoria_id: sanitizedFormValue.aplica_a_categoria_id,
+                    is_active: sanitizedFormValue.is_active
                 };
 
                 this.finesConfigService.updateFinesConfig(this.fineConfig.id, updateRequest).subscribe({
@@ -966,7 +1032,7 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: error.message || 'Error al actualizar configuración de multa'
+                            detail: this.sanitizeMessage(error.message || 'Error al actualizar configuración de multa')
                         });
                         this.saving = false;
                     }
@@ -976,10 +1042,10 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
         } else {
             // Modo creación
             const createRequest: FinesConfigCreateRequest = {
-                nombre: formValue.nombre,
-                valor_base: formValue.valor_base,
-                aplica_a_categoria_id: formValue.aplica_a_categoria_id,
-                is_active: formValue.is_active
+                nombre: sanitizedFormValue.nombre,
+                valor_base: sanitizedFormValue.valor_base,
+                aplica_a_categoria_id: sanitizedFormValue.aplica_a_categoria_id,
+                is_active: sanitizedFormValue.is_active
             };
 
             this.finesConfigService.createFinesConfig(createRequest).subscribe({
@@ -997,7 +1063,7 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
                     this.messageService.add({
                         severity: 'error',
                         summary: 'Error',
-                        detail: error.message || 'Error al crear configuración de multa'
+                        detail: this.sanitizeMessage(error.message || 'Error al crear configuración de multa')
                     });
                     this.saving = false;
                 }
@@ -1040,5 +1106,43 @@ export class FinesConfigCrudComponent implements OnInit, OnDestroy {
         } else if (this.fineConfigDialog) {
             this.hideDialog();
         }
+    }
+
+    // MÉTODOS DE SANITIZACIÓN
+    private sanitizeFinesConfig(config: FinesConfig): FinesConfig {
+        return {
+            ...config,
+            nombre: this.sanitizeString(config.nombre),
+            categoria_nombre: config.categoria_nombre ? this.sanitizeString(config.categoria_nombre) : ''
+        };
+    }
+
+    private sanitizeCategory(category: Category): Category {
+        return {
+            ...category,
+            nombre: this.sanitizeString(category.nombre),
+            descripcion: category.descripcion ? this.sanitizeString(category.descripcion) : ''
+        };
+    }
+
+    private sanitizeString(value: string | undefined): string {
+        if (!value || typeof value !== 'string') return '';
+
+        // Remover caracteres peligrosos y limitar longitud
+        return value
+            .replace(/[<>]/g, '') // Remover < y >
+            .replace(/javascript:/gi, '') // Remover javascript:
+            .replace(/on\w+=/gi, '') // Remover event handlers
+            .substring(0, 100); // Limitar longitud
+    }
+
+    private sanitizeNumber(value: any): number {
+        if (value === null || value === undefined) return 0;
+        const num = Number(value);
+        return isNaN(num) ? 0 : Math.max(0, num);
+    }
+
+    private sanitizeMessage(message: string): string {
+        return this.sanitizeString(message);
     }
 }

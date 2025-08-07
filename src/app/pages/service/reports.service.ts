@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { RateLimitingService } from './rate-limiting.service';
 
 export interface Estadisticas {
   herramientas: {
@@ -58,6 +60,7 @@ export interface HerramientaPopular {
   id: number;
   nombre: string;
   folio: string;
+  foto_url?: string;
   categoria: string;
   subcategoria: string;
   veces_prestada: number;
@@ -79,7 +82,10 @@ export interface DatosHistoricos {
 export class ReportsService {
   private baseUrl = `${environment.apiServiceGeneralUrl}/api/reportes`;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private rateLimitingService: RateLimitingService
+  ) { }
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
@@ -93,9 +99,22 @@ export class ReportsService {
    * Obtener estadísticas completas del sistema (Solo ADMIN)
    */
   getEstadisticas(): Observable<Estadisticas> {
+    // ✅ RATE LIMITING: Verificar límites antes de hacer petición
+    const endpoint = 'reports-estadisticas';
+    if (!this.rateLimitingService.canMakeRequest(endpoint, {
+      maxRequests: 3,        // Solo 3 peticiones por minuto para estadísticas
+      timeWindow: 60000,    // 1 minuto
+      cooldownPeriod: 30000 // 30 segundos de cooldown
+    })) {
+      return throwError(() => new Error('Rate limit alcanzado para estadísticas'));
+    }
+
     return this.http.get<Estadisticas>(`${this.baseUrl}/estadisticas`, {
       headers: this.getHeaders()
-    });
+    }).pipe(
+      // ✅ RATE LIMITING: Registrar petición exitosa
+      tap(() => this.rateLimitingService.recordRequest(endpoint))
+    );
   }
 
   /**

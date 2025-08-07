@@ -1,6 +1,6 @@
 <div class="reports-container">
-  <p-toast 
-    position="top-right" 
+  <p-toast
+    position="bottom-right"
     [baseZIndex]="9999999"
     [autoZIndex]="false"
     [preventDuplicates]="true"
@@ -170,6 +170,7 @@
             <label for="rangoFechas">
               <i class="pi pi-calendar"></i>
               Rango de Fechas
+              <span class="required" *ngIf="f['tipoReporte'].value === 'prestamos' || f['tipoReporte'].value === 'multas'">*</span>
             </label>
             <app-custom-date-range
               formControlName="rangoFechas"
@@ -177,11 +178,15 @@
               endPlaceholder="Fecha fin"
               separatorText="a"
               [showActions]="true"
-              [class.is-invalid]="f['rangoFechas'].invalid && formSubmitted">
+              [class.is-invalid]="(f['rangoFechas'].invalid && formSubmitted) || showDateRangeErrors">
             </app-custom-date-range>
-            <div class="error-message" *ngIf="f['rangoFechas'].invalid && formSubmitted">
-              {{ getErrorMessage('rangoFechas') }}
-            </div>
+                         <div class="error-message" *ngIf="(f['rangoFechas'].invalid && formSubmitted) || showDateRangeErrors">
+               {{ getErrorMessage('rangoFechas') }}
+             </div>
+             <div class="info-message" *ngIf="f['tipoReporte'].value === 'prestamos' || f['tipoReporte'].value === 'multas'">
+               <i class="pi pi-info-circle"></i>
+               Se han asignado fechas por defecto (último mes hasta hoy). Puedes modificarlas según tus necesidades.
+             </div>
           </div>
         </div>
 

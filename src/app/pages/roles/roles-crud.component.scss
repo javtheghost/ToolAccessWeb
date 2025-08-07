@@ -6,6 +6,146 @@
   background: #fff !important;
 }
 
+/* ===== ESTILOS RESPONSIVE ===== */
+
+/* Breakpoints para diferentes tamaños de pantalla */
+@media (max-width: 640px) {
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  .p-table {
+    font-size: 0.875rem !important;
+  }
+
+  .p-table .p-datatable-thead > tr > th {
+    padding: 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .p-table .p-datatable-tbody > tr > td {
+    padding: 0.5rem !important;
+  }
+
+  .p-button {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 1rem !important;
+  }
+
+  .p-inputtext {
+    font-size: 0.875rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .p-table {
+    font-size: 0.9rem !important;
+  }
+
+  .p-table .p-datatable-thead > tr > th {
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  .p-table .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem !important;
+  }
+}
+
+/* Estilos para tabla responsive */
+.p-table-responsive {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.p-table-responsive .p-datatable {
+  min-width: 500px !important;
+}
+
+/* Estilos para botones en móviles */
+@media (max-width: 640px) {
+  .custom-flat-icon-button {
+    width: 2rem !important;
+    height: 2rem !important;
+    min-width: 2rem !important;
+    min-height: 2rem !important;
+  }
+
+  .custom-flat-icon-button i {
+    font-size: 1rem !important;
+  }
+
+  /* Mejorar área táctil para botones */
+  .p-button {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+}
+
+/* Estilos para modales en móviles */
+@media (max-width: 640px) {
+  :host ::ng-deep .p-dialog {
+    margin: 0.5rem !important;
+    max-height: calc(100vh - 1rem) !important;
+    width: calc(100vw - 1rem) !important;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-content {
+    padding: 1rem !important;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-header {
+    padding: 1rem !important;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-footer {
+    padding: 1rem !important;
+  }
+}
+
+/* Estilos para formularios en móviles */
+@media (max-width: 640px) {
+  .peer {
+    font-size: 0.875rem !important;
+    height: 2.75rem !important;
+    min-height: 44px !important;
+  }
+
+  .peer + label {
+    font-size: 0.75rem !important;
+  }
+
+  textarea {
+    font-size: 0.875rem !important;
+  }
+
+  /* Mejorar accesibilidad en inputs */
+  input, textarea, select {
+    font-size: 16px !important; /* Previene zoom en iOS */
+  }
+}
+
+/* Estilos para paginación en móviles */
+@media (max-width: 640px) {
+  :host ::ng-deep .p-paginator {
+    font-size: 0.75rem !important;
+  }
+
+  :host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
+    min-width: 2rem !important;
+    height: 2rem !important;
+    min-height: 44px !important;
+  }
+
+  :host ::ng-deep .p-paginator .p-paginator-first,
+  :host ::ng-deep .p-paginator .p-paginator-prev,
+  :host ::ng-deep .p-paginator .p-paginator-next,
+  :host ::ng-deep .p-paginator .p-paginator-last {
+    min-width: 2rem !important;
+    height: 2rem !important;
+    min-height: 44px !important;
+  }
+}
+
 /* Estilos para custom toggle switches */
 .custom-toggle {
   appearance: none;
@@ -137,4 +277,145 @@
 
 .text-warning {
   color: #f59e0b !important;
+}
+
+/* ===== ESTILOS PARA TABLA RESPONSIVE ===== */
+
+/* Ocultar columnas menos importantes en móviles */
+@media (max-width: 640px) {
+  .p-table .p-datatable-thead > tr > th:nth-child(2),
+  .p-table .p-datatable-tbody > tr > td:nth-child(2) {
+    display: none !important;
+  }
+}
+
+/* Ajustar tamaños de columnas en tablets */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .p-table .p-datatable-thead > tr > th,
+  .p-table .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem !important;
+  }
+}
+
+/* Estilos para tooltips en móviles */
+@media (max-width: 640px) {
+  :host ::ng-deep .p-tooltip {
+    font-size: 0.75rem !important;
+    max-width: 200px !important;
+  }
+}
+
+/* Estilos para switches en móviles */
+@media (max-width: 640px) {
+  :host ::ng-deep .p-inputswitch {
+    transform: scale(0.8) !important;
+  }
+}
+
+/* Estilos para modales personalizados en móviles */
+@media (max-width: 640px) {
+  .z-modal-confirm .bg-white {
+    margin: 1rem !important;
+    max-height: calc(100vh - 2rem) !important;
+    overflow-y: auto !important;
+  }
+
+  .z-modal-confirm .bg-white .flex {
+    gap: 1rem !important;
+  }
+
+  .z-modal-confirm .bg-white button {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+}
+
+/* ===== ESTILOS PARA MEJORAR LA EXPERIENCIA TÁCTIL ===== */
+
+/* Mejorar área táctil para elementos interactivos */
+@media (max-width: 640px) {
+  .p-button, .p-inputswitch, .custom-flat-icon-button {
+    touch-action: manipulation !important;
+  }
+
+  /* Prevenir selección de texto en botones */
+  .p-button, .custom-flat-icon-button {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+  }
+
+  /* Mejorar feedback táctil */
+  .p-button:active, .custom-flat-icon-button:active {
+    transform: scale(0.95) !important;
+  }
+}
+
+/* ===== ESTILOS PARA ACCESIBILIDAD ===== */
+
+/* Mejorar contraste en modo oscuro */
+@media (prefers-color-scheme: dark) {
+  .text-gray-500 {
+    color: #9ca3af !important;
+  }
+
+  .text-gray-400 {
+    color: #9ca3af !important;
+  }
+}
+
+/* Mejorar focus visible */
+.p-button:focus-visible,
+.custom-flat-icon-button:focus-visible,
+.p-inputswitch:focus-visible {
+  outline: 2px solid var(--primary-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* ===== ESTILOS PARA LANDSCAPE EN MÓVILES ===== */
+
+@media (max-width: 640px) and (orientation: landscape) {
+  .p-6 {
+    padding: 0.5rem !important;
+  }
+
+  :host ::ng-deep .p-dialog {
+    max-height: calc(100vh - 0.5rem) !important;
+  }
+
+  .p-table .p-datatable-thead > tr > th,
+  .p-table .p-datatable-tbody > tr > td {
+    padding: 0.25rem !important;
+  }
+}
+
+/* Estilos para hacer el modal más suave y sin aspecto cuadrado */
+:host ::ng-deep .p-dialog {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header {
+    border-radius: 12px 12px 0 0 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+    border-radius: 0 0 12px 12px !important;
+}
+
+/* Estilos para el switch personalizado con color verde */
+:host ::ng-deep .p-inputswitch-slider {
+    background: #e5e7eb !important;
+    border-color: #e5e7eb !important;
+}
+
+:host ::ng-deep .p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+    background: #12A883 !important;
+    border-color: #12A883 !important;
+}
+
+:host ::ng-deep .p-inputswitch .p-inputswitch-slider:before {
+    background: #ffffff !important;
 }

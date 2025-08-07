@@ -156,12 +156,14 @@ interface DamageHistory {
                         <p-sortIcon field="orden_prestamo_id"></p-sortIcon>
                     </div>
                 </th>
+                <!-- COMENTADO TEMPORALMENTE - Tipo de daño
                 <th pSortableColumn="tipo_dano_id">
                     <div class="flex justify-content-center align-items-center">
                         Tipo Daño
                         <p-sortIcon field="tipo_dano_id"></p-sortIcon>
                     </div>
                 </th>
+                -->
                 <th>Descripción</th>
                 <th pSortableColumn="costo_reparacion">
                     <div class="flex justify-content-center align-items-center">
@@ -183,7 +185,9 @@ interface DamageHistory {
                 <td>{{ history.id }}</td>
                 <td>{{ getToolName(history.herramienta_id) }}</td>
                 <td>{{ getLoanFolio(history.orden_prestamo_id) }}</td>
+                <!-- COMENTADO TEMPORALMENTE - Tipo de daño
                 <td>{{ getDamageTypeDisplay(history.tipo_dano_id) }}</td>
+                -->
                 <td>{{ history.descripcion }}</td>
                 <td>{{ history.costo_reparacion | currency: 'USD' }}</td>
                 <td>
@@ -215,7 +219,7 @@ interface DamageHistory {
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="8" class="text-center py-8">
+                <td colspan="7" class="text-center py-8">
                     <div class="flex flex-col items-center justify-center space-y-4">
                         <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
                         <div class="text-center">
@@ -254,12 +258,14 @@ interface DamageHistory {
                     optionValue="id"
                     [filter]="true"
                     filterPlaceholder="Buscar herramientas..."
-                    placeholder="Herramienta dañada..."
+                    placeholder=" "
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
-                    [required]="true">
+                    [required]="true"
+                    (onShow)="onDropdownOpen($event)"
+                    (onHide)="onDropdownClose($event)">
                     <ng-template pTemplate="emptyfilter">
                         <div class="text-center py-4">
                             <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
@@ -267,9 +273,7 @@ interface DamageHistory {
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <div *ngIf="damageHistoryItem.herramienta_id" class="mt-1 text-xs text-gray-500">
-                    Herramienta seleccionada
-                </div>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Herramienta dañada <span class="text-red-500">*</span></label>
             </div>
 
             <!-- Préstamo asociado -->
@@ -284,11 +288,13 @@ interface DamageHistory {
                     optionValue="id"
                     [filter]="true"
                     filterPlaceholder="Buscar préstamos..."
-                    placeholder="Préstamo asociado..."
+                    placeholder=" "
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
-                    [showClear]="false">
+                    [showClear]="false"
+                    (onShow)="onDropdownOpen($event)"
+                    (onHide)="onDropdownClose($event)">
                     <ng-template pTemplate="emptyfilter">
                         <div class="text-center py-4">
                             <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
@@ -296,9 +302,7 @@ interface DamageHistory {
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <div *ngIf="damageHistoryItem.orden_prestamo_id" class="mt-1 text-xs text-gray-500">
-                    Préstamo seleccionado
-                </div>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Préstamo asociado <span class="text-red-500">*</span></label>
             </div>
 
             <!-- Categoría -->
@@ -313,11 +317,13 @@ interface DamageHistory {
                     optionValue="id"
                     [filter]="true"
                     filterPlaceholder="Buscar categorías..."
-                    placeholder="Categoría..."
+                    placeholder=" "
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
-                    [showClear]="false">
+                    [showClear]="false"
+                    (onShow)="onDropdownOpen($event)"
+                    (onHide)="onDropdownClose($event)">
                     <ng-template pTemplate="emptyfilter">
                         <div class="text-center py-4">
                             <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
@@ -325,9 +331,7 @@ interface DamageHistory {
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <div *ngIf="damageHistoryItem.category" class="mt-1 text-xs text-gray-500">
-                    Categoría seleccionada
-                </div>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Categoría <span class="text-red-500">*</span></label>
             </div>
 
             <!-- Subcategorías -->
@@ -342,11 +346,13 @@ interface DamageHistory {
                     optionValue="id"
                     [filter]="true"
                     filterPlaceholder="Buscar subcategorías..."
-                    placeholder="Subcategoría..."
+                    placeholder=" "
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
-                    [showClear]="false">
+                    [showClear]="false"
+                    (onShow)="onDropdownOpen($event)"
+                    (onHide)="onDropdownClose($event)">
                     <ng-template pTemplate="emptyfilter">
                         <div class="text-center py-4">
                             <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
@@ -354,12 +360,10 @@ interface DamageHistory {
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <div *ngIf="damageHistoryItem.subcategory" class="mt-1 text-xs text-gray-500">
-                    Subcategoría seleccionada
-                </div>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Subcategoría <span class="text-red-500">*</span></label>
             </div>
 
-            <!-- Tipo de Daño -->
+            <!-- COMENTADO TEMPORALMENTE - Tipo de Daño
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">warning</span>
                 <p-dropdown
@@ -385,6 +389,7 @@ interface DamageHistory {
                     Tipo de daño seleccionado
                 </div>
             </div>
+            -->
 
             <!-- Descripción detallada -->
             <div class="relative">
@@ -477,17 +482,28 @@ interface DamageHistory {
         :host ::ng-deep .p-dialog {
             border-radius: 12px !important;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            max-height: 90vh !important;
+            overflow: hidden !important;
         }
 
         :host ::ng-deep .p-dialog .p-dialog-header {
             border-radius: 12px 12px 0 0 !important;
             border-bottom: 1px solid #e5e7eb !important;
             background: #fff !important;
+            flex-shrink: 0 !important;
         }
 
         :host ::ng-deep .p-dialog .p-dialog-content {
             border-radius: 0 0 12px 12px !important;
             background: #fff !important;
+            overflow-y: auto !important;
+            max-height: calc(90vh - 120px) !important;
+            padding: 1.5rem !important;
+        }
+
+        /* Prevenir scroll en el modal cuando el dropdown está abierto */
+        :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open {
+            overflow: hidden !important;
         }
 
         /* Estilos para que los dropdowns se vean como selects */
@@ -548,6 +564,62 @@ interface DamageHistory {
                 /* Asegurar que los iconos SVG se vean igual en todos los dropdowns */
         :host ::ng-deep .p-dropdown {
             position: relative !important;
+        }
+
+        /* Configurar el panel del dropdown para evitar conflictos de scroll */
+        :host ::ng-deep .p-dropdown-panel {
+            z-index: 1000 !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Prevenir que el scroll del modal interfiera con el dropdown */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items-wrapper {
+            max-height: 180px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Asegurar que el dropdown se muestre por encima del modal */
+        :host ::ng-deep .p-dropdown-panel.p-component {
+            position: fixed !important;
+            z-index: 1001 !important;
+        }
+
+        /* Mejorar la experiencia de scroll en el dropdown */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items {
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e0 #f7fafc !important;
+        }
+
+        /* Estilos para el scrollbar del dropdown en WebKit */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar {
+            width: 6px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-track {
+            background: #f7fafc !important;
+            border-radius: 3px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb {
+            background: #cbd5e0 !important;
+            border-radius: 3px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0 !important;
+        }
+
+        /* Prevenir que el scroll del modal interfiera cuando el dropdown está abierto */
+        :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open {
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open .p-dropdown {
+            pointer-events: auto !important;
         }
 
         :host ::ng-deep .p-dropdown .p-dropdown-label {
@@ -820,15 +892,17 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
     }
 
     private setupCommunicationListeners() {
-        // Escuchar actualizaciones de tipos de daño
+        // COMENTADO TEMPORALMENTE - Escuchar actualizaciones de tipos de daño
+        /*
         this.communicationService.damageTypesUpdates$
             .pipe(takeUntil(this.destroy$))
             .subscribe(event => {
                 if (event) {
                     // Recargar tipos de daño cuando se actualicen
-                    this.loadDamageTypesFromService();
+                    // this.loadDamageTypesFromService(); // COMENTADO TEMPORALMENTE
                 }
             });
+        */
 
         // Escuchar actualizaciones de configuraciones de multas
         this.communicationService.finesConfigUpdates$
@@ -841,6 +915,8 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
             });
     }
 
+    // COMENTADO TEMPORALMENTE - Cargar tipos de daño del servicio
+    /*
     private loadDamageTypesFromService() {
         this.damageTypesService.getDamageTypes(undefined, true).subscribe({
             next: (data) => {
@@ -851,6 +927,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
             }
         });
     }
+    */
 
     loadData() {
         const token = this.oauthService.getToken();
@@ -922,7 +999,8 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
             }
         });
 
-        // Cargar tipos de daño del servicio
+        // COMENTADO TEMPORALMENTE - Cargar tipos de daño del servicio
+        /*
         this.damageTypesService.getDamageTypes(undefined, true).subscribe({
             next: (damageTypes: DamageType[]) => {
                 this.damageTypesFromService = damageTypes;
@@ -931,6 +1009,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                 console.error('Error cargando tipos de daño:', error);
             }
         });
+        */
     }
 
     onGlobalFilter(table: Table, event: Event) {
@@ -1164,6 +1243,8 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         return loan?.folio || 'N/A';
     }
 
+    // COMENTADO TEMPORALMENTE - Método para mostrar tipo de daño
+    /*
     getDamageTypeDisplay(damageTypeId: number): string {
         // Mapeo de IDs a nombres de tipos de daño
         const damageTypeMap: { [key: number]: string } = {
@@ -1173,6 +1254,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         };
         return damageTypeMap[damageTypeId] || `Tipo ${damageTypeId}`;
     }
+    */
 
     getStatusDisplay(status: string): string {
         const statusMap: { [key: string]: string } = {
@@ -1215,11 +1297,14 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         }
     }
 
+    // COMENTADO TEMPORALMENTE - Método para verificar si un tipo de daño está seleccionado
+    /*
     isDamageTypeSelected(damageTypeName: string): boolean {
         // Buscar el tipo de daño por nombre en el servicio
         const damageType = this.damageTypesFromService.find(dt => dt.nombre === damageTypeName);
         return damageType ? this.damageHistoryItem.tipo_dano_id === damageType.id : false;
     }
+    */
 
     @HostListener('document:keydown.escape')
     onEscapePress() {
@@ -1227,6 +1312,24 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
             this.onCustomConfirmReject();
         } else if (this.damageHistoryDialog) {
             this.hideDialog();
+        }
+    }
+
+    // Método para manejar el scroll cuando se abre un dropdown
+    onDropdownOpen(event: any) {
+        // Prevenir el scroll del modal cuando el dropdown está abierto
+        const modalContent = document.querySelector('.p-dialog .p-dialog-content');
+        if (modalContent) {
+            modalContent.classList.add('p-dropdown-open');
+        }
+    }
+
+    // Método para restaurar el scroll cuando se cierra un dropdown
+    onDropdownClose(event: any) {
+        // Restaurar el scroll del modal cuando el dropdown se cierra
+        const modalContent = document.querySelector('.p-dialog .p-dialog-content');
+        if (modalContent) {
+            modalContent.classList.remove('p-dropdown-open');
         }
     }
 }

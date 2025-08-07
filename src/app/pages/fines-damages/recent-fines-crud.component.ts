@@ -200,7 +200,9 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                                 <span class="font-semibold text-gray-900">{{ fine.configuracion_nombre || 'Config #' + fine.configuracion_multa_id }}</span>
                             </div>
                         </td>
-                        <td class="font-semibold text-sm sm:text-base">{{ fine.monto_total | currency:'MXN' }}</td>
+                        <td class="text-sm sm:text-base">
+                            <span class="badge badge-success font-semibold">{{ fine.monto_total | currency:'MXN' }}</span>
+                        </td>
                         <td>
                             <span [class]="getEstadoClass(getEstadoDisplay(fine).toLowerCase())" class="text-xs sm:text-sm">
                                 {{ getEstadoDisplay(fine) }}
@@ -208,21 +210,21 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                         </td>
                         <td class="hidden lg:table-cell text-sm">
                             <div class="flex flex-col">
-                                <span class="font-medium">{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</span>
-                                <span class="text-xs text-gray-500">{{ fine.fecha_aplicacion | date:'HH:mm' }}</span>
+                                <span class="badge badge-primary font-medium">{{ fine.fecha_aplicacion | date:'dd/MM/yyyy' }}</span>
+                                <span class="badge badge-info text-xs mt-1">{{ fine.fecha_aplicacion | date:'hh:mm a' }}</span>
                             </div>
                         </td>
                         <td class="hidden xl:table-cell text-sm">
-                            <span [class]="getFechaVencimientoClass(fine.fecha_vencimiento)">
+                            <span [class]="getFechaVencimientoBadgeClass(fine.fecha_vencimiento)" class="badge">
                                 {{ fine.fecha_vencimiento | date:'dd/MM/yyyy' }}
                             </span>
                         </td>
                         <td class="hidden xl:table-cell text-sm">
-                            <span *ngIf="fine.fecha_pago; else noPago" class="text-green-600 font-medium">
+                            <span *ngIf="fine.fecha_pago; else noPago" class="badge badge-success font-medium">
                                 {{ fine.fecha_pago | date:'dd/MM/yyyy' }}
                             </span>
                             <ng-template #noPago>
-                                <span class="text-gray-400 italic">Sin pago</span>
+                                <span class="badge badge-secondary italic">Sin pago</span>
                             </ng-template>
                         </td>
                         <td>
@@ -315,7 +317,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     </div>
 
                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span class="font-medium text-gray-700">Orden:</span>
+                        <span class="font-medium text-gray-700">Orden Préstamo:</span>
                         <div class="text-right">
                             <div class="font-semibold text-blue-600">{{ selectedFine.orden_folio || 'Orden #' + selectedFine.orden_id }}</div>
                         </div>
@@ -460,7 +462,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [options]="usuarios"
                     optionLabel="nombre"
                     optionValue="id"
-                    placeholder=" "
+                    placeholder="Selecciona una opción"
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
@@ -507,7 +509,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [options]="ordenes"
                     optionLabel="folio"
                     optionValue="id"
-                    placeholder=" "
+                    placeholder="Selecciona una opción"
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
@@ -554,7 +556,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [options]="configuraciones"
                     optionLabel="nombre"
                     optionValue="id"
-                    placeholder=" "
+                    placeholder="Selecciona una opción"
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
@@ -615,7 +617,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                 <p-dropdown
                     formControlName="estado"
                     [options]="estados"
-                    placeholder=" "
+                    placeholder="Selecciona una opción"
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
@@ -772,6 +774,56 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
             :host ::ng-deep .p-table .p-table-tbody > tr > td {
                 padding: 0.5rem 0.25rem !important;
             }
+        }
+
+        /* Estilos para badges de fechas */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .badge-primary {
+            background-color: rgba(3, 52, 110, 0.1);
+            color: var(--primary-color);
+            border: 1px solid rgba(3, 52, 110, 0.2);
+        }
+
+        .badge-secondary {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .badge-success {
+            background-color: rgba(76, 217, 100, 0.1);
+            color: #0d5a0d;
+            border: 1px solid rgba(76, 217, 100, 0.2);
+        }
+
+        .badge-danger {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--color-danger);
+            border: 1px solid rgba(244, 67, 54, 0.2);
+        }
+
+        .badge-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #b8860b;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .badge-info {
+            background-color: rgba(110, 172, 218, 0.1);
+            color: var(--secundary-color);
+            border: 1px solid rgba(110, 172, 218, 0.2);
         }`
     ]
 })
@@ -1229,6 +1281,28 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
 
         // Si vence en más de 7 días
         return 'text-green-600';
+    }
+
+    getFechaVencimientoBadgeClass(fechaVencimiento: string): string {
+        if (!fechaVencimiento) return 'badge-secondary';
+
+        const fechaVenc = new Date(fechaVencimiento);
+        const hoy = new Date();
+
+        // Si la fecha de vencimiento ya pasó
+        if (fechaVenc < hoy) {
+            return 'badge-danger';
+        }
+
+        // Si vence en los próximos 7 días
+        const sieteDias = new Date();
+        sieteDias.setDate(hoy.getDate() + 7);
+        if (fechaVenc <= sieteDias) {
+            return 'badge-warning';
+        }
+
+        // Si vence en más de 7 días
+        return 'badge-success';
     }
 
         isMultaVencida(fine: Fine): boolean {

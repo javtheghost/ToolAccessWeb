@@ -3,7 +3,7 @@
     <!-- Skeleton para toda la tabla (headers + datos) -->
     <div *ngIf="loading" class="bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Header skeleton -->
-        <div class="bg-[#6ea1cc] text-white p-3">
+        <div class="bg-[var(--secundary-color)] text-white p-3">
             <div class="flex items-center space-x-4">
                 <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
                 <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
@@ -43,7 +43,7 @@
             [value]="loans"
             [rows]="10"
             [paginator]="true"
-            [globalFilterFields]="['id', 'folio', 'usuario_nombre', 'estado']"
+            [globalFilterFields]="['id', 'folio', 'usuario_nombre', 'usuario_email', 'estado']"
             [tableStyle]="{ 'min-width': '75rem' }"
             [rowHover]="true"
             dataKey="id"
@@ -69,12 +69,12 @@
                 <div class="flex items-center justify-between gap-4 mt-2">
                     <p-iconfield class="flex-1">
                         <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, folio, usuario o estado..." />
+                        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, folio, usuario, correo o estado..." />
                     </p-iconfield>
                 </div>
             </ng-template>
             <ng-template pTemplate="header">
-                <tr class="bg-[#6ea1cc] text-white">
+                <tr class="bg-[var(--secundary-color)] text-white">
                     <th pSortableColumn="id">
                         <div class="flex justify-content-center align-items-center">
                             ID
@@ -89,7 +89,7 @@
                     </th>
                     <th pSortableColumn="usuario_nombre">
                         <div class="flex justify-content-center align-items-center">
-                            Usuario
+                            Usuario / Correo
                             <p-sortIcon field="usuario_nombre"></p-sortIcon>
                         </div>
                     </th>
@@ -123,8 +123,18 @@
                             <p-sortIcon field="fecha_devolucion_real"></p-sortIcon>
                         </div>
                     </th>
-                    <th>Tiempo Solicitado</th>
-                    <th>Tiempo Aprobado</th>
+                    <th>
+                        <div class="flex justify-content-center align-items-center">
+                            Tiempo Solicitado
+                            <p-sortIcon field="tiempo_solicitado"></p-sortIcon>
+                        </div>
+                    </th>
+                    <th>
+                        <div class="flex justify-content-center align-items-center">
+                            Tiempo Aprobado
+                            <p-sortIcon field="tiempo_aprobado"></p-sortIcon>
+                        </div>
+                    </th>
                     <th>Acción</th>
                 </tr>
             </ng-template>
@@ -135,27 +145,78 @@
                     <td>
                         <div class="flex flex-col">
                             <span class="font-semibold text-gray-900">{{ loan.usuario_nombre }}</span>
-                            <span class="text-xs text-gray-500">ID: {{ loan.usuario_id }}</span>
+                            <span class="text-xs text-gray-500">{{ loan.usuario_email || 'Sin correo' }}</span>
                         </div>
                     </td>
                     <td>
-                        <span class="px-3 py-1 rounded-full text-sm font-medium"
+                        <span class="px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1"
                               [ngClass]="{
-                                  'bg-[#AAEACA] text-green-800': loan.estado === 'aprobado',
-                                  'bg-[#FEE8B9] text-orange-800': loan.estado === 'pendiente',
-                                  'bg-[#FF6B6B] text-red-800': loan.estado === 'rechazado',
-                                  'bg-[#CEDEFO] text-blue-800': loan.estado === 'terminado',
-                                  'bg-[#FFABAB] text-red-800': loan.estado === 'vencido'
+                                  'bg-[rgba(76,217,100,0.2)] text-[var(--color-success)]': loan.estado?.toLowerCase() === 'aprobado',
+                                  'bg-[rgba(245,158,11,0.2)] text-orange-800': loan.estado?.toLowerCase() === 'pendiente',
+                                  'bg-[rgba(244,67,54,0.2)] text-[var(--color-danger)]': loan.estado?.toLowerCase() === 'rechazado',
+                                  'bg-[rgba(110,172,218,0.2)] text-[var(--secundary-color)]': loan.estado?.toLowerCase() === 'terminado',
+                                  'bg-[rgba(255,152,0,0.2)] text-orange-600': loan.estado?.toLowerCase() === 'vencido',
+                                  'bg-gray-200 text-gray-700': !['aprobado', 'pendiente', 'rechazado', 'terminado', 'vencido'].includes(loan.estado?.toLowerCase())
                               }">
+                            <span *ngIf="loan.estado?.toLowerCase() === 'aprobado'" class="text-xs">✅</span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'pendiente'" class="text-xs">⏳</span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'rechazado'" class="text-xs">❌</span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'terminado'" class="text-xs">🛠️</span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'vencido'" class="text-xs">⚠️</span>
+                            <span *ngIf="!['aprobado', 'pendiente', 'rechazado', 'terminado', 'vencido'].includes(loan.estado?.toLowerCase())" class="text-xs">❓</span>
                             {{ loan.estado | titlecase }}
                         </span>
                     </td>
-                    <td>{{ loan.fecha_solicitud ? (loan.fecha_solicitud | date:'dd/MM/yy') : '-' }}</td>
-                    <td>{{ loan.fecha_aprobacion ? (loan.fecha_aprobacion | date:'dd/MM/yy') : '-' }}</td>
-                    <td>{{ loan.fecha_devolucion_estimada ? (loan.fecha_devolucion_estimada | date:'dd/MM/yy') : '-' }}</td>
-                    <td>{{ loan.fecha_devolucion_real ? (loan.fecha_devolucion_real | date:'dd/MM/yy') : '-' }}</td>
-                    <td>{{ loan.tiempo_solicitado }} min</td>
-                    <td>{{ loan.tiempo_aprobado ? loan.tiempo_aprobado + ' min' : '-' }}</td>
+                    <td>
+                        <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_solicitud, 'solicitud')">
+                            <span *ngIf="getDateStatus(loan.fecha_solicitud, 'solicitud').icon" class="status-icon">
+                                {{ getDateStatus(loan.fecha_solicitud, 'solicitud').icon }}
+                            </span>
+                            <span [ngClass]="[getDateStatus(loan.fecha_solicitud, 'solicitud').color, getDateStatus(loan.fecha_solicitud, 'solicitud').fontWeight]">
+                                {{ loan.fecha_solicitud ? (loan.fecha_solicitud | date:'dd/MM/yy') : getDateStatus(loan.fecha_solicitud, 'solicitud').text }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_aprobacion, 'aprobacion')">
+                            <span *ngIf="getDateStatus(loan.fecha_aprobacion, 'aprobacion').icon" class="status-icon">
+                                {{ getDateStatus(loan.fecha_aprobacion, 'aprobacion').icon }}
+                            </span>
+                            <span [ngClass]="[getDateStatus(loan.fecha_aprobacion, 'aprobacion').color, getDateStatus(loan.fecha_aprobacion, 'aprobacion').fontWeight]">
+                                {{ loan.fecha_aprobacion ? (loan.fecha_aprobacion | date:'dd/MM/yy') : getDateStatus(loan.fecha_aprobacion, 'aprobacion').text }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_devolucion_estimada, 'devolucion_estimada')">
+                            <span *ngIf="getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').icon" class="status-icon">
+                                {{ getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').icon }}
+                            </span>
+                            <span [ngClass]="[getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').color, getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').fontWeight]">
+                                {{ loan.fecha_devolucion_estimada ? (loan.fecha_devolucion_estimada | date:'dd/MM/yy') : getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').text }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_devolucion_real, 'devolucion_real')">
+                            <span *ngIf="getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').icon" class="status-icon">
+                                {{ getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').icon }}
+                            </span>
+                            <span [ngClass]="[getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').color, getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').fontWeight]">
+                                {{ loan.fecha_devolucion_real ? (loan.fecha_devolucion_real | date:'dd/MM/yy') : getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').text }}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="time-cell" [ngClass]="[getTimeCellClasses(loan.tiempo_solicitado, 'solicitado'), getTimeStatus(loan.tiempo_solicitado, 'solicitado').color, getTimeStatus(loan.tiempo_solicitado, 'solicitado').fontWeight]">
+                            {{ loan.tiempo_solicitado ? (loan.tiempo_solicitado | timeFormat) : getTimeStatus(loan.tiempo_solicitado, 'solicitado').text }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="time-cell" [ngClass]="[getTimeCellClasses(loan.tiempo_aprobado, 'aprobado'), getTimeStatus(loan.tiempo_aprobado, 'aprobado').color, getTimeStatus(loan.tiempo_aprobado, 'aprobado').fontWeight]">
+                            {{ loan.tiempo_aprobado ? (loan.tiempo_aprobado | timeFormat) : getTimeStatus(loan.tiempo_aprobado, 'aprobado').text }}
+                        </span>
+                    </td>
                     <td>
                         <p-button
                             styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
@@ -194,11 +255,11 @@
     (onHide)="closeDetailModal()"
 >
     <!-- Alerta Modal -->
-    <app-modal-alert 
-        [alert]="modalAlert" 
+    <app-modal-alert
+        [alert]="modalAlert"
         (close)="hideModalAlert()">
     </app-modal-alert>
-    
+
     <div *ngIf="loadingDetails" class="flex justify-center py-8">
         <i class="pi pi-spin pi-spinner text-2xl"></i>
     </div>

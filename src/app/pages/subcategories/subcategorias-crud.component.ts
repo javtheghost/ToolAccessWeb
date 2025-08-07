@@ -279,7 +279,9 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                         filterPlaceholder="Buscar categorías..."
                         (onChange)="onCategoryChange($event)"
                         [class.border-red-500]="isFieldInvalid('categoria_id')"
-                        [class.border-gray-300]="!isFieldInvalid('categoria_id')">
+                        [class.border-gray-300]="!isFieldInvalid('categoria_id')"
+                        (onShow)="onDropdownOpen($event)"
+                        (onHide)="onDropdownClose($event)">
                         <ng-template pTemplate="selectedItem" let-category>
                             <div class="flex items-center justify-start h-full w-full">
                                 <span>{{ category.nombre }}</span>
@@ -596,7 +598,79 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
 
 
 
-        /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */`
+        /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */
+
+        /* Estilos para el modal y manejo de scroll */
+        :host ::ng-deep .p-dialog {
+            max-height: 90vh !important;
+            overflow: hidden !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-header {
+            flex-shrink: 0 !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-content {
+            overflow-y: auto !important;
+            max-height: calc(90vh - 120px) !important;
+            padding: 1.5rem !important;
+        }
+
+        /* Prevenir scroll en el modal cuando el dropdown está abierto */
+        :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open {
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
+
+        :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open .p-dropdown {
+            pointer-events: auto !important;
+        }
+
+        /* Configurar el panel del dropdown para evitar conflictos de scroll */
+        :host ::ng-deep .p-dropdown-panel {
+            z-index: 1000 !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Prevenir que el scroll del modal interfiera con el dropdown */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items-wrapper {
+            max-height: 180px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Asegurar que el dropdown se muestre por encima del modal */
+        :host ::ng-deep .p-dropdown-panel.p-component {
+            position: fixed !important;
+            z-index: 1001 !important;
+        }
+
+        /* Mejorar la experiencia de scroll en el dropdown */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items {
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e0 #f7fafc !important;
+        }
+
+        /* Estilos para el scrollbar del dropdown en WebKit */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar {
+            width: 6px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-track {
+            background: #f7fafc !important;
+            border-radius: 3px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb {
+            background: #cbd5e0 !important;
+            border-radius: 3px !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0 !important;
+        }`
     ]
 })
 export class SubcategoriasCrudComponent implements OnInit {
@@ -934,6 +1008,7 @@ export class SubcategoriasCrudComponent implements OnInit {
             is_active: true
         });
         this.subcategoryDialog = true;
+        this.hideModalAlert(); // Restablecer alertas al abrir modal
     }
 
     editSubcategory(subcategory: SubcategoryDisplay) {
@@ -975,6 +1050,7 @@ export class SubcategoriasCrudComponent implements OnInit {
             is_active: subcategory.is_active
         });
         this.subcategoryDialog = true;
+        this.hideModalAlert(); // Restablecer alertas al abrir modal
     }
 
     onCategoryChange(event: any) {
@@ -1040,6 +1116,7 @@ export class SubcategoriasCrudComponent implements OnInit {
         };
         this.selectedCategory = null;
         this.subcategoryForm.reset();
+        this.hideModalAlert(); // Restablecer alertas al cerrar modal
     }
 
     saveSubcategory() {
@@ -1127,6 +1204,24 @@ export class SubcategoriasCrudComponent implements OnInit {
             this.onCustomConfirmReject();
         } else if (this.subcategoryDialog) {
             this.hideDialog();
+        }
+    }
+
+    // Método para manejar el scroll cuando se abre un dropdown
+    onDropdownOpen(event: any) {
+        // Prevenir el scroll del modal cuando el dropdown está abierto
+        const modalContent = document.querySelector('.p-dialog .p-dialog-content');
+        if (modalContent) {
+            modalContent.classList.add('p-dropdown-open');
+        }
+    }
+
+    // Método para restaurar el scroll cuando se cierra un dropdown
+    onDropdownClose(event: any) {
+        // Restaurar el scroll del modal cuando el dropdown se cierra
+        const modalContent = document.querySelector('.p-dialog .p-dialog-content');
+        if (modalContent) {
+            modalContent.classList.remove('p-dropdown-open');
         }
     }
 }

@@ -17,8 +17,8 @@ import { ReportsService, HerramientaPopular } from '../../service/reports.servic
         </div>
       </div>
 
-      <div *ngIf="!loading && herramientasPopulares.length > 0" class="space-y-4">
-        <div *ngFor="let herramienta of herramientasPopulares.slice(0, 5); let i = index"
+      <div *ngIf="!loading && herramientasPopulares.length > 0" class="max-h-80 overflow-y-auto space-y-4 pr-2">
+        <div *ngFor="let herramienta of herramientasPopulares; let i = index"
              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
           <div class="flex items-center space-x-3">
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"

@@ -37,32 +37,35 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
     ],
     template: `
 <p-toast></p-toast>
-<div class="p-6">
+<div class="p-4 sm:p-6">
     <p-table
         #dt
         [value]="roles"
         [rows]="10"
         [paginator]="true"
         [globalFilterFields]="['nombre', 'descripcion']"
-        [scrollable]="false"
+        [scrollable]="true"
         styleClass="p-datatable-gridlines"
         [rowHover]="true"
         dataKey="id"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} roles"
         [showCurrentPageReport]="true"
+        [responsive]="true"
+        [scrollDirection]="'both'"
+        scrollHeight="400px"
     >
         <ng-template pTemplate="caption">
             <div class="space-y-4">
                 <!-- Header siempre visible -->
                 <div class="flex items-center justify-between">
-                    <h5 class="m-0 p-2 text-[var(--primary-color)]">Administrar Roles</h5>
+                    <h5 class="m-0 p-2 text-[var(--primary-color)] text-lg sm:text-xl">Administrar Roles</h5>
                 </div>
-                <div class="flex items-center justify-between gap-4 mt-2">
-                    <p-iconfield>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
+                    <p-iconfield class="w-full sm:w-80">
                         <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar roles..." class="w-80" />
+                        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar roles..." class="w-full" />
                     </p-iconfield>
-                    <div class="flex gap-2">
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <p-button
                             [label]="showActiveOnly ? 'Mostrar Todos' : 'Solo Activos'"
                             [icon]="showActiveOnly ? 'pi pi-eye' : 'pi pi-eye-slash'"
@@ -70,39 +73,51 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                             [outlined]="true"
                             (onClick)="toggleActiveFilter()"
                             pTooltip="Filtrar roles por estado"
-                            tooltipPosition="top">
+                            tooltipPosition="top"
+                            class="w-full sm:w-auto">
                         </p-button>
-                        <p-button label="Crear Rol" icon="pi pi-plus" (onClick)="openNew()"></p-button>
+                        <p-button label="Crear Rol" icon="pi pi-plus" (onClick)="openNew()" class="w-full sm:w-auto"></p-button>
                     </div>
                 </div>
             </div>
         </ng-template>
         <ng-template pTemplate="header">
             <tr>
-                <th pSortableColumn="nombre" style="min-width:15rem">
+                <th pSortableColumn="nombre" style="min-width:12rem">
                     <div class="flex justify-content-center align-items-center">
-                        Nombre
+                        <span class="hidden sm:inline">Nombre</span>
+                        <span class="sm:hidden">Nom.</span>
                     </div>
                 </th>
-                <th pSortableColumn="descripcion" style="min-width:20rem">
+                <th pSortableColumn="descripcion" style="min-width:15rem">
                     <div class="flex justify-content-center align-items-center">
-                        Descripción
+                        <span class="hidden sm:inline">Descripción</span>
+                        <span class="sm:hidden">Desc.</span>
                     </div>
                 </th>
-                <th pSortableColumn="is_active" style="min-width:8rem">
+                <th pSortableColumn="is_active" style="min-width:6rem">
                     <div class="flex justify-content-center align-items-center">
-                        Estado
+                        <span class="hidden sm:inline">Estado</span>
+                        <span class="sm:hidden">Est.</span>
                     </div>
                 </th>
-                <th style="min-width:10rem">Acciones</th>
+                <th style="min-width:8rem">
+                    <div class="flex justify-content-center align-items-center">
+                        <span class="hidden sm:inline">Acciones</span>
+                        <span class="sm:hidden">Acc.</span>
+                    </div>
+                </th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-role>
             <tr>
                 <td>
-                    <span class="font-bold">{{ role.nombre }}</span>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-sm sm:text-base">{{ role.nombre }}</span>
+                        <span class="text-xs text-gray-500 sm:hidden">{{ role.descripcion }}</span>
+                    </div>
                 </td>
-                <td>
+                <td class="hidden sm:table-cell">
                     <span class="font-medium">{{ role.descripcion }}</span>
                 </td>
                 <td class="text-center">
@@ -115,7 +130,7 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                     </p-inputswitch>
                 </td>
                 <td>
-                    <div class="flex gap-2 justify-center">
+                    <div class="flex gap-1 sm:gap-2 justify-center">
                         <p-button
                             *ngIf="role.id !== 1"
                             (click)="editRole(role)"
@@ -123,10 +138,10 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                             pTooltip="Editar rol"
                             tooltipPosition="top">
                             <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined">edit</i>
+                                <i class="material-symbols-outlined text-sm sm:text-base">edit</i>
                             </ng-template>
                         </p-button>
-                        <span *ngIf="role.id === 1" class="text-gray-400 text-sm">
+                        <span *ngIf="role.id === 1" class="text-gray-400 text-xs sm:text-sm">
                             Protegido
                         </span>
                     </div>
@@ -139,12 +154,13 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                 <td colspan="4" class="text-center p-4">
                     <div class="flex flex-column align-items-center gap-3">
                         <i class="pi pi-shield text-4xl text-gray-400"></i>
-                        <span class="text-gray-500">No se encontraron roles</span>
+                        <span class="text-gray-500 text-sm sm:text-base">No se encontraron roles</span>
                         <p-button
                             label="Crear primer rol"
                             icon="pi pi-plus"
                             size="small"
-                            (onClick)="openNew()">
+                            (onClick)="openNew()"
+                            class="w-full sm:w-auto">
                         </p-button>
                     </div>
                 </td>
@@ -197,28 +213,28 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
 </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
 <div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
-  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+  <div class="bg-white rounded-lg shadow-lg p-4 sm:p-8 w-full max-w-md relative mx-4">
     <!-- Tachita de cerrar -->
     <button type="button" (click)="onCustomConfirmReject()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none text-2xl">
       <span class="material-symbols-outlined">close</span>
     </button>
     <div class="flex flex-col items-start">
-      <i class="material-symbols-outlined text-6xl mb-4"
+      <i class="material-symbols-outlined text-4xl sm:text-6xl mb-4"
         [ngClass]="{
           'text-danger': confirmIcon === 'delete',
           'text-warning': confirmIcon === 'warning'
         }"
       >{{ confirmIcon }}</i>
       <div class="text-left mb-6">
-        <div [innerHTML]="confirmMessage"></div>
+        <div [innerHTML]="confirmMessage" class="text-sm sm:text-base"></div>
       </div>
-      <div class="flex gap-4 self-end">
+      <div class="flex flex-col sm:flex-row gap-4 self-end w-full sm:w-auto">
         <button type="button"
-          class="custom-cancel-btn min-w-[120px] text-center font-semibold"
+          class="custom-cancel-btn min-w-[120px] text-center font-semibold w-full sm:w-auto"
           (click)="onCustomConfirmReject()"
         >Cancelar</button>
         <button type="button"
-          [ngClass]="(confirmIcon === 'delete' ? 'custom-confirm-accept-danger' : 'custom-confirm-accept-warning') + ' min-w-[120px] text-center font-semibold rounded'"
+          [ngClass]="(confirmIcon === 'delete' ? 'custom-confirm-accept-danger' : 'custom-confirm-accept-warning') + ' min-w-[120px] text-center font-semibold rounded w-full sm:w-auto'"
           (click)="onCustomConfirmAccept()"
         >Aceptar</button>
       </div>
