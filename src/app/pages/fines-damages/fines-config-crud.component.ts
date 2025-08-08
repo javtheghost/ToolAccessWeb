@@ -84,7 +84,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             [value]="finesConfig"
             [rows]="isMobile ? 3 : 5"
             [paginator]="true"
-            [globalFilterFields]="['nombre', 'categoria_nombre']"
+            [globalFilterFields]="['id', 'nombre', 'categoria_nombre']"
             [tableStyle]="{ 'min-width': '100%' }"
             [(selection)]="selectedFinesConfig"
             [rowHover]="true"

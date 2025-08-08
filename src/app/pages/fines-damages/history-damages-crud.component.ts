@@ -106,7 +106,7 @@ interface DamageHistory {
             [value]="damageHistory"
             [rows]="10"
             [paginator]="true"
-            [globalFilterFields]="['tool', 'order', 'damageType', 'description']"
+            [globalFilterFields]="['id', 'tool', 'order', 'damageType', 'description']"
             [tableStyle]="{ 'min-width': '100%' }"
             [(selection)]="selectedDamageHistory"
             [rowHover]="true"
@@ -959,8 +959,8 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         this.damageHistory = [];
         this.loading = false;
 
-        // Cargar herramientas
-        this.toolsService.getTools(undefined, true).subscribe({
+        // Cargar herramientas - Solo activas
+        this.toolsService.getTools('', true).subscribe({
             next: (tools: Tool[]) => {
                 this.tools = tools;
             },

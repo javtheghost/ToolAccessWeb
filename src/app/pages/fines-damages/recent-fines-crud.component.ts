@@ -64,7 +64,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
             <!-- Header skeleton -->
             <div class="bg-[#6ea1cc] text-white p-3">
                 <div class="flex items-center space-x-4">
-                    <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="40px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
@@ -73,12 +73,13 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                    <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
                 </div>
             </div>
             <!-- Filas skeleton -->
             <div class="p-4 space-y-3">
                 <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
-                    <p-skeleton height="1rem" width="60px"></p-skeleton>
+                    <p-skeleton height="1rem" width="40px"></p-skeleton>
                     <p-skeleton height="1rem" width="120px"></p-skeleton>
                     <p-skeleton height="1rem" width="140px"></p-skeleton>
                     <p-skeleton height="1rem" width="120px"></p-skeleton>
@@ -86,6 +87,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     <p-skeleton height="1rem" width="120px"></p-skeleton>
                     <p-skeleton height="1rem" width="140px"></p-skeleton>
                     <p-skeleton height="1rem" width="100px"></p-skeleton>
+                    <p-skeleton height="1rem" width="80px"></p-skeleton>
                     <p-skeleton height="1rem" width="80px"></p-skeleton>
                 </div>
             </div>
@@ -98,7 +100,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                 [value]="fines"
                 [rows]="paginationUtils.getPaginationConfig().defaultRows"
                 [paginator]="true"
-                [globalFilterFields]="['orden_id', 'usuario_id', 'configuracion_nombre', 'estado']"
+                [globalFilterFields]="['id', 'usuario_nombre', 'usuario_email', 'orden_folio', 'configuracion_nombre', 'estado', 'monto_total']"
                 [tableStyle]="{ 'min-width': '100%' }"
                 [(selection)]="selectedFines"
                 [rowHover]="true"
@@ -122,7 +124,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-2">
                         <p-iconfield class="flex-1 w-full sm:w-auto">
                             <p-inputicon styleClass="pi pi-search" />
-                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por usuario, orden, configuración, estado o monto..." />
                         </p-iconfield>
                         <div class="flex justify-end w-full sm:w-auto">
                             <p-button label="Nueva Multa" icon="pi pi-plus" (onClick)="openNew()"></p-button>
@@ -131,6 +133,12 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                 </ng-template>
                 <ng-template pTemplate="header">
                     <tr class="bg-[#6ea1cc] text-white">
+                        <th pSortableColumn="id" class="text-center p-3" style="min-width: 60px;">
+                            <div class="flex justify-content-center align-items-center">
+                                ID
+                                <p-sortIcon field="id"></p-sortIcon>
+                            </div>
+                        </th>
                         <th pSortableColumn="usuario_nombre">
                             <div class="flex justify-content-center align-items-center">
                                 Usuario
@@ -184,6 +192,9 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                 </ng-template>
                 <ng-template pTemplate="body" let-fine>
                     <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="text-center p-3">
+                            <span class="font-mono text-sm text-gray-600">{{ fine.id }}</span>
+                        </td>
                         <td>
                             <div class="flex flex-col">
                                 <span class="font-semibold text-gray-900 text-sm sm:text-base">{{ fine.usuario_nombre || 'Usuario #' + fine.usuario_id }}</span>
@@ -272,7 +283,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                 </ng-template>
                         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="9" class="text-center py-8">
+                <td colspan="10" class="text-center py-8">
                     <div class="flex flex-col items-center gap-2">
                         <i class="pi pi-database text-4xl text-[var(--primary-color)]"></i>
                         <h6 class="text-[var(--primary-color)] font-medium">No hay multas registradas</h6>
@@ -605,8 +616,13 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [showButtons]="false"
                     [useGrouping]="true"
                     [locale]="'es-MX'"
-                    styleClass="custom-inputnumber">
+                    [styleClass]="!isEditMode ? 'custom-inputnumber readonly-input' : 'custom-inputnumber'"
+                    [readonly]="!isEditMode">
                 </p-inputnumber>
+                <div *ngIf="!isEditMode" class="mt-1 text-xs text-gray-500">
+                    <i class="material-symbols-outlined text-xs mr-1">info</i>
+                    El monto se auto-completa según la configuración seleccionada
+                </div>
             </div>
 
             <!-- Estado -->
@@ -715,6 +731,30 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
         :host ::ng-deep .custom-inputnumber .p-inputtext:focus {
             border-color: var(--primary-color) !important;
             box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        /* Estilos para input readonly (bloqueado) */
+        :host ::ng-deep .readonly-input .p-inputtext {
+            background-color: #f9fafb !important;
+            color: #6b7280 !important;
+            cursor: not-allowed !important;
+            border-color: #d1d5db !important;
+            opacity: 0.7 !important;
+        }
+
+        :host ::ng-deep .readonly-input .p-inputtext:hover {
+            border-color: #d1d5db !important;
+            box-shadow: none !important;
+        }
+
+        :host ::ng-deep .readonly-input .p-inputtext:focus {
+            border-color: #d1d5db !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        :host ::ng-deep .readonly-input .p-inputtext::placeholder {
+            color: #9ca3af !important;
         }
 
         /* Estilos para el componente de fecha personalizado */
@@ -863,6 +903,7 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     ];
 
     private destroy$ = new Subject<void>();
+    private configuracionSubscription: any;
     modalAlert: ModalAlert = { show: false, type: 'error', title: '', message: '' };
 
     constructor(
@@ -887,6 +928,10 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
+        // Limpiar el listener del formulario
+        if (this.configuracionSubscription) {
+            this.configuracionSubscription.unsubscribe();
+        }
     }
 
     showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
@@ -1001,7 +1046,20 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     }
 
     onGlobalFilter(table: Table, event: Event) {
-        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+        const target = event.target as HTMLInputElement;
+        const sanitizedValue = this.sanitizeString(target.value);
+        table.filterGlobal(sanitizedValue, 'contains');
+    }
+
+    private sanitizeString(value: string | undefined): string {
+        if (!value || typeof value !== 'string') return '';
+
+        // Remover caracteres peligrosos y limitar longitud
+        return value
+            .replace(/[<>]/g, '') // Remover < y >
+            .replace(/javascript:/gi, '') // Remover javascript:
+            .replace(/on\w+=/gi, '') // Remover event handlers
+            .substring(0, 200); // Limitar longitud
     }
 
     viewFineDetails(fine: Fine) {
@@ -1079,6 +1137,18 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
             fecha_vencimiento: ['', Validators.required],
             comentarios: ['']
         });
+
+        // Listener para auto-completar monto total cuando cambie la configuración
+        this.configuracionSubscription = this.fineForm.get('configuracion_multa_id')?.valueChanges.subscribe(configId => {
+            if (configId && !this.isEditMode) {
+                const configuracion = this.configuraciones.find(config => config.id === configId);
+                if (configuracion && configuracion.valor_base) {
+                    this.fineForm.patchValue({
+                        monto_total: configuracion.valor_base
+                    });
+                }
+            }
+        });
     }
 
     private loadFormData() {
@@ -1138,7 +1208,8 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
         this.fineForm.reset();
         this.fineForm.patchValue({
             estado: 'pendiente',
-            fecha_vencimiento: new Date()
+            fecha_vencimiento: new Date(),
+            monto_total: 0
         });
         this.fineDialog = true;
     }

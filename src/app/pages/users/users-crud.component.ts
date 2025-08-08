@@ -128,7 +128,7 @@ interface Column {
             [value]="filteredUsers()"
             [rows]="10"
             [paginator]="true"
-            [globalFilterFields]="['nombre', 'email', 'apellido_paterno', 'apellido_materno', 'rol_nombre']"
+            [globalFilterFields]="['id', 'nombre', 'email', 'apellido_paterno', 'apellido_materno', 'rol_nombre']"
             [scrollable]="true"
             [loading]="loading()"
             styleClass="p-datatable-gridlines"

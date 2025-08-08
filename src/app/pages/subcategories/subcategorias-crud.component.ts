@@ -94,7 +94,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
             [value]="subcategories()"
             [rows]="10"
             [paginator]="true"
-            [globalFilterFields]="['nombre', 'descripcion', 'categoria_nombre', 'is_active']"
+            [globalFilterFields]="['id', 'nombre', 'descripcion', 'categoria_nombre', 'is_active']"
             [tableStyle]="{ 'min-width': '100%' }"
             [(selection)]="selectedSubcategories"
             [rowHover]="true"

@@ -68,6 +68,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
             <!-- Header skeleton -->
             <div class="bg-[#6ea1cc] text-white p-3">
                 <div class="flex items-center space-x-4">
+                    <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="150px" styleClass="bg-white/20"></p-skeleton>
                     <p-skeleton height="1.5rem" width="200px" styleClass="bg-white/20"></p-skeleton>
@@ -83,6 +84,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
             <!-- Filas skeleton -->
             <div class="p-4 space-y-3">
                 <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
+                    <p-skeleton height="1rem" width="60px"></p-skeleton>
                     <p-skeleton height="1rem" width="80px"></p-skeleton>
                     <p-skeleton height="1rem" width="150px"></p-skeleton>
                     <p-skeleton height="1rem" width="200px"></p-skeleton>
@@ -105,7 +107,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
             [value]="tools"
             [rows]="10"
             [paginator]="true"
-            [globalFilterFields]="['nombre', 'descripcion', 'folio', 'categoria_nombre', 'subcategoria_nombre']"
+            [globalFilterFields]="['id', 'nombre', 'descripcion', 'folio', 'categoria_nombre', 'subcategoria_nombre']"
             [tableStyle]="{ 'min-width': '1200px' }"
             [(selection)]="selectedTools"
             [rowHover]="true"
@@ -140,6 +142,12 @@ import { RateLimitingService } from './service/rate-limiting.service';
         </ng-template>
         <ng-template pTemplate="header">
             <tr class="bg-[#6ea1cc] text-white">
+                <th pSortableColumn="id" class="text-center p-3" style="min-width: 60px;">
+                    <div class="flex justify-content-center align-items-center">
+                        ID
+                        <p-sortIcon field="id"></p-sortIcon>
+                    </div>
+                </th>
                 <th class="text-center p-3" style="min-width: 80px;">Imagen</th>
                 <th pSortableColumn="nombre" class="text-left p-3" style="min-width: 150px;">
                     <div class="flex justify-content-center align-items-center">
@@ -189,6 +197,9 @@ import { RateLimitingService } from './service/rate-limiting.service';
         </ng-template>
         <ng-template pTemplate="body" let-tool>
             <tr class="hover:bg-gray-50" [ngClass]="{'opacity-60 bg-gray-100': !tool.is_active}">
+                <td class="text-center p-3">
+                    <span class="font-mono text-sm text-gray-600" [ngClass]="{'text-gray-400': !tool.is_active}">{{ tool.id }}</span>
+                </td>
                 <td class="text-center p-3">
                     <img *ngIf="tool.foto_url" [src]="getImageUrl(tool.foto_url)" alt="Imagen" style="width: 48px; height: 48px; object-fit: cover;" class="rounded" />
                     <div *ngIf="!tool.foto_url" class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
@@ -241,7 +252,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="10" class="text-center py-8">
+                <td colspan="11" class="text-center py-8">
                     <div class="flex flex-col items-center justify-center space-y-4">
                         <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
                         <div class="text-center">

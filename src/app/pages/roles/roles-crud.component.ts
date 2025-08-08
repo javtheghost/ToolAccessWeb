@@ -43,7 +43,7 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
         [value]="roles"
         [rows]="10"
         [paginator]="true"
-        [globalFilterFields]="['nombre', 'descripcion']"
+                    [globalFilterFields]="['id', 'nombre', 'descripcion']"
         [scrollable]="true"
         styleClass="p-datatable-gridlines"
         [rowHover]="true"
