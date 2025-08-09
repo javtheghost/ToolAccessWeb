@@ -249,7 +249,7 @@ interface Column {
                             tooltipPosition="top">
                         </p-inputswitch>
                     </td>
-                    <td>
+                    <td class="text-center">
                         <div class="flex gap-1 sm:gap-2 justify-center">
                             <p-button
                                 (click)="editUser(user)"
@@ -257,7 +257,7 @@ interface Column {
                                 pTooltip="Editar usuario"
                                 tooltipPosition="top">
                                 <ng-template pTemplate="icon">
-                                    <i class="material-symbols-outlined text-sm sm:text-base">edit</i>
+                                    <i class="material-symbols-outlined">edit</i>
                                 </ng-template>
                             </p-button>
                         </div>
@@ -287,7 +287,8 @@ interface Column {
     [modal]="true"
     styleClass="p-fluid"
     [dismissableMask]="true"
-    [draggable]="false">
+    [draggable]="false"
+    [resizable]="false">
 
     <ng-template pTemplate="content">
         <!-- Alerta Modal -->
@@ -446,7 +447,8 @@ interface Column {
     [style]="{width: '95vw', maxWidth: '400px'}"
     header="Confirmar Acción"
     [modal]="true"
-    [dismissableMask]="false">
+    [dismissableMask]="false"
+    [resizable]="false">
 
     <ng-template pTemplate="content">
         <div class="flex align-items-center gap-3 p-4">

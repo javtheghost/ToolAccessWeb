@@ -238,6 +238,7 @@ interface DamageHistory {
   [style]="{ width: '600px' }"
   [modal]="true"
   [draggable]="false"
+  [resizable]="false"
 >
   <ng-template pTemplate="header">
     <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
@@ -934,9 +935,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
 
         this.loading = true;
 
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
         // Cargar daños
-        /*
         this.damagesService.getDamages().subscribe({
             next: (damages: Damage[]) => {
                 this.damageHistory = damages;
@@ -953,11 +952,6 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                 this.loading = false;
             }
         });
-        */
-
-        // Por ahora, solo cargar datos vacíos
-        this.damageHistory = [];
-        this.loading = false;
 
         // Cargar herramientas - Solo activas
         this.toolsService.getTools('', true).subscribe({
@@ -1033,37 +1027,13 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         const toolName = this.tools.find(t => t.id === history.herramienta_id)?.nombre || 'Herramienta';
         this.confirmMessage = `¿Estás seguro de eliminar el reporte de daño de <span class='text-primary'>${toolName}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
         this.confirmAction = () => {
-            // TEMPORALMENTE DESHABILITADO - Causa errores 500
-            /*
-            this.damagesService.deleteDamage(history.id).subscribe({
-                next: () => {
-                    this.damageHistory = this.damageHistory.filter(t => t.id !== history.id);
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Reporte eliminado',
-                        life: 3000
-                    });
-                },
-                error: (error: any) => {
-                    console.error('Error eliminando daño:', error);
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Error',
-                        detail: 'Error al eliminar el reporte',
-                        life: 3000
-                    });
-                }
-            });
-            */
-
-            // Por ahora, solo mostrar mensaje de éxito
-            this.damageHistory = this.damageHistory.filter(t => t.id !== history.id);
+            // La eliminación física de reportes no está disponible en el backend
+            // Los reportes se manejan a través de cambios de estado
             this.messageService.add({
-                severity: 'success',
-                summary: 'Éxito',
-                detail: 'Reporte eliminado (simulado)',
-                life: 3000
+                severity: 'info',
+                summary: 'Información',
+                detail: 'Los reportes de daños no se pueden eliminar, solo cambiar de estado. Use la función de editar para actualizar.',
+                life: 4000
             });
         };
         this.showCustomConfirm = true;
@@ -1083,8 +1053,6 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                 const toolName = this.tools.find(t => t.id === this.damageHistoryItem.herramienta_id)?.nombre || 'Herramienta';
                 this.confirmMessage = `¿Estás seguro que deseas actualizar el reporte de daño de <span class='text-primary'>${toolName}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
                 this.confirmAction = () => {
-                    // TEMPORALMENTE DESHABILITADO - Causa errores 500
-                    /*
                     const updateData: DamageUpdateRequest = {
                         herramienta_id: this.damageHistoryItem.herramienta_id,
                         orden_prestamo_id: this.damageHistoryItem.orden_prestamo_id || 1, // Valor por defecto
@@ -1100,41 +1068,29 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Éxito',
-                                detail: 'Reporte actualizado',
+                                detail: 'Reporte actualizado correctamente',
                                 life: 3000
                             });
                             this.damageHistoryDialog = false;
                             this.isEditMode = false;
                             this.damageHistoryItem = this.emptyDamageHistory();
+                            // Recargar la lista para mostrar los cambios
+                            this.loadData();
                         },
                         error: (error: any) => {
                             console.error('Error actualizando daño:', error);
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
-                                detail: 'Error al actualizar el reporte',
+                                detail: error.message || 'Error al actualizar el reporte',
                                 life: 3000
                             });
                         }
                     });
-                    */
-
-                    // Por ahora, solo mostrar mensaje de éxito
-                    this.messageService.add({
-                        severity: 'success',
-                        summary: 'Éxito',
-                        detail: 'Reporte actualizado (simulado)',
-                        life: 3000
-                    });
-                    this.damageHistoryDialog = false;
-                    this.isEditMode = false;
-                    this.damageHistoryItem = this.emptyDamageHistory();
                 };
                 this.showCustomConfirm = true;
             } else {
                 // Modo creación
-                // TEMPORALMENTE DESHABILITADO - Causa errores 500
-                /*
                 const createData: DamageCreateRequest = {
                     herramienta_id: this.damageHistoryItem.herramienta_id,
                     orden_prestamo_id: this.damageHistoryItem.orden_prestamo_id || 1, // Valor por defecto
@@ -1149,35 +1105,25 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Éxito',
-                            detail: 'Reporte creado',
+                            detail: 'Reporte creado correctamente',
                             life: 3000
                         });
                         this.damageHistoryDialog = false;
                         this.isEditMode = false;
                         this.damageHistoryItem = this.emptyDamageHistory();
+                        // Recargar la lista para mostrar el nuevo reporte
+                        this.loadData();
                     },
                     error: (error: any) => {
                         console.error('Error creando daño:', error);
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error al crear el reporte',
+                            detail: error.message || 'Error al crear el reporte',
                             life: 3000
                         });
                     }
                 });
-                */
-
-                // Por ahora, solo mostrar mensaje de éxito
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Éxito',
-                    detail: 'Reporte creado (simulado)',
-                    life: 3000
-                });
-                this.damageHistoryDialog = false;
-                this.isEditMode = false;
-                this.damageHistoryItem = this.emptyDamageHistory();
             }
         } else {
             this.messageService.add({

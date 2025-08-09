@@ -159,7 +159,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                         </th>
                         <th pSortableColumn="monto_total">
                             <div class="flex justify-content-center align-items-center">
-                                Monto
+                                Monto Pagar
                                 <p-sortIcon field="monto_total"></p-sortIcon>
                             </div>
                         </th>
@@ -239,10 +239,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                             </ng-template>
                         </td>
                         <td>
-                            <div class="flex flex-wrap gap-1 justify-center sm:justify-start">
+                            <div class="grid grid-cols-2 gap-1 justify-items-center lg:grid-cols-2 lg:justify-items-start">
                                 <p-button
                                     (onClick)="viewFineDetails(fine)"
-                                    styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                                    styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
                                     pTooltip="Ver detalles"
                                     tooltipPosition="top">
                                     <ng-template pTemplate="icon">
@@ -251,7 +251,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                                 </p-button>
                                 <p-button
                                     (onClick)="editFine(fine)"
-                                    styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                                    styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
                                     pTooltip="Editar"
                                     tooltipPosition="top">
                                     <ng-template pTemplate="icon">
@@ -261,7 +261,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                                 <p-button
                                     *ngIf="fine.estado?.toLowerCase() === 'pendiente'"
                                     (onClick)="payFine(fine)"
-                                    styleClass="custom-flat-icon-button custom-flat-icon-button-pay mr-2"
+                                    styleClass="custom-flat-icon-button custom-flat-icon-button-pay"
                                     pTooltip="Marcar como pagada"
                                     tooltipPosition="top">
                                     <ng-template pTemplate="icon">
@@ -447,6 +447,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
     [style]="{ width: '95vw', maxWidth: '600px' }"
     [modal]="true"
     [draggable]="false"
+    [resizable]="false"
 >
   <ng-template pTemplate="header">
     <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
@@ -479,7 +480,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
                     [filter]="true"
-                    filterPlaceholder="Buscar usuarios...">
+                    filterPlaceholder="Buscar usuarios..."
+                    scrollHeight="200px"
+                    [virtualScroll]="true"
+                    [virtualScrollItemSize]="38">
                     <ng-template pTemplate="selectedItem" let-usuario>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -526,7 +530,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
                     [filter]="true"
-                    filterPlaceholder="Buscar órdenes...">
+                    filterPlaceholder="Buscar órdenes..."
+                    scrollHeight="200px"
+                    [virtualScroll]="true"
+                    [virtualScrollItemSize]="38">
                     <ng-template pTemplate="selectedItem" let-orden>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -573,7 +580,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
                     [filter]="true"
-                    filterPlaceholder="Buscar configuraciones...">
+                    filterPlaceholder="Buscar configuraciones..."
+                    scrollHeight="200px"
+                    [virtualScroll]="true"
+                    [virtualScrollItemSize]="38">
                     <ng-template pTemplate="selectedItem" let-config>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -639,7 +649,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     [styleClass]="'h-12 px-10'"
                     [showClear]="false"
                     [filter]="true"
-                    filterPlaceholder="Buscar estados...">
+                    filterPlaceholder="Buscar estados..."
+                    scrollHeight="200px"
+                    [virtualScroll]="true"
+                    [virtualScrollItemSize]="38">
                     <ng-template pTemplate="selectedItem" let-estado>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -685,10 +698,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     placeholder=" "
                     aria-label="Comentarios"></textarea>
-                <label for="comentarios" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Comentarios...</label>
+                <label for="comentarios" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Comentarios (opcional)...</label>
             </div>
         </div>
-        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-4">
             <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
             <button pButton type="submit" class="p-button w-full sm:w-24" [disabled]="fineForm.invalid">Guardar</button>
         </div>

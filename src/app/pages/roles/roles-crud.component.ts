@@ -129,7 +129,7 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                         tooltipPosition="top">
                     </p-inputswitch>
                 </td>
-                <td>
+                <td class="text-center">
                     <div class="flex gap-1 sm:gap-2 justify-center">
                         <p-button
                             *ngIf="role.id !== 1"
@@ -138,7 +138,7 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
                             pTooltip="Editar rol"
                             tooltipPosition="top">
                             <ng-template pTemplate="icon">
-                                <i class="material-symbols-outlined text-sm sm:text-base">edit</i>
+                                <i class="material-symbols-outlined">edit</i>
                             </ng-template>
                         </p-button>
                         <span *ngIf="role.id === 1" class="text-gray-400 text-xs sm:text-sm">
@@ -169,7 +169,7 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
     </p-table>
     <div class="flex justify-center mt-6"></div>
 </div>
-<p-dialog [(visible)]="roleDialog" [style]="{ width: '95vw', maxWidth: '600px' }" [modal]="true" [draggable]="false">
+<p-dialog [(visible)]="roleDialog" [style]="{ width: '95vw', maxWidth: '600px' }" [modal]="true" [draggable]="false" [resizable]="false">
     <ng-template pTemplate="header">
         <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
             {{ isEditMode ? 'Editar Rol' : 'Nuevo Rol' }}

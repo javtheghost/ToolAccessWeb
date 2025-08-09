@@ -234,7 +234,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
     </div>
 </div>
 
-<p-dialog [(visible)]="subcategoryDialog" [style]="{ width: '95vw', maxWidth: '600px' }" [header]="isEditMode ? 'Editar Subcategoría' : 'Nueva Subcategoría'" [modal]="true" [draggable]="false">
+<p-dialog [(visible)]="subcategoryDialog" [style]="{ width: '95vw', maxWidth: '600px' }" [header]="isEditMode ? 'Editar Subcategoría' : 'Nueva Subcategoría'" [modal]="true" [draggable]="false" [resizable]="false">
     <ng-template pTemplate="content">
         <!-- Alerta Modal -->
         <app-modal-alert
@@ -670,7 +670,9 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
 
         :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb:hover {
             background: #a0aec0 !important;
-        }`
+        }
+
+`
     ]
 })
 export class SubcategoriasCrudComponent implements OnInit {
@@ -1153,13 +1155,23 @@ export class SubcategoriasCrudComponent implements OnInit {
                 next: (updatedSubcategory: any) => {
                     this.loadData(); // Recargar todos los datos para obtener la información actualizada
 
-                    this.showModalAlert('success', 'Éxito', 'Subcategoría actualizada correctamente');
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Subcategoría actualizada correctamente',
+                        life: 3000
+                    });
                     this.hideDialog();
                     this.saving.set(false);
                 },
                 error: (error) => {
                     console.error('❌ Error al actualizar subcategoría:', error);
-                    this.showModalAlert('error', 'Error', 'Error al actualizar la subcategoría');
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al actualizar la subcategoría',
+                        life: 3000
+                    });
                     this.saving.set(false);
                 }
             });
@@ -1178,12 +1190,24 @@ export class SubcategoriasCrudComponent implements OnInit {
                 next: (newSubcategory: any) => {
                     this.loadData(); // Recargar todos los datos para obtener la información actualizada
 
-                    this.showModalAlert('success', 'Éxito', 'Subcategoría creada correctamente');
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: 'Éxito',
+                        detail: 'Subcategoría creada correctamente',
+                        life: 3000
+                    });
                     this.hideDialog();
+                    this.saving.set(false);
                 },
                 error: (error) => {
                     console.error('❌ Error al crear subcategoría:', error);
-                    this.showModalAlert('error', 'Error', 'Error al crear la subcategoría');
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message || 'Error al crear la subcategoría',
+                        life: 3000
+                    });
+                    this.saving.set(false);
                 }
             });
         }

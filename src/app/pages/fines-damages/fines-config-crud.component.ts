@@ -213,14 +213,15 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 <p-dialog
   [(visible)]="fineConfigDialog"
   [style]="{
-    width: '40vw',
-    maxWidth: '450px',
-    height: isMobile ? '90vh' : '55vh',
-    maxHeight: isMobile ? '500px' : '600px'
+    width: isMobile ? '95vw' : 'min(90vw, 500px)',
+    maxWidth: isMobile ? '95vw' : '500px',
+    height: 'auto',
+    maxHeight: isMobile ? '85vh' : '80vh'
   }"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
+  [breakpoints]="{'768px': '95vw', '1024px': '70vw'}"
 >
   <ng-template pTemplate="header">
     <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
@@ -298,9 +299,9 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 
         </div>
-        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
-            <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
-            <button pButton type="submit" class="p-button w-full sm:w-24" [disabled]="fineConfigForm.invalid || saving">
+        <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+            <button pButton type="button" class="custom-cancel-btn w-full sm:w-auto sm:min-w-[100px]" (click)="hideDialog()">Cancelar</button>
+            <button pButton type="submit" class="p-button w-full sm:w-auto sm:min-w-[100px]" [disabled]="fineConfigForm.invalid || saving">
                 <span *ngIf="saving">Guardando...</span>
                 <span *ngIf="!saving">Guardar</span>
             </button>
@@ -345,27 +346,58 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
         :host ::ng-deep .p-dialog {
             border-radius: 12px !important;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            margin: 0.5rem !important;
         }
 
         :host ::ng-deep .p-dialog .p-dialog-header {
             border-radius: 12px 12px 0 0 !important;
             border-bottom: 1px solid #e5e7eb !important;
             background: #fff !important;
+            padding: 1rem 1.5rem !important;
         }
 
         :host ::ng-deep .p-dialog .p-dialog-content {
             border-radius: 0 0 12px 12px !important;
             background: #fff !important;
-            max-height: 500px !important;
             overflow-y: auto !important;
             padding: 1.5rem !important;
         }
 
         /* Estilos responsive para móviles */
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
+            :host ::ng-deep .p-dialog {
+                margin: 0.25rem !important;
+                border-radius: 8px !important;
+            }
+            
+            :host ::ng-deep .p-dialog .p-dialog-header {
+                padding: 0.75rem 1rem !important;
+                border-radius: 8px 8px 0 0 !important;
+            }
+            
             :host ::ng-deep .p-dialog .p-dialog-content {
                 padding: 1rem !important;
-                max-height: 400px !important;
+                border-radius: 0 0 8px 8px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :host ::ng-deep .p-dialog .p-dialog-header span {
+                font-size: 1.1rem !important;
+            }
+            
+            :host ::ng-deep .p-dialog .p-dialog-content {
+                padding: 0.75rem !important;
+            }
+            
+            /* Reduce spacing between form elements on small screens */
+            .grid.gap-4 {
+                gap: 0.75rem !important;
+            }
+            
+            /* Smaller input heights on mobile */
+            input, :host ::ng-deep .p-dropdown {
+                height: 44px !important;
             }
         }
 

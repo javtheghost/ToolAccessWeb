@@ -196,6 +196,7 @@
   align-items: center !important;
   justify-content: center !important;
   transition: all 0.2s ease !important;
+  margin: 0 auto !important;
 }
 
 .custom-flat-icon-button-edit {
@@ -353,6 +354,16 @@
 }
 
 /* ===== ESTILOS PARA ACCESIBILIDAD ===== */
+
+/* Asegurar centrado de iconos en tabla */
+.p-table .p-datatable-tbody > tr > td.text-center {
+  text-align: center !important;
+}
+
+.p-table .p-datatable-tbody > tr > td.text-center .flex {
+  justify-content: center !important;
+  width: 100% !important;
+}
 
 /* Mejorar contraste en modo oscuro */
 @media (prefers-color-scheme: dark) {

@@ -271,6 +271,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
   [style]="{ width: '95vw', maxWidth: '600px' }"
   [modal]="true"
   [draggable]="false"
+  [resizable]="false"
 >
   <ng-template pTemplate="header">
     <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
@@ -436,9 +437,25 @@ import { RateLimitingService } from './service/rate-limiting.service';
             <div class="col-span-1">
                 <label class="block mb-2">Selecciona la imagen <span class="text-gray-400">(opcional)</span></label>
                 <div class="flex flex-col items-center">
-                    <label class="border-2 border-dashed border-gray-400 rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center hover:border-[var(--primary-color)] transition-colors" style="width: 150px; height: 150px;">
-                        <span class="material-symbols-outlined text-4xl mb-2 text-gray-400">cloud_upload</span>
-                        <span class="text-sm text-gray-500">Click para subir imagen</span>
+                    <label 
+                        class="border-2 border-dashed rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center drag-drop-area"
+                        [class.border-gray-400]="!isDragOver"
+                        [class.hover:border-[var(--primary-color)]]="!isDragOver"
+                        [class.drag-over]="isDragOver"
+                        style="width: 150px; height: 150px;"
+                        (dragover)="onDragOver($event)"
+                        (dragleave)="onDragLeave($event)"
+                        (drop)="onDrop($event)">
+                        <span class="material-symbols-outlined text-4xl mb-2 transition-colors"
+                              [class.text-gray-400]="!isDragOver"
+                              [class.text-[var(--primary-color)]]="isDragOver">
+                            {{ isDragOver ? 'file_download' : 'cloud_upload' }}
+                        </span>
+                        <span class="text-sm transition-colors"
+                              [class.text-gray-500]="!isDragOver"
+                              [class.text-[var(--primary-color)]]="isDragOver">
+                            {{ isDragOver ? 'Suelta la imagen aquí' : 'Click o arrastra imagen' }}
+                        </span>
                         <span class="text-xs text-gray-400 mt-1">Máx. 5MB</span>
                         <span class="text-xs text-gray-400">JPG, PNG, WEBP</span>
                         <input type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden" />
@@ -460,6 +477,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
                 <div class="mt-2 text-xs text-gray-500 text-center">
                     <p>Formatos permitidos: JPG, JPEG, PNG, WEBP</p>
                     <p>Tamaño máximo: 5MB</p>
+                    <p class="text-blue-600">✨ Puedes arrastrar y soltar imágenes</p>
                     <p><span class="text-gray-400">Campo opcional</span></p>
                 </div>
             </div>
@@ -735,6 +753,24 @@ import { RateLimitingService } from './service/rate-limiting.service';
 
         :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb:hover {
             background: #a0aec0 !important;
+        }
+
+        /* Estilos para drag and drop de imágenes */
+        .drag-over {
+            border-color: var(--primary-color) !important;
+            background-color: rgba(59, 130, 246, 0.05) !important;
+            transform: scale(1.02) !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+        }
+
+        .drag-drop-area {
+            transition: all 0.2s ease-in-out !important;
+        }
+
+        .drag-drop-area:hover {
+            border-color: var(--primary-color) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
         }`
     ]
 })
@@ -777,6 +813,7 @@ export class ToolsCrudComponent implements OnInit {
     selectedImage: File | null = null;
     imagePreview: string | null = null;
     hasNewImage: boolean = false; // Para rastrear si se seleccionó una nueva imagen
+    isDragOver: boolean = false; // Para el feedback visual del drag and drop
 
     // Sistema de alertas en modal
     modalAlert: {
@@ -1368,6 +1405,7 @@ export class ToolsCrudComponent implements OnInit {
         this.selectedImage = null;
         this.imagePreview = null;
         this.hasNewImage = false;
+        this.isDragOver = false;
         this.hideModalAlert(); // Limpiar alertas del modal
 
         // ✅ RESETEO COMPLETO DEL FORMULARIO CON VALORES POR DEFECTO
@@ -1522,6 +1560,7 @@ export class ToolsCrudComponent implements OnInit {
         this.selectedImage = null;
         this.imagePreview = null;
         this.hasNewImage = false;
+        this.isDragOver = false;
         this.showCustomConfirm = false;
         this.hideModalAlert(); // Limpiar alertas del modal
 
@@ -1930,6 +1969,63 @@ export class ToolsCrudComponent implements OnInit {
 
     onImageDeleteConfirmReject() {
         this.showImageDeleteConfirm = false;
+    }
+
+    // Métodos para drag and drop de imágenes
+    onDragOver(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.isDragOver = true;
+    }
+
+    onDragLeave(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.isDragOver = false;
+    }
+
+    onDrop(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.isDragOver = false;
+
+        const files = event.dataTransfer?.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            this.processDroppedFile(file);
+        }
+    }
+
+    private processDroppedFile(file: File) {
+        // ✅ VALIDACIONES MEJORADAS PARA IMÁGENES
+        const validationResult = this.validateImageFile(file);
+        if (!validationResult.isValid) {
+            this.messageService.add({
+                severity: 'error',
+                summary: 'Error de imagen',
+                detail: validationResult.error,
+                life: 5000
+            });
+            return;
+        }
+
+        this.selectedImage = file;
+        this.hasNewImage = true;
+
+        // Crear preview
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+            this.imagePreview = e.target.result;
+            this.cdr.detectChanges();
+        };
+        reader.readAsDataURL(file);
+
+        this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: this.isEditMode ? 'Nueva imagen cargada. Se actualizará al guardar.' : 'Imagen cargada correctamente',
+            life: 2000
+        });
     }
 
     // ✅ MÉTODO PARA MOSTRAR ADVERTENCIAS DE STOCK

@@ -217,7 +217,7 @@ interface Column {
 </div>
 
 <!-- Modal de formulario -->
-<p-dialog [(visible)]="categoryDialog" [style]="{ width: '90vw', maxWidth: '500px' }" [header]="isEditMode ? 'Editar Categoría' : 'Nueva Categoría'" [modal]="true" [draggable]="false">
+<p-dialog [(visible)]="categoryDialog" [style]="{ width: '90vw', maxWidth: '500px' }" [header]="isEditMode ? 'Editar Categoría' : 'Nueva Categoría'" [modal]="true" [draggable]="false" [resizable]="false">
     <ng-template pTemplate="content">
         <!-- Sistema de alertas en modal -->
         <app-modal-alert

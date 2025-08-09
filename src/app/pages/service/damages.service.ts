@@ -100,48 +100,27 @@ export class DamagesService {
             headers = headers.set('Authorization', `Bearer ${token}`);
         }
 
+        headers = headers.set('Content-Type', 'application/json');
         return headers;
     }
 
     // GET - Obtener todos los daños
     getDamages(estado?: string, herramienta_id?: number, usuario_responsable?: number, tipo_dano?: string, page?: number, limit?: number): Observable<Damage[]> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.next([]);
-            observer.complete();
-        });
-
-        /*
         let params = new HttpParams();
-        if (estado) {
-            params = params.set('estado', estado);
-        }
-        if (herramienta_id) {
-            params = params.set('herramienta_id', herramienta_id.toString());
-        }
-        if (usuario_responsable) {
-            params = params.set('usuario_responsable', usuario_responsable.toString());
-        }
-        if (tipo_dano) {
-            params = params.set('tipo_dano', tipo_dano);
-        }
-        if (page) {
-            params = params.set('page', page.toString());
-        }
-        if (limit) {
-            params = params.set('limit', limit.toString());
-        }
+
+        if (estado) params = params.set('status', estado);
+        if (herramienta_id) params = params.set('herramienta_id', herramienta_id.toString());
+        if (usuario_responsable) params = params.set('usuario_responsable', usuario_responsable.toString());
+        if (tipo_dano) params = params.set('tipo_dano', tipo_dano);
+        if (page) params = params.set('page', page.toString());
+        if (limit) params = params.set('limit', limit.toString());
 
         return this.http.get<DamageResponse>(this.apiUrl, {
-            params,
-            headers: this.getHeaders()
+            headers: this.getHeaders(),
+            params: params
         }).pipe(
             map(response => {
                 if (response.success) {
-                    // El backend devuelve { danos: [...], pagination: {...} }
-                    if (response.data && typeof response.data === 'object' && 'danos' in response.data) {
-                        return (response.data as any).danos || [];
-                    }
                     return Array.isArray(response.data) ? response.data : [response.data];
                 } else {
                     throw new Error(response.message || 'Error al obtener daños');
@@ -149,17 +128,10 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     // GET - Obtener daño por ID
     getDamageById(id: number): Observable<Damage> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
-        });
-
-        /*
         return this.http.get<DamageResponse>(`${this.apiUrl}/${id}`, {
             headers: this.getHeaders()
         }).pipe(
@@ -172,17 +144,10 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     // POST - Reportar daño
     reportDamage(damage: DamageCreateRequest): Observable<Damage> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
-        });
-
-        /*
         return this.http.post<DamageResponse>(this.apiUrl, damage, {
             headers: this.getHeaders()
         }).pipe(
@@ -198,17 +163,10 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     // PUT - Actualizar daño
     updateDamage(id: number, damage: DamageUpdateRequest): Observable<Damage> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
-        });
-
-        /*
         return this.http.put<DamageResponse>(`${this.apiUrl}/${id}`, damage, {
             headers: this.getHeaders()
         }).pipe(
@@ -224,17 +182,10 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     // PUT - Gestionar daño (solo ADMIN)
     manageDamage(id: number, damage: DamageManageRequest): Observable<Damage> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
-        });
-
-        /*
         return this.http.put<DamageResponse>(`${this.apiUrl}/${id}/gestionar`, damage, {
             headers: this.getHeaders()
         }).pipe(
@@ -247,17 +198,10 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     // DELETE - Eliminar daño (solo ADMIN)
     deleteDamage(id: number): Observable<boolean> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
-        });
-
-        /*
         return this.http.delete<DamageResponse>(`${this.apiUrl}/${id}`, {
             headers: this.getHeaders()
         }).pipe(
@@ -273,22 +217,17 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
     // PUT - Actualizar estado del daño
     updateDamageStatus(id: number, estado: string, fecha_reparacion?: string, observaciones?: string): Observable<Damage> {
-        // TEMPORALMENTE DESHABILITADO - Causa errores 500
-        return new Observable(observer => {
-            observer.error(new Error('Servicio de daños temporalmente deshabilitado'));
-        });
+        const updateData = {
+            status: estado,
+            repair_date: fecha_reparacion,
+            descripcion: observaciones
+        };
 
-        /*
-        const requestData: any = { estado };
-        if (fecha_reparacion) requestData.fecha_reparacion = fecha_reparacion;
-        if (observaciones) requestData.observaciones = observaciones;
-
-        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}/estado`, requestData, {
+        return this.http.put<DamageResponse>(`${this.apiUrl}/${id}`, updateData, {
             headers: this.getHeaders()
         }).pipe(
             map(response => {
@@ -300,12 +239,12 @@ export class DamagesService {
             }),
             catchError(this.handleError)
         );
-        */
     }
 
+    // Método privado para manejar errores
     private handleError(error: any): Observable<never> {
         let errorMessage = 'Error desconocido';
-
+        
         if (error.error instanceof ErrorEvent) {
             // Error del cliente
             errorMessage = `Error: ${error.error.message}`;
