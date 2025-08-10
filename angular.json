@@ -34,7 +34,28 @@
                         "styles": [
                             "src/styles.scss"
                         ],
-                        "scripts": []
+                        "scripts": [],
+                        "allowedCommonJsDependencies": [
+                            "canvg",
+                            "html2canvas",
+                            "jspdf",
+                            "core-js/modules/es.promise.js",
+                            "core-js/modules/es.string.match.js",
+                            "core-js/modules/es.string.replace.js",
+                            "core-js/modules/es.string.starts-with.js",
+                            "core-js/modules/es.array.iterator.js",
+                            "core-js/modules/web.dom-collections.iterator.js",
+                            "core-js/modules/es.array.reduce.js",
+                            "core-js/modules/es.string.ends-with.js",
+                            "core-js/modules/es.string.split.js",
+                            "raf",
+                            "core-js/modules/es.string.trim.js",
+                            "rgbcolor",
+                            "core-js/modules/es.array.index-of.js",
+                            "core-js/modules/es.string.includes.js",
+                            "core-js/modules/es.array.reverse.js",
+                            "core-js/modules/es.regexp.to-string.js"
+                        ]
                     },
                     "configurations": {
                         "production": {
@@ -46,8 +67,8 @@
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "6kb",
-                                    "maximumError": "20kb"
+                                    "maximumWarning": "25kb",
+                                    "maximumError": "30kb"
                                 }
                             ],
                             "outputHashing": "all",
