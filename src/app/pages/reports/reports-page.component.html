@@ -168,7 +168,7 @@
             <label for="rangoFechas">
               <i class="pi pi-calendar"></i>
               Rango de Fechas
-              <span class="required" *ngIf="f['tipoReporte'].value === 'prestamos' || f['tipoReporte'].value === 'multas'">*</span>
+              <span class="required">*</span>
             </label>
             <app-custom-date-range
               formControlName="rangoFechas"
@@ -178,12 +178,12 @@
               [showActions]="true"
               [class.is-invalid]="(f['rangoFechas'].invalid && formSubmitted) || showDateRangeErrors">
             </app-custom-date-range>
-                         <div class="error-message" *ngIf="(f['rangoFechas'].invalid && formSubmitted) || showDateRangeErrors">
+             <div class="error-message" *ngIf="(f['rangoFechas'].invalid && formSubmitted) || showDateRangeErrors">
                {{ getErrorMessage('rangoFechas') }}
              </div>
-             <div class="info-message" *ngIf="f['tipoReporte'].value === 'prestamos' || f['tipoReporte'].value === 'multas'">
+             <div class="info-message">
                <i class="pi pi-info-circle"></i>
-               Se han asignado fechas por defecto (último mes hasta hoy). Puedes modificarlas según tus necesidades.
+               <strong>Las fechas son obligatorias para todos los reportes.</strong> Usa los botones rápidos (Hoy, Esta semana, Este mes) o ingresa fechas personalizadas. Se han asignado fechas por defecto como sugerencia inicial.
              </div>
           </div>
         </div>

@@ -134,6 +134,8 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(tipo => {
         this.updateValidators(tipo);
+        // Asignar fechas por defecto como sugerencia inicial
+        this.assignDefaultDates(tipo);
       });
 
     // Escuchar cambios en el límite de herramientas
@@ -146,6 +148,23 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           });
         }
       });
+  }
+
+  // Método para asignar fechas por defecto como sugerencia inicial
+  private assignDefaultDates(tipoReporte: string) {
+    const rangoFechasControl = this.reportForm.get('rangoFechas');
+    
+    // Solo asignar fechas por defecto si no hay fechas seleccionadas
+    if (!rangoFechasControl?.value || (!rangoFechasControl.value.startDate && !rangoFechasControl.value.endDate)) {
+      const today = new Date();
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+      rangoFechasControl?.setValue({
+        startDate: lastMonth,
+        endDate: today
+      });
+    }
   }
 
      private updateValidators(tipoReporte: string) {
@@ -161,69 +180,53 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
      // Actualizar opciones de estado según el tipo de reporte
      this.updateEstadoOptions(tipoReporte);
 
-           // Aplicar validadores según el tipo de reporte
-      switch (tipoReporte) {
-        case 'herramientas-populares':
-          limiteControl?.setValidators([
-            Validators.required,
-            Validators.min(1),
-            Validators.max(100),
-            Validators.pattern(/^\d+$/)
-          ]);
-          // Para herramientas populares, el rango de fechas es opcional pero si se proporciona debe ser válido
-          rangoFechasControl?.setValidators([
-            this.validateOptionalDateRange.bind(this)
-          ]);
-          break;
-        case 'prestamos':
-          // Para préstamos, el rango de fechas es obligatorio
-          rangoFechasControl?.setValidators([
-            Validators.required,
-            this.validateRequiredDateRange.bind(this)
-          ]);
+     // Aplicar validadores según el tipo de reporte
+     switch (tipoReporte) {
+       case 'herramientas-populares':
+         limiteControl?.setValidators([
+           Validators.required,
+           Validators.min(1),
+           Validators.max(100),
+           Validators.pattern(/^\d+$/)
+         ]);
+         // Para herramientas populares, el rango de fechas es OBLIGATORIO
+         rangoFechasControl?.setValidators([
+           Validators.required,
+           this.validateRequiredDateRange.bind(this)
+         ]);
+         break;
+       case 'prestamos':
+         // Para préstamos, el rango de fechas es obligatorio
+         rangoFechasControl?.setValidators([
+           Validators.required,
+           this.validateRequiredDateRange.bind(this)
+         ]);
+         break;
+       case 'multas':
+         // Para multas, el rango de fechas es obligatorio
+         rangoFechasControl?.setValidators([
+           Validators.required,
+           this.validateRequiredDateRange.bind(this)
+         ]);
+         break;
+       case 'estadisticas':
+         // Para estadísticas, el rango de fechas es OBLIGATORIO
+         rangoFechasControl?.setValidators([
+           Validators.required,
+           this.validateRequiredDateRange.bind(this)
+         ]);
+         break;
+       default:
+         break;
+     }
 
-          // Asignar fechas por defecto si no hay fechas seleccionadas
-          if (!rangoFechasControl?.value) {
-            const today = new Date();
-            const lastMonth = new Date();
-            lastMonth.setMonth(lastMonth.getMonth() - 1);
+     // Actualizar validadores
+     limiteControl?.updateValueAndValidity();
+     estadoControl?.updateValueAndValidity();
+     rangoFechasControl?.updateValueAndValidity();
 
-            rangoFechasControl?.setValue({
-              startDate: lastMonth,
-              endDate: today
-            });
-          }
-          break;
-        case 'multas':
-          // Para multas, el rango de fechas es obligatorio
-          rangoFechasControl?.setValidators([
-            Validators.required,
-            this.validateRequiredDateRange.bind(this)
-          ]);
-
-          // Asignar fechas por defecto si no hay fechas seleccionadas
-          if (!rangoFechasControl?.value) {
-            const today = new Date();
-            const lastMonth = new Date();
-            lastMonth.setMonth(lastMonth.getMonth() - 1);
-
-            rangoFechasControl?.setValue({
-              startDate: lastMonth,
-              endDate: today
-            });
-          }
-          break;
-        default:
-          break;
-      }
-
-           // Actualizar validadores
-      limiteControl?.updateValueAndValidity();
-      estadoControl?.updateValueAndValidity();
-      rangoFechasControl?.updateValueAndValidity();
-
-      // Forzar la actualización del estado del formulario
-      this.reportForm.updateValueAndValidity();
+     // Forzar la actualización del estado del formulario
+     this.reportForm.updateValueAndValidity();
    }
 
    // Función para actualizar las opciones de estado según el tipo de reporte
@@ -285,38 +288,35 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
        return null;
      }
 
-     // Solo validar rango de fechas para reportes que lo requieren
-     if (['prestamos', 'multas'].includes(tipoReporte)) {
-       // Para estos reportes, el rango de fechas es obligatorio
-       if (!rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate) {
-         return { required: true };
-       }
+     // Para TODOS los tipos de reporte, el rango de fechas es obligatorio
+     if (!rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate) {
+       return { required: true };
+     }
 
-       const startDate = new Date(rangoFechas.startDate);
-       const endDate = new Date(rangoFechas.endDate);
-       const today = new Date();
+     const startDate = new Date(rangoFechas.startDate);
+     const endDate = new Date(rangoFechas.endDate);
+     const today = new Date();
 
-       // Validar que la fecha de inicio no sea futura
-       if (startDate > today) {
-         return { futureStartDate: true };
-       }
+     // Validar que la fecha de inicio no sea futura
+     if (startDate > today) {
+       return { futureStartDate: true };
+     }
 
-       // Validar que la fecha de fin no sea futura
-       if (endDate > today) {
-         return { futureEndDate: true };
-       }
+     // Validar que la fecha de fin no sea futura
+     if (endDate > today) {
+       return { futureEndDate: true };
+     }
 
-       // Validar que la fecha de inicio no sea mayor que la fecha de fin
-       if (startDate > endDate) {
-         return { invalidDateRange: true };
-       }
+     // Validar que la fecha de inicio no sea mayor que la fecha de fin
+     if (startDate > endDate) {
+       return { invalidDateRange: true };
+     }
 
-       // Validar que el rango no sea mayor a 1 año
-       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-       if (diffDays > 365) {
-         return { dateRangeTooLarge: true };
-       }
+     // Validar que el rango no sea mayor a 1 año
+     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+     if (diffDays > 365) {
+       return { dateRangeTooLarge: true };
      }
 
      return null;
@@ -394,15 +394,10 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
      const tipoReporte = this.reportForm.get('tipoReporte')?.value;
      const rangoFechas = this.reportForm.get('rangoFechas')?.value;
 
-     // Para reportes de préstamos y multas, las fechas son obligatorias
-     if (['prestamos', 'multas'].includes(tipoReporte)) {
-       if (!rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate) {
-         return false;
-       }
+     // Para TODOS los tipos de reporte, las fechas son obligatorias
+     if (!rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate) {
+       return false;
      }
-
-     // Para herramientas populares, las fechas son opcionales
-     // Si se proporcionan fechas, deben ser válidas (esto se valida en validateOptionalDateRange)
 
      return true;
    }
@@ -412,14 +407,10 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
    }
 
    get showDateRangeErrors(): boolean {
-     const tipoReporte = this.reportForm.get('tipoReporte')?.value;
      const rangoFechas = this.reportForm.get('rangoFechas')?.value;
 
-     if (['prestamos', 'multas'].includes(tipoReporte)) {
-       return !rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate;
-     }
-
-     return false;
+     // Para TODOS los tipos de reporte, mostrar errores si no hay fechas
+     return !rangoFechas || !rangoFechas.startDate || !rangoFechas.endDate;
    }
 
   // Métodos para obtener mensajes de error
@@ -456,7 +447,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
         break;
              case 'rangoFechas':
          if (errors['required']) {
-           return 'El rango de fechas es obligatorio';
+           return 'El rango de fechas es obligatorio para todos los tipos de reporte';
          }
          if (errors['futureStartDate']) {
            return 'La fecha de inicio no puede ser futura';
@@ -1284,7 +1275,6 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
      limpiarFiltros() {
      this.formSubmitted = false;
-     const currentTipoReporte = this.reportForm.get('tipoReporte')?.value;
 
      this.reportForm.reset({
        tipoReporte: '',
@@ -1293,13 +1283,8 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
        limiteHerramientas: 10
      });
 
-     // Si había un tipo de reporte seleccionado, restaurarlo y aplicar fechas por defecto
-     if (currentTipoReporte && ['prestamos', 'multas'].includes(currentTipoReporte)) {
-       this.reportForm.patchValue({
-         tipoReporte: currentTipoReporte
-       });
-       this.updateValidators(currentTipoReporte);
-     }
+     // No asignar fechas por defecto automáticamente
+     // Ahora todas las fechas son obligatorias para todos los tipos de reporte
    }
 
   trackByReporte(index: number, reporte: any): string {
