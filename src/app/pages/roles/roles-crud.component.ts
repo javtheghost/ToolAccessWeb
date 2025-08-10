@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
@@ -23,6 +23,7 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
         CommonModule,
         TableModule,
         FormsModule,
+        ReactiveFormsModule,
         ButtonModule,
         RippleModule,
         ToastModule,
@@ -176,37 +177,43 @@ import { RoleService, Role, RoleCreateRequest, RoleUpdateRequest } from '../serv
         </span>
     </ng-template>
     <ng-template pTemplate="content">
-        <form (ngSubmit)="saveRole()">
+        <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
             <div class="grid grid-cols-1 gap-4">
-                <div class="relative col-span-1 py-2 mt-2">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
+                <div class="relative col-span-1">
+                    <span class="material-symbols-outlined absolute left-3 top-3 text-[var(--primary-color)] pointer-events-none z-20">person</span>
                     <input
                         type="text"
-                        id="name"
-                        name="name"
-                        required
-                        class="peer block w-full h-12 rounded-lg border border-gray-300 bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        id="nombre"
+                        formControlName="nombre"
+                        class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                         placeholder=" "
-                        aria-label="Nombre"
-                        [(ngModel)]="role.nombre" />
-                    <label for="name" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
+                        [class.border-red-500]="roleForm.get('nombre')?.invalid && roleForm.get('nombre')?.touched"
+                        [class.border-gray-300]="!roleForm.get('nombre')?.invalid || !roleForm.get('nombre')?.touched" />
+                    <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
+                    <div *ngIf="roleForm.get('nombre')?.invalid && roleForm.get('nombre')?.touched" class="text-red-500 text-xs mt-1 ml-10">
+                        <span *ngIf="roleForm.get('nombre')?.errors?.['required']">El nombre es requerido</span>
+                        <span *ngIf="roleForm.get('nombre')?.errors?.['minlength']">El nombre debe tener al menos 2 caracteres</span>
+                        <span *ngIf="roleForm.get('nombre')?.errors?.['maxlength']">El nombre no puede exceder 50 caracteres</span>
+                    </div>
                 </div>
                 <div class="relative col-span-1">
                     <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
                     <textarea
-                        id="description"
-                        name="description"
+                        id="descripcion"
+                        formControlName="descripcion"
                         rows="3"
-                        class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                         placeholder=" "
-                        aria-label="Descripción"
-                        [(ngModel)]="role.descripcion"></textarea>
-                    <label for="description" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción <span class="text-gray-400">(opcional)</span></label>
+                        [class.border-red-500]="roleForm.get('descripcion')?.invalid && roleForm.get('descripcion')?.touched"
+                        [class.border-gray-300]="!roleForm.get('descripcion')?.invalid || !roleForm.get('descripcion')?.touched"
+                        aria-label="Descripción"></textarea>
+                    <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción <span class="text-gray-400">(opcional)</span></label>
+                    <div *ngIf="roleForm.get('descripcion')?.invalid && roleForm.get('descripcion')?.touched" class="text-red-500 text-xs mt-1 ml-10">La descripción no puede exceder 200 caracteres</div>
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                 <button pButton type="button" class="custom-cancel-btn w-full sm:w-24" (click)="hideDialog()">Cancelar</button>
-                <button pButton type="submit" class="p-button w-full sm:w-24">Guardar</button>
+                <button pButton type="submit" class="p-button w-full sm:w-24" [disabled]="roleForm.invalid">Guardar</button>
             </div>
         </form>
     </ng-template>
@@ -291,34 +298,40 @@ export class RolesCrudComponent implements OnInit {
     confirmMessage: string = '';
     confirmAction: (() => void) | null = null;
 
+    // NUEVO: FormGroup para validación
+    roleForm!: FormGroup;
+
     private escListener: any;
 
     constructor(
         private messageService: MessageService,
-        private roleService: RoleService
+        private roleService: RoleService,
+        private fb: FormBuilder
     ) {}
 
     ngOnInit() {
+        this.initForm();
         this.loadRoles();
-        this.escListener = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                let closed = false;
-                if (this.roleDialog) {
-                    this.roleDialog = false;
-                    this.isEditMode = false;
-                    closed = true;
-                }
-                if (this.showCustomConfirm) {
-                    this.showCustomConfirm = false;
-                    closed = true;
-                }
-                if (closed) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-            }
-        };
-        window.addEventListener('keydown', this.escListener);
+        this.setupEscListener();
+    }
+
+    // NUEVO: Inicializar formulario con validadores
+    private initForm() {
+        this.roleForm = this.fb.group({
+            nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+            descripcion: ['', [Validators.maxLength(200)]],
+        });
+    }
+
+    // NUEVO: Resetear formulario
+    private resetForm() {
+        this.roleForm.reset({
+            nombre: '',
+            descripcion: '',
+        });
+        this.roleForm.markAsUntouched();
+        this.roleForm.markAsPristine();
+        this.roleForm.updateValueAndValidity();
     }
 
     loadRoles() {
@@ -482,41 +495,41 @@ export class RolesCrudComponent implements OnInit {
         this.role = this.emptyRole();
         this.isEditMode = false;
         this.roleDialog = true;
+        this.resetForm(); // Resetear el formulario al abrir el modal de nuevo
     }
 
     editRole(role: Role) {
-        // No permitir editar el rol de administrador (ID = 1)
-        if (role.id === 1) {
-            this.messageService.add({
-                severity: 'warn',
-                summary: 'Acción no permitida',
-                detail: 'No se puede editar el rol de Administrador por seguridad',
-                life: 3000
-            });
-            return;
-        }
-
         this.role = { ...role };
         this.isEditMode = true;
         this.roleDialog = true;
+        this.roleForm.patchValue({
+            nombre: this.role.nombre,
+            descripcion: this.role.descripcion,
+        });
+        this.roleForm.markAsUntouched();
+        this.roleForm.markAsPristine();
     }
 
     hideDialog() {
         this.roleDialog = false;
         this.isEditMode = false;
         this.showCustomConfirm = false;
+        this.resetForm(); // Resetear el formulario al cerrar el modal
     }
 
     saveRole() {
-        if (this.role.nombre?.trim()) {
+        if (this.roleForm.valid) {
+            // Obtener los valores del formulario
+            const formValues = this.roleForm.value;
+            
             if (this.role.id && this.isEditMode) {
                 // Modo edición - actualizar rol existente
                 this.confirmIcon = 'warning';
-                this.confirmMessage = `¿Estás seguro que deseas actualizar el rol <span class='text-primary'>${this.role.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
+                this.confirmMessage = `¿Estás seguro que deseas actualizar el rol <span class='text-primary'>${formValues.nombre}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
                 this.confirmAction = () => {
                     const updateData: RoleUpdateRequest = {
-                        nombre: this.role.nombre,
-                        descripcion: this.role.descripcion,
+                        nombre: formValues.nombre.trim(),
+                        descripcion: formValues.descripcion?.trim() || '',
                         is_active: this.role.is_active
                     };
 
@@ -542,6 +555,7 @@ export class RolesCrudComponent implements OnInit {
                             this.roleDialog = false;
                             this.isEditMode = false;
                             this.role = this.emptyRole();
+                            this.resetForm();
                         },
                         error: (error) => {
                             this.messageService.add({
@@ -557,8 +571,8 @@ export class RolesCrudComponent implements OnInit {
             } else {
                 // Modo creación - crear nuevo rol
                 const createData: RoleCreateRequest = {
-                    nombre: this.role.nombre,
-                    descripcion: this.role.descripcion,
+                    nombre: formValues.nombre.trim(),
+                    descripcion: formValues.descripcion?.trim() || '',
                     is_active: this.role.is_active
                 };
 
@@ -580,6 +594,7 @@ export class RolesCrudComponent implements OnInit {
                         this.roleDialog = false;
                         this.isEditMode = false;
                         this.role = this.emptyRole();
+                        this.resetForm();
                     },
                     error: (error) => {
                         this.messageService.add({
@@ -587,18 +602,56 @@ export class RolesCrudComponent implements OnInit {
                             summary: 'Error',
                             detail: 'Error al crear el rol: ' + error.message,
                             life: 3000
-                            });
+                        });
                     }
                 });
             }
         } else {
+            // Marcar todos los campos como touched para mostrar errores
+            this.markFormGroupTouched(this.roleForm);
             this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'El nombre es requerido',
+                detail: 'Por favor, complete todos los campos requeridos.',
                 life: 3000
             });
         }
+    }
+
+    // NUEVO: Marcar todos los campos del formulario como touched
+    private markFormGroupTouched(formGroup: FormGroup) {
+        Object.keys(formGroup.controls).forEach(key => {
+            const control = formGroup.get(key);
+            if (control instanceof FormGroup) {
+                this.markFormGroupTouched(control);
+            } else {
+                control?.markAsTouched();
+            }
+        });
+    }
+
+    // NUEVO: Configurar listener de tecla Escape
+    private setupEscListener() {
+        this.escListener = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                let closed = false;
+                if (this.roleDialog) {
+                    this.roleDialog = false;
+                    this.isEditMode = false;
+                    this.resetForm();
+                    closed = true;
+                }
+                if (this.showCustomConfirm) {
+                    this.showCustomConfirm = false;
+                    closed = true;
+                }
+                if (closed) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            }
+        };
+        window.addEventListener('keydown', this.escListener);
     }
 
     // Métodos para el modal personalizado

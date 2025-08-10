@@ -260,7 +260,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
-                    [showClear]="true"
                     [filter]="true"
                     filterPlaceholder="Buscar categorías..."
                     [class.border-red-500]="isFieldInvalid('aplica_a_categoria_id')"

@@ -245,26 +245,28 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
         <form [formGroup]="subcategoryForm" (ngSubmit)="saveSubcategory()">
             <div class="grid grid-cols-1 gap-4">
                 <!-- Nombre -->
-                <div class="relative py-2 mt-2">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
+                <div class="relative py-2 mt-2" [ngClass]="{'py-4': isFieldInvalid('nombre'), 'py-2': !isFieldInvalid('nombre')}">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-20">edit</span>
                     <input
                         type="text"
                         id="nombre"
                         formControlName="nombre"
-                        class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] transition-all duration-200"
                         placeholder=" "
                         aria-label="Nombre"
-                        [class.border-red-500]="isFieldInvalid('nombre')"
-                        [class.border-gray-300]="!isFieldInvalid('nombre')"
+                        [ngClass]="{
+                            'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('nombre'),
+                            'border-gray-300 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !isFieldInvalid('nombre')
+                        }"
                         (input)="onNombreInput($event)"
                         (blur)="onNombreBlur()" />
                     <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
-                    <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
+                    <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10 absolute top-full left-0">{{ getErrorMessage('nombre') }}</div>
                 </div>
 
                 <!-- Categoría -->
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
+                <div class="relative py-2" [ngClass]="{'py-4': isFieldInvalid('categoria_id'), 'py-2': !isFieldInvalid('categoria_id')}">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-20">inventory_2</span>
                     <p-dropdown
                         [options]="categories()"
                         formControlName="categoria_id"
@@ -278,8 +280,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                         [filter]="true"
                         filterPlaceholder="Buscar categorías..."
                         (onChange)="onCategoryChange($event)"
-                        [class.border-red-500]="isFieldInvalid('categoria_id')"
-                        [class.border-gray-300]="!isFieldInvalid('categoria_id')"
+                        [ngClass]="{
+                            'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('categoria_id'),
+                            'border-gray-300 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !isFieldInvalid('categoria_id')
+                        }"
                         (onShow)="onDropdownOpen($event)"
                         (onHide)="onDropdownClose($event)">
                         <ng-template pTemplate="selectedItem" let-category>
@@ -303,12 +307,12 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                         </ng-template>
                     </p-dropdown>
                     <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Categoría <span class="text-red-500">*</span></label>
-                    <div *ngIf="isFieldInvalid('categoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('categoria_id') }}</div>
+                    <div *ngIf="isFieldInvalid('categoria_id')" class="text-red-500 text-xs mt-1 ml-10 absolute top-full left-0">{{ getErrorMessage('categoria_id') }}</div>
                 </div>
 
                 <!-- Descripción -->
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
+                <div class="relative py-2" [ngClass]="{'py-4': isFieldInvalid('descripcion'), 'py-2': !isFieldInvalid('descripcion')}">
+                    <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none z-20">edit_document</span>
                     <textarea
                         id="descripcion"
                         formControlName="descripcion"
@@ -317,12 +321,14 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                         class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                         placeholder=" "
                         aria-label="Descripción"
-                        [class.border-red-500]="isFieldInvalid('descripcion')"
-                        [class.border-gray-300]="!isFieldInvalid('descripcion')"
+                        [ngClass]="{
+                            'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('descripcion'),
+                            'border-gray-300 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !isFieldInvalid('descripcion')
+                        }"
                         (blur)="onDescripcionBlur()">
                     </textarea>
                     <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción (Opcional)</label>
-                    <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
+                    <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10 absolute top-full left-0">{{ getErrorMessage('descripcion') }}</div>
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
@@ -596,13 +602,112 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
             line-height: 1 !important;
         }
 
+        /* Estilos para mantener los iconos fijos y los mensajes de error sin afectar el layout */
+        .relative {
+            position: relative !important;
+        }
 
+        .relative .material-symbols-outlined {
+            position: absolute !important;
+            z-index: 20 !important;
+            pointer-events: none !important;
+        }
+
+        /* Mensajes de error con posición absoluta para no afectar el layout */
+        .relative .text-red-500.absolute {
+            position: absolute !important;
+            top: calc(100% - 8px) !important;
+            left: 0 !important;
+            z-index: 10 !important;
+            background: white !important;
+            padding: 2px 4px !important;
+            white-space: nowrap !important;
+            border-radius: 4px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            opacity: 0 !important;
+            transform: translateY(-5px) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* Estado activo de los mensajes de error */
+        .relative .text-red-500.absolute:not(:empty) {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        /* Asegurar que los inputs mantengan su altura fija */
+        input, textarea {
+            min-height: 48px !important;
+        }
+
+        /* Asegurar que los dropdowns mantengan su altura fija */
+        :host ::ng-deep .p-dropdown {
+            min-height: 48px !important;
+        }
+
+        /* Asegurar que los mensajes de error tengan suficiente espacio */
+        .relative {
+            margin-bottom: 4px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* Mejorar la visibilidad de los mensajes de error */
+        .text-red-500.text-xs {
+            font-size: 0.75rem !important;
+            line-height: 1rem !important;
+            margin-top: 4px !important;
+            color: #ef4444 !important;
+            font-weight: 500 !important;
+        }
+
+        /* Estados de validación para inputs */
+        input.border-red-500,
+        textarea.border-red-500 {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        input.border-red-500:focus,
+        textarea.border-red-500:focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        /* Estados de validación para dropdowns */
+        :host ::ng-deep .p-dropdown.border-red-500 {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        :host ::ng-deep .p-dropdown.border-red-500:not(.p-disabled):hover {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        :host ::ng-deep .p-dropdown.border-red-500:not(.p-disabled).p-focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        /* Espaciado dinámico para campos con error */
+        .relative.py-4 {
+            margin-bottom: 8px !important;
+        }
+
+        .relative.py-2 {
+            margin-bottom: 4px !important;
+        }
+
+        /* Transiciones suaves para cambios de estado */
+        .relative {
+            transition: padding 0.3s ease, margin-bottom 0.3s ease !important;
+        }
 
         /* Estilos del switch removidos - usar estilos por defecto de PrimeNG */
 
         /* Estilos para el modal y manejo de scroll */
         :host ::ng-deep .p-dialog {
-            max-height: 90vh !important;
+            max-height: 95vh !important;
             overflow: hidden !important;
         }
 
@@ -612,7 +717,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
 
         :host ::ng-deep .p-dialog .p-dialog-content {
             overflow-y: auto !important;
-            max-height: calc(90vh - 120px) !important;
+            max-height: calc(95vh - 120px) !important;
             padding: 1.5rem !important;
         }
 
@@ -775,7 +880,7 @@ export class SubcategoriasCrudComponent implements OnInit {
 
     isFieldInvalid(controlName: string): boolean {
         const control = this.subcategoryForm.get(controlName);
-        return !!(control?.invalid && control?.touched);
+        return !!(control?.invalid && (control?.touched || control?.dirty));
     }
 
     // Sanitización automática
@@ -817,6 +922,7 @@ export class SubcategoriasCrudComponent implements OnInit {
         Object.keys(this.subcategoryForm.controls).forEach(key => {
             const control = this.subcategoryForm.get(key);
             control?.markAsTouched();
+            control?.markAsDirty();
         });
     }
 

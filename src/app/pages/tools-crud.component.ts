@@ -311,38 +311,42 @@ import { RateLimitingService } from './service/rate-limiting.service';
 
     <form [formGroup]="toolForm" (ngSubmit)="saveTool()">
         <div class="grid grid-cols-1 gap-4">
-            <div class="relative col-span-1 py-2 mt-2">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">edit</span>
+            <div class="relative col-span-1 py-2 mt-2" [ngClass]="{'py-4': isFieldInvalid('nombre'), 'py-2': !isFieldInvalid('nombre')}">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-20">edit</span>
                 <input
                     type="text"
                     id="nombre"
                     formControlName="nombre"
-                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 transition-all duration-200"
                     placeholder=" "
                     aria-label="Nombre"
-                    [class.border-red-500]="isFieldInvalid('nombre')"
-                    [class.border-gray-300]="!isFieldInvalid('nombre')" />
+                    [ngClass]="{
+                        'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('nombre'),
+                        'border-gray-300 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !isFieldInvalid('nombre')
+                    }" />
                 <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
-                <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('nombre') }}</div>
+                <div *ngIf="isFieldInvalid('nombre')" class="text-red-500 text-xs mt-1 ml-10 absolute">{{ getErrorMessage('nombre') }}</div>
             </div>
 
-            <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
+            <div class="relative col-span-1 py-2" [ngClass]="{'py-4': isFieldInvalid('descripcion'), 'py-2': !isFieldInvalid('descripcion')}">
+                <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none z-20">edit_document</span>
                 <textarea
                     id="descripcion"
                     formControlName="descripcion"
                     rows="2"
-                    class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 transition-all duration-200"
                     placeholder=" "
                     aria-label="Descripción"
-                    [class.border-red-500]="isFieldInvalid('descripcion')"
-                    [class.border-gray-300]="!isFieldInvalid('descripcion')"></textarea>
+                    [ngClass]="{
+                        'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('descripcion'),
+                        'border-gray-300 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !isFieldInvalid('descripcion')
+                    }"></textarea>
                 <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción... <span class="text-gray-400">(opcional)</span></label>
-                <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('descripcion') }}</div>
+                <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10 absolute">{{ getErrorMessage('descripcion') }}</div>
             </div>
 
-            <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
+            <div class="relative col-span-1 py-2" [ngClass]="{'py-4': isFieldInvalid('subcategoria_id'), 'py-2': !isFieldInvalid('subcategoria_id')}">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-20">inventory_2</span>
                 <p-dropdown
                     [options]="subcategories"
                     formControlName="subcategoria_id"
@@ -355,8 +359,10 @@ import { RateLimitingService } from './service/rate-limiting.service';
                     [showClear]="true"
                     [filter]="true"
                     filterPlaceholder="Buscar subcategorías..."
-                    [class.border-red-500]="isFieldInvalid('subcategoria_id')"
-                    [class.border-gray-300]="!isFieldInvalid('subcategoria_id')"
+                    [ngClass]="{
+                        'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('subcategoria_id'),
+                        'border-gray-300 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !isFieldInvalid('subcategoria_id')
+                    }"
                     (onShow)="onDropdownOpen($event)"
                     (onHide)="onDropdownClose($event)">
                     <ng-template pTemplate="selectedItem" let-subcategory>
@@ -380,12 +386,12 @@ import { RateLimitingService } from './service/rate-limiting.service';
                     </ng-template>
                 </p-dropdown>
                 <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Subcategoría <span class="text-red-500">*</span></label>
-                <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('subcategoria_id') }}</div>
+                <div *ngIf="isFieldInvalid('subcategoria_id')" class="text-red-500 text-xs mt-1 ml-10 absolute">{{ getErrorMessage('subcategoria_id') }}</div>
             </div>
 
             <!-- Mostrar folio solo en modo edición como referencia -->
-            <div *ngIf="isEditMode" class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">confirmation_number</span>
+            <div *ngIf="isEditMode" class="relative col-span-1 py-2">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-20">confirmation_number</span>
                 <input
                     type="text"
                     formControlName="folio"
@@ -396,25 +402,27 @@ import { RateLimitingService } from './service/rate-limiting.service';
                 <div class="text-xs text-gray-500 mt-1 ml-10">Folio generado automáticamente</div>
             </div>
 
-            <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">inventory_2</span>
+            <div class="relative col-span-1 py-2" [ngClass]="{'py-4': isFieldInvalid('stock'), 'py-2': !isFieldInvalid('stock')}">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-20">inventory_2</span>
                 <input
                     type="number"
                     id="stock"
                     formControlName="stock"
                     min="0"
                     max="9999"
-                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                    class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 transition-all duration-200"
                     placeholder=" "
                     aria-label="Stock"
-                    [class.border-red-500]="isFieldInvalid('stock')"
-                    [class.border-gray-300]="!isFieldInvalid('stock')" />
+                    [ngClass]="{
+                        'border-red-500 focus:ring-red-500 focus:border-red-500': isFieldInvalid('stock'),
+                        'border-gray-300 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !isFieldInvalid('stock')
+                    }" />
                 <label for="stock" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Stock <span class="text-red-500">*</span></label>
-                <div *ngIf="isFieldInvalid('stock')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('stock') }}</div>
+                <div *ngIf="isFieldInvalid('stock')" class="text-red-500 text-xs mt-1 ml-10 absolute">{{ getErrorMessage('stock') }}</div>
             </div>
 
-            <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-10">payments</span>
+            <div class="relative col-span-1 py-2" [ngClass]="{'py-4': isFieldInvalid('valor_reposicion'), 'py-2': !isFieldInvalid('valor_reposicion')}">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none z-20">payments</span>
                 <p-inputnumber
                     formControlName="valor_reposicion"
                     [minFractionDigits]="2"
@@ -429,7 +437,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
                     styleClass="custom-inputnumber">
                 </p-inputnumber>
                 <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Valor Reposición <span class="text-red-500">*</span></label>
-                <div *ngIf="isFieldInvalid('valor_reposicion')" class="text-red-500 text-xs mt-1 ml-10">{{ getErrorMessage('valor_reposicion') }}</div>
+                <div *ngIf="isFieldInvalid('valor_reposicion')" class="text-red-500 text-xs mt-1 ml-10 absolute">{{ getErrorMessage('valor_reposicion') }}</div>
             </div>
 
             <!-- Switch removido del dialog - ahora se maneja desde la tabla -->
@@ -771,6 +779,71 @@ import { RateLimitingService } from './service/rate-limiting.service';
             border-color: var(--primary-color) !important;
             transform: translateY(-1px) !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Estados de validación para inputs */
+        input.border-red-500,
+        textarea.border-red-500 {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        input.border-red-500:focus,
+        textarea.border-red-500:focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        /* Estados de validación para dropdowns */
+        :host ::ng-deep .p-dropdown.border-red-500 {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        :host ::ng-deep .p-dropdown.border-red-500:not(.p-disabled):hover {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 1px #ef4444 !important;
+        }
+
+        :host ::ng-deep .p-dropdown.border-red-500:not(.p-disabled).p-focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        /* Mensajes de error con posición absoluta para no afectar el layout */
+        .relative .text-red-500.absolute {
+            position: absolute !important;
+            top: calc(100% - 8px) !important;
+            left: 0 !important;
+            z-index: 10 !important;
+            background: white !important;
+            padding: 2px 4px !important;
+            white-space: nowrap !important;
+            border-radius: 4px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            opacity: 0 !important;
+            transform: translateY(-5px) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* Mostrar mensajes de error cuando están visibles */
+        .relative .text-red-500.absolute:not([style*="display: none"]) {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        /* Espaciado dinámico para campos con error */
+        .relative.py-4 {
+            margin-bottom: 8px !important;
+        }
+
+        .relative.py-2 {
+            margin-bottom: 4px !important;
+        }
+
+        /* Transiciones suaves para cambios de estado */
+        .relative {
+            transition: padding 0.3s ease, margin-bottom 0.3s ease !important;
         }`
     ]
 })
@@ -1096,7 +1169,7 @@ export class ToolsCrudComponent implements OnInit {
 
     isFieldInvalid(controlName: string): boolean {
         const control = this.toolForm.get(controlName);
-        return !!(control?.invalid && control?.touched);
+        return !!(control?.invalid && (control?.touched || control?.dirty));
     }
 
     // ✅ MÉTODO DE VALIDACIÓN ADICIONAL PARA COINCIDIR CON LA BD
@@ -1599,6 +1672,13 @@ export class ToolsCrudComponent implements OnInit {
     }
 
     saveTool() {
+        // Marcar todos los campos como touched y dirty para mostrar errores
+        Object.keys(this.toolForm.controls).forEach(key => {
+            const control = this.toolForm.get(key);
+            control?.markAsTouched();
+            control?.markAsDirty();
+        });
+
         if (this.toolForm.valid) {
             const formValue = this.toolForm.value;
 

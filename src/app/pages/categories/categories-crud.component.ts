@@ -236,10 +236,10 @@ interface Column {
                         formControlName="nombre"
                         class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:border-[var(--primary-color)]"
                         [class.border-gray-300]="!categoryForm.get('nombre')?.invalid || !categoryForm.get('nombre')?.touched"
-                        [class.border-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
-                        [class.focus:ring-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
-                        [class.focus:border-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
-                        [class.focus:ring-[var(--primary-color)]="categoryForm.get('nombre')?.valid || !categoryForm.get('nombre')?.touched"
+                        [ngClass]="{
+                            'focus:ring-red-500 focus:border-red-500': categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched,
+                            'focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !categoryForm.get('nombre')?.invalid || !categoryForm.get('nombre')?.touched
+                        }"
                         placeholder=" "
                         aria-label="Nombre"
                         maxlength="255"
@@ -250,8 +250,10 @@ interface Column {
                     <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 bg-white px-1"
                         [class.text-gray-600]="!categoryForm.get('nombre')?.invalid || !categoryForm.get('nombre')?.touched"
                         [class.text-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched"
-                        [class.peer-focus:text-[var(--primary-color)]="categoryForm.get('nombre')?.valid || !categoryForm.get('nombre')?.touched"
-                        [class.peer-focus:text-red-500]="categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched">
+                        [ngClass]="{
+                            'peer-focus:text-[var(--primary-color)]': !categoryForm.get('nombre')?.invalid || !categoryForm.get('nombre')?.touched,
+                            'peer-focus:text-red-500': categoryForm.get('nombre')?.invalid && categoryForm.get('nombre')?.touched
+                        }">
                         Nombre *
                     </label>
 
@@ -276,10 +278,10 @@ interface Column {
                         rows="3"
                         class="peer block w-full rounded-lg border bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:border-[var(--primary-color)]"
                         [class.border-gray-300]="!categoryForm.get('descripcion')?.invalid || !categoryForm.get('descripcion')?.touched"
-                        [class.border-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
-                        [class.focus:ring-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
-                        [class.focus:border-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
-                        [class.focus:ring-[var(--primary-color)]="categoryForm.get('descripcion')?.valid || !categoryForm.get('descripcion')?.touched"
+                        [ngClass]="{
+                            'focus:ring-red-500 focus:border-red-500': categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched,
+                            'focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]': !categoryForm.get('descripcion')?.invalid || !categoryForm.get('descripcion')?.touched
+                        }"
                         placeholder=" "
                         aria-label="Descripción"
                         maxlength="5000"
@@ -290,8 +292,10 @@ interface Column {
                     <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 bg-white px-1"
                          [class.text-gray-600]="!categoryForm.get('descripcion')?.invalid || !categoryForm.get('descripcion')?.touched"
                          [class.text-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched"
-                         [class.peer-focus:text-[var(--primary-color)]="categoryForm.get('descripcion')?.valid || !categoryForm.get('descripcion')?.touched"
-                         [class.peer-focus:text-red-500]="categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched">
+                         [ngClass]="{
+                             'peer-focus:text-[var(--primary-color)]': !categoryForm.get('descripcion')?.invalid || !categoryForm.get('descripcion')?.touched,
+                             'peer-focus:text-red-500': categoryForm.get('descripcion')?.invalid && categoryForm.get('descripcion')?.touched
+                         }">
                          Descripción (Opcional)...
                      </label>
 

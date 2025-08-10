@@ -9,7 +9,7 @@ import { ReportsService, Estadisticas } from '../../service/reports.service';
   imports: [CommonModule],
   template: `
     <div
-      [class]="variant === 'detailed' ? 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-lg p-6 mt-4 border border-blue-200 dark:border-gray-600' : 'bg-white dark:bg-gray-800 rounded-xl shadow p-6 mt-4'"
+      [class]="variant === 'detailed' ? 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-lg p-6 mt-4 border border-blue-200 dark:border-gray-600 w-full' : 'bg-white dark:bg-gray-800 rounded-xl shadow p-6 mt-4 w-full'"
       role="img"
     >
       <div *ngIf="loading" class="flex justify-center items-center h-80">
@@ -23,8 +23,8 @@ import { ReportsService, Estadisticas } from '../../service/reports.service';
             <span class="ml-1">{{ loading ? 'Actualizando...' : 'Actualización automática' }}</span>
           </div>
         </div>
-        <div class="relative h-80">
-          <canvas #lineChart></canvas>
+        <div class="relative h-80 w-full">
+          <canvas #lineChart class="w-full h-full"></canvas>
           <div *ngIf="!chart" class="absolute inset-0 flex items-center justify-center bg-gray-50 rounded">
             <div class="text-center">
               <div class="text-gray-500 mb-2">📊 Gráfico no disponible</div>
@@ -42,10 +42,15 @@ import { ReportsService, Estadisticas } from '../../service/reports.service';
   styles: [`
     :host {
       display: block;
+      width: 100%;
+      min-width: 100%;
     }
     
     .bg-white {
       transition: all 0.3s ease;
+      min-width: 100%;
+      width: 100%;
+      max-width: none;
     }
     
     .bg-white:hover {
@@ -58,6 +63,27 @@ import { ReportsService, Estadisticas } from '../../service/reports.service';
       line-height: 1.75rem;
       font-weight: 600;
       color: var(--primary-color, #3b82f6);
+    }
+    
+    /* Ajustar el canvas para que use todo el ancho disponible */
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none !important;
+    }
+    
+    /* Hacer que el contenedor del gráfico sea más ancho */
+    .relative.h-80 {
+      min-width: 100%;
+      width: 100%;
+      max-width: none;
+    }
+    
+    /* Asegurar que la card ocupe todo el ancho disponible */
+    div[role="img"] {
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: none !important;
     }
   `]
 })
@@ -183,8 +209,8 @@ export class LineChartComponent implements OnInit, OnDestroy, OnChanges {
 
     // Asegurar dimensiones del canvas
     if (canvas.width === 0 || canvas.height === 0) {
-      canvas.width = 800;
-      canvas.height = 400;
+      canvas.width = canvas.offsetWidth || 800;
+      canvas.height = canvas.offsetHeight || 400;
     }
 
     // Configuración de colores según la variante
@@ -251,13 +277,21 @@ export class LineChartComponent implements OnInit, OnDestroy, OnChanges {
               position: 'top' as const,
               labels: {
                 usePointStyle: true,
-                padding: 20
+                padding: 20,
+                font: {
+                  size: 14
+                }
               }
             },
             tooltip: {
               enabled: true,
               mode: 'index',
-              intersect: false
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: 'white',
+              bodyColor: 'white',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              borderWidth: 1
             }
           },
           scales: {
@@ -269,8 +303,9 @@ export class LineChartComponent implements OnInit, OnDestroy, OnChanges {
               },
               ticks: {
                 font: {
-                  size: 12
-                }
+                  size: 14
+                },
+                padding: 8
               }
             },
             y: {
@@ -282,8 +317,9 @@ export class LineChartComponent implements OnInit, OnDestroy, OnChanges {
               beginAtZero: true,
               ticks: {
                 font: {
-                  size: 12
-                }
+                  size: 14
+                },
+                padding: 8
               }
             }
           },
@@ -291,6 +327,14 @@ export class LineChartComponent implements OnInit, OnDestroy, OnChanges {
             mode: 'nearest',
             axis: 'x',
             intersect: false
+          },
+          layout: {
+            padding: {
+              top: 20,
+              right: 20,
+              bottom: 20,
+              left: 20
+            }
           }
         }
       };

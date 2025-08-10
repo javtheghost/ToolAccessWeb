@@ -81,10 +81,9 @@ interface Column {
                 <input pInputText type="text" placeholder="Buscar usuarios..." disabled class="w-full" />
             </p-iconfield>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <p-button label="Crear Usuario" icon="pi pi-plus" (onClick)="openNew()" [disabled]="true" class="w-full sm:w-auto"></p-button>
+                <p-button label="Crear Usuario" (onClick)="openNew()" [disabled]="true" class="w-full sm:w-auto"></p-button>
                 <p-button
                     [label]="showOnlyActive ? 'Ver Todos' : 'Solo Activos'"
-                    [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
                     severity="secondary"
                     size="small"
                     [disabled]="true"
@@ -159,13 +158,11 @@ interface Column {
                         <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <p-button
                                 label="Crear Usuario"
-                                icon="pi pi-plus"
                                 (onClick)="openNew()"
                                 class="w-full sm:w-auto">
                             </p-button>
                             <p-button
                                 [label]="showOnlyActive ? 'Ver Todos' : 'Solo Activos'"
-                                [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
                                 severity="secondary"
                                 size="small"
                                 (onClick)="toggleActiveView()"
@@ -300,7 +297,7 @@ interface Column {
         <form [formGroup]="userForm" class="grid grid-cols-1 gap-4">
             <!-- Nombre -->
             <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
+                <span class="material-symbols-outlined absolute left-3 top-3 text-[var(--primary-color)] pointer-events-none z-20">person</span>
                 <input
                     id="nombre"
                     type="text"
@@ -309,13 +306,13 @@ interface Column {
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-red-500]="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched"
                     [class.border-gray-300]="!userForm.get('nombre')?.invalid || !userForm.get('nombre')?.touched" />
-                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
+                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched" class="text-red-500 text-xs mt-1 ml-10">El nombre es requerido</div>
             </div>
 
             <!-- Apellido Paterno -->
             <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
+                <span class="material-symbols-outlined absolute left-3 top-3 text-[var(--primary-color)] pointer-events-none z-20">person</span>
                 <input
                     id="apellido_paterno"
                     type="text"
@@ -324,13 +321,13 @@ interface Column {
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-red-500]="userForm.get('apellido_paterno')?.invalid && userForm.get('apellido_paterno')?.touched"
                     [class.border-gray-300]="!userForm.get('apellido_paterno')?.invalid || !userForm.get('apellido_paterno')?.touched" />
-                <label for="apellido_paterno" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Paterno <span class="text-red-500">*</span></label>
+                <label for="apellido_paterno" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Paterno <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('apellido_paterno')?.invalid && userForm.get('apellido_paterno')?.touched" class="text-red-500 text-xs mt-1 ml-10">El apellido paterno es requerido</div>
             </div>
 
             <!-- Apellido Materno -->
             <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">person</span>
+                <span class="material-symbols-outlined absolute left-3 top-3 text-[var(--primary-color)] pointer-events-none z-20">person</span>
                 <input
                     id="apellido_materno"
                     type="text"
@@ -338,12 +335,12 @@ interface Column {
                     placeholder=" "
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-gray-300]="true" />
-                <label for="apellido_materno" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Materno <span class="text-gray-400">(opcional)</span></label>
+                <label for="apellido_materno" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Materno <span class="text-gray-400">(opcional)</span></label>
             </div>
 
             <!-- Email -->
             <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">email</span>
+                <span class="material-symbols-outlined absolute left-3 top-3 text-[var(--primary-color)] pointer-events-none z-20">email</span>
                 <input
                     id="email"
                     type="email"
@@ -352,13 +349,13 @@ interface Column {
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-red-500]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
                     [class.border-gray-300]="!userForm.get('email')?.invalid || !userForm.get('email')?.touched" />
-                <label for="email" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Email <span class="text-red-500">*</span></label>
+                <label for="email" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Email <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="text-red-500 text-xs mt-1 ml-10">Email válido es requerido</div>
             </div>
 
             <!-- Contraseña (solo para crear) -->
             <div *ngIf="!isEditMode" class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">lock</span>
+                <span class="material-symbols-outlined absolute left-3 top-3 text-[var(--primary-color)] pointer-events-none z-20">lock</span>
                 <p-password
                     id="password"
                     formControlName="password"
@@ -370,13 +367,13 @@ interface Column {
                     [feedback]="true"
                     [toggleMask]="true">
                 </p-password>
-                <label for="password" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Contraseña <span class="text-red-500">*</span></label>
+                <label for="password" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Contraseña <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="text-red-500 text-xs mt-1 ml-10">La contraseña es requerida (mínimo 8 caracteres)</div>
             </div>
 
             <!-- Rol -->
             <div class="relative col-span-1">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">admin_panel_settings</span>
+                <span class="material-symbols-outlined absolute left-3 top-3 text-[var(--primary-color)] pointer-events-none z-20">admin_panel_settings</span>
                 <p-dropdown
                     id="rol_id"
                     [options]="rolesDb"
@@ -386,8 +383,8 @@ interface Column {
                     placeholder="Seleccionar rol"
                     [style]="{ width: '100%' }"
                     class="w-full"
-                    [styleClass]="'h-12 px-10'"
-                    [showClear]="true"
+                    [styleClass]="'h-12 pl-16 pr-4'"
+                    [showClear]="false"
                     [filter]="true"
                     filterPlaceholder="Buscar roles..."
                     [class.border-red-500]="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched"
@@ -399,7 +396,7 @@ interface Column {
                     (onHide)="onDropdownClose($event)">
                     <ng-template pTemplate="selectedItem" let-role>
                         <div class="flex items-center justify-start h-full w-full">
-                            <span>{{ role.nombre }}</span>
+                            <span class="font-medium">{{ role.nombre }}</span>
                         </div>
                     </ng-template>
                     <ng-template pTemplate="item" let-role>
@@ -414,8 +411,8 @@ interface Column {
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Rol <span class="text-red-500">*</span></label>
-                <div *ngIf="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched" class="text-red-500 text-xs mt-1 ml-10">El rol es requerido</div>
+                <label class="absolute left-9 top-0.4 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Rol <span class="text-red-500">*</span></label>
+                <div *ngIf="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched" class="text-red-500 text-xs mt-1 ml-16">El rol es requerido</div>
             </div>
         </form>
     </ng-template>
@@ -424,14 +421,12 @@ interface Column {
         <div class="flex flex-col sm:flex-row gap-2 justify-content-end">
             <p-button
                 label="Cancelar"
-                icon="pi pi-times"
                 [text]="true"
                 (onClick)="hideDialog()"
                 class="w-full sm:w-auto">
             </p-button>
             <p-button
                 [label]="isEditMode ? 'Actualizar' : 'Crear'"
-                [icon]="isEditMode ? 'pi pi-check' : 'pi pi-plus'"
                 [loading]="saving()"
                 [disabled]="userForm.invalid || saving()"
                 (onClick)="saveUser()"
@@ -461,7 +456,6 @@ interface Column {
         <div class="flex flex-col sm:flex-row gap-2 justify-content-end">
             <p-button
                 label="No"
-                icon="pi pi-times"
                 severity="danger"
                 [outlined]="true"
                 (onClick)="showCustomConfirm = false"
@@ -469,7 +463,6 @@ interface Column {
             </p-button>
             <p-button
                 label="Sí"
-                icon="pi pi-check"
                 severity="danger"
                 (onClick)="executeConfirmAction()"
                 class="w-full sm:w-auto">
@@ -654,6 +647,36 @@ interface Column {
 
         :host ::ng-deep .p-dropdown-panel .p-dropdown-items::-webkit-scrollbar-thumb:hover {
             background: #a0aec0 !important;
+        }
+
+        /* Estilos mejorados para el dropdown del rol */
+        :host ::ng-deep .p-dropdown {
+            border-radius: 8px !important;
+            border: 1px solid #d1d5db !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+
+        :host ::ng-deep .p-dropdown:hover {
+            border-color: #9ca3af !important;
+        }
+
+        :host ::ng-deep .p-dropdown.p-focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-trigger {
+            color: #6b7280 !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label {
+            color: #374151 !important;
+            font-weight: 500 !important;
+        }
+
+        :host ::ng-deep .p-dropdown .p-dropdown-label.p-placeholder {
+            color: #9ca3af !important;
+            font-weight: 400 !important;
         }
 
         /* Estilos para el switch personalizado con color verde */
