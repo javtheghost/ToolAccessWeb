@@ -322,16 +322,12 @@ export class RolesCrudComponent implements OnInit {
     }
 
     loadRoles() {
-        console.log('🔄 Iniciando carga de roles desde la API...');
         this.roleService.getRoles().subscribe({
             next: (roles) => {
-                console.log('✅ Roles recibidos de la API:', roles);
                 this.allRoles = roles; // Guardar todos los roles
                 this.applyActiveFilter(); // Aplicar filtro actual
-                console.log('📊 Roles después de aplicar filtro:', this.roles);
             },
             error: (error) => {
-                console.error('❌ Error cargando roles desde API:', error);
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error de conexión',
@@ -349,7 +345,6 @@ export class RolesCrudComponent implements OnInit {
     }
 
     loadDemoData() {
-        console.log('⚠️ Cargando datos de demostración...');
         this.allRoles = [
             {
                 id: 1,
@@ -371,7 +366,6 @@ export class RolesCrudComponent implements OnInit {
             }
         ];
         this.applyActiveFilter();
-        console.log('📋 Datos de demostración cargados:', this.allRoles);
 
         this.messageService.add({
             severity: 'info',
@@ -382,16 +376,11 @@ export class RolesCrudComponent implements OnInit {
     }
 
     applyActiveFilter() {
-        console.log(`🔍 Aplicando filtro: ${this.showActiveOnly ? 'Solo Activos' : 'Todos'}`);
-        console.log('📋 Todos los roles disponibles:', this.allRoles);
-
         if (this.showActiveOnly) {
             this.roles = this.allRoles.filter(role => role.is_active);
         } else {
             this.roles = [...this.allRoles];
         }
-
-        console.log('✅ Roles después del filtro:', this.roles);
     }
 
     toggleActiveFilter() {
@@ -439,12 +428,9 @@ export class RolesCrudComponent implements OnInit {
 
         // Capturar el estado actual que queremos enviar al backend
         const newStatus = role.is_active;
-        console.log(`🔄 Cambiando estado del rol "${role.nombre}" (ID: ${role.id}) a: ${newStatus ? 'ACTIVO' : 'INACTIVO'}`);
 
         this.roleService.toggleRoleStatus(role.id!, newStatus).subscribe({
             next: (updatedRole) => {
-                console.log('✅ Respuesta del servidor:', updatedRole);
-
                 // Actualizar el rol en la lista completa
                 const indexAll = this.allRoles.findIndex(r => r.id === role.id);
                 if (indexAll !== -1) {
@@ -468,8 +454,6 @@ export class RolesCrudComponent implements OnInit {
                 });
             },
             error: (error) => {
-                console.error('❌ Error al cambiar estado del rol:', error);
-
                 // Revertir el cambio en caso de error
                 role.is_active = !newStatus;
 
@@ -560,7 +544,6 @@ export class RolesCrudComponent implements OnInit {
                             this.role = this.emptyRole();
                         },
                         error: (error) => {
-                            console.error('Error al actualizar rol:', error);
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
@@ -599,13 +582,12 @@ export class RolesCrudComponent implements OnInit {
                         this.role = this.emptyRole();
                     },
                     error: (error) => {
-                        console.error('Error al crear rol:', error);
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
                             detail: 'Error al crear el rol: ' + error.message,
                             life: 3000
-                        });
+                            });
                     }
                 });
             }

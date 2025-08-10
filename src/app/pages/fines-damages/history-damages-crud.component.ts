@@ -883,6 +883,8 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit() {
+        // COMENTADO TEMPORALMENTE - GET de daños deshabilitado
+        // this.loadData(); // Solo carga herramientas, préstamos, categorías y subcategorías
         this.loadData();
         this.setupCommunicationListeners();
     }
@@ -934,7 +936,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         const token = this.oauthService.getToken();
 
         this.loading = true;
-
+        
         // Cargar daños
         this.damagesService.getDamages().subscribe({
             next: (damages: Damage[]) => {
@@ -952,7 +954,6 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                 this.loading = false;
             }
         });
-
         // Cargar herramientas - Solo activas
         this.toolsService.getTools('', true).subscribe({
             next: (tools: Tool[]) => {

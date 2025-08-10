@@ -21,6 +21,5 @@ export const environment = {
 
 // Log solo en desarrollo
 if (!environment.production) {
-  console.log(`🚀 API Service General: ${environment.apiServiceGeneralUrl}`);
-  console.log(`📍 Usando API de PRODUCCIÓN desde desarrollo local`);
+  // Logs removidos para limpiar consola
 }

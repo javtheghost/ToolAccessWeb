@@ -8,6 +8,7 @@ import { appRoutes } from './app.routes';
 import { TokenInterceptor } from './app/pages/interceptors/token.interceptor';
 import { initializeApp } from './app/app.init';
 
+
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation()),
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
             provide: 'APP_INITIALIZER',
             useFactory: initializeApp,
             multi: true
-        }
+        },
+
     ]
 };

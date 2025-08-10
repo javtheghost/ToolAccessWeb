@@ -59,24 +59,18 @@ export class RoleService {
 
     // GET - Obtener todos los roles
     getRoles(): Observable<Role[]> {
-        console.log('🌐 RoleService: Solicitando roles de:', this.apiUrl);
-        
         return this.http.get<RoleResponse>(this.apiUrl, {
             headers: this.getHeaders()
         }).pipe(
             map(response => {
-                console.log('📡 RoleService: Respuesta recibida:', response);
                 if (response.success) {
                     const roles = Array.isArray(response.data) ? response.data : [response.data];
-                    console.log('✅ RoleService: Roles procesados:', roles);
                     return roles;
                 } else {
-                    console.error('❌ RoleService: Respuesta con error:', response.message);
                     throw new Error(response.message || 'Error al obtener roles');
                 }
             }),
             catchError((error) => {
-                console.error('🚨 RoleService: Error en HTTP request:', error);
                 return this.handleError(error);
             })
         );
@@ -121,7 +115,6 @@ export class RoleService {
 
     // PUT - Actualizar rol
     updateRole(id: number | string, role: RoleUpdateRequest): Observable<Role> {
-        console.log('datos:', role);
         return this.http.put<RoleResponse>(`${this.apiUrl}/${id}`, role, {
             headers: this.getHeaders()
         }).pipe(
@@ -154,8 +147,6 @@ export class RoleService {
 
     // PATCH - Activar/Desactivar rol (usando UPDATE por consistencia con usuarios)
     toggleRoleStatus(id: number | string, isActive: boolean): Observable<Role> {
-        console.log(`🔄 Cambiando estado del rol ${id} a ${isActive ? 'activo' : 'inactivo'} usando UPDATE`);
-        
         // Primero obtenemos el rol actual para mantener sus datos
         return this.getRoleById(id).pipe(
             switchMap(role => {
@@ -166,15 +157,12 @@ export class RoleService {
                     is_active: isActive  // Usamos el valor que se pasa como parámetro
                 };
                 
-                console.log('📤 Actualizando rol con datos:', updateData);
                 return this.updateRole(id, updateData);
             }),
             map(updatedRole => {
-                console.log('✅ Rol actualizado correctamente usando UPDATE');
                 return updatedRole;
             }),
             catchError((error) => {
-                console.error('❌ Error al cambiar estado del rol:', error);
                 return throwError(() => new Error('Error al cambiar el estado del rol: ' + error.message));
             })
         );
@@ -182,8 +170,6 @@ export class RoleService {
 
     // Manejo de errores
     private handleError = (error: any) => {
-        console.error('❌ Error en RoleService:', error);
-        
         let errorMessage = 'Error desconocido';
         
         if (error.error?.message) {

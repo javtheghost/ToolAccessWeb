@@ -6,12 +6,13 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 import { ErrorInterceptor } from './interceptors/error.interceptor';
+import { TokenInterceptor } from './pages/interceptors/token.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([ErrorInterceptor])
+      withInterceptors([ErrorInterceptor, TokenInterceptor])
     ),
     provideAnimations(),
     MessageService,

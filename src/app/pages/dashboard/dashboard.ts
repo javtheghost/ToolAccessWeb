@@ -1,15 +1,21 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatsCardBlueComponent } from './components/stats-card-blue.component';
-import { StatsCardOrangeComponent } from './components/stats-card-orange.component';
-import { StatsCardGreenComponent } from './components/stats-card-green.component';
 import { StatsCardRedComponent } from './components/stats-card-red.component';
+import { StatsCardGreenComponent } from './components/stats-card-green.component';
+
 import { LineChartComponent } from './components/line-chart.component';
+
 import { BestSellingWidgetComponent } from './components/best-selling-widget.component';
+import { HerramientasPopularesChartComponent } from './components/herramientas-populares-chart.component';
+import { TrabajadoresRankingChartComponent } from './components/trabajadores-ranking-chart.component';
+import { TrabajadoresRetardosChartComponent } from './components/trabajadores-retardos-chart.component';
+
+
 import { ReportsService, Estadisticas } from '../service/reports.service';
 import { RateLimitingService } from '../service/rate-limiting.service';
 import { getRateLimitConfig } from '../service/rate-limiting-config';
-import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-dashboard',
@@ -17,129 +23,150 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
     imports: [
       CommonModule,
       StatsCardBlueComponent,
-      StatsCardOrangeComponent,
-      StatsCardGreenComponent,
       StatsCardRedComponent,
+      StatsCardGreenComponent,
       LineChartComponent,
-      BestSellingWidgetComponent
+
+      BestSellingWidgetComponent,
+      HerramientasPopularesChartComponent,
+      TrabajadoresRankingChartComponent,
+      TrabajadoresRetardosChartComponent
+
     ],
     template: `
-      <div class="space-y-6">
-        <!-- Header del Dashboard -->
-        <div class="bg-white rounded-xl shadow p-6">
-          <div class="flex justify-between items-center">
-            <div>
-              <h1 class="text-2xl font-bold text-[var(--primary-color)] mb-2">Dashboard del Sistema</h1>
-              <p class="text-gray-600">Resumen completo de la actividad del sistema de herramientas</p>
+      <div class="space-y-6 max-w-7xl mx-auto px-4">
+                  <!-- Header del Dashboard -->
+          <div class="bg-white rounded-2xl shadow-xl p-10 border border-gray-100">
+            <div class="flex justify-center items-center">
+              <div class="text-center">
+                <h1 class="text-4xl font-bold text-[var(--primary-color)] mb-4">Dashboard del Sistema</h1>
+                <p class="text-gray-600 text-xl">Resumen completo de la actividad del sistema de herramientas</p>
+              </div>
             </div>
-            <button
-              (click)="refreshData()"
-              [disabled]="loading || isRefreshing"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-            >
-              <svg *ngIf="!loading && !isRefreshing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              <svg *ngIf="loading || isRefreshing" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-              </svg>
-              {{ loading || isRefreshing ? 'Actualizando...' : 'Actualizar' }}
-            </button>
           </div>
-        </div>
 
         <!-- Tarjetas de estadísticas principales -->
-        <div class="grid grid-cols-12 gap-6">
-          <div class="col-span-12 md:col-span-6 xl:col-span-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div class="col-span-1">
             <app-stats-card-blue
               [title]="'Herramientas Activas'"
               [value]="estadisticas?.herramientas?.herramientas_activas || 0"
-              [percentage]="getPercentage(estadisticas?.herramientas?.herramientas_activas, estadisticas?.herramientas?.total_herramientas)"
-              [trend]="'up'"
               [color]="'blue'"
             />
           </div>
-          <div class="col-span-12 md:col-span-6 xl:col-span-3">
-            <app-stats-card-orange
-              [title]="'Préstamos Activos'"
-              [value]="estadisticas?.prestamos?.activos || 0"
-              [percentage]="getPercentage(estadisticas?.prestamos?.activos, estadisticas?.prestamos?.total_prestamos)"
-              [trend]="'up'"
-              [color]="'orange'"
-            />
-          </div>
-          <div class="col-span-12 md:col-span-6 xl:col-span-3">
+
+          <div class="col-span-1">
             <app-stats-card-green
               [title]="'Herramientas Disponibles'"
               [value]="estadisticas?.herramientas?.disponibles || 0"
-              [percentage]="getPercentage(estadisticas?.herramientas?.disponibles, estadisticas?.herramientas?.total_herramientas)"
-              [trend]="'up'"
               [color]="'green'"
             />
           </div>
-          <div class="col-span-12 md:col-span-6 xl:col-span-3">
+          <div class="col-span-1">
             <app-stats-card-red
               [title]="'Multas Pendientes'"
               [value]="estadisticas?.multas?.pendientes || 0"
-              [percentage]="getPercentage(estadisticas?.multas?.pendientes, estadisticas?.multas?.total_multas)"
-              [trend]="'down'"
               [color]="'red'"
             />
           </div>
         </div>
 
-        <!-- Gráficas y widgets -->
-        <div class="grid grid-cols-12 gap-6">
-          <!-- Gráfica de línea principal -->
-          <div class="col-span-12 lg:col-span-8">
-            <app-line-chart
-              [title]="'Actividad del Sistema - Últimos 12 Meses'"
-              [loading]="loading"
-            />
+        <!-- Resumen de Usuarios y Estado de Préstamos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <h3 class="text-2xl font-semibold text-[var(--primary-color)] mb-8 flex items-center">
+              <span class="material-icons mr-4 text-blue-500 text-3xl">group</span>
+              Resumen de Usuarios
+            </h3>
+            <div class="grid grid-cols-2 gap-8">
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 flex flex-row items-center justify-between border border-blue-200">
+                <div class="flex items-center">
+                  <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                    <span class="material-icons text-white text-3xl">group</span>
+                  </div>
+                </div>
+                <div class="flex flex-col items-end">
+                  <div class="text-4xl font-bold text-blue-700">{{ estadisticas?.usuarios?.total_usuarios || 0 }}</div>
+                  <div class="text-base font-semibold text-blue-600">Total Usuarios</div>
+                </div>
+              </div>
+              <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 flex flex-row items-center justify-between border border-green-200">
+                <div class="flex items-center">
+                  <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+                    <span class="material-icons text-white text-3xl">check_circle</span>
+                  </div>
+                </div>
+                <div class="flex flex-col items-end">
+                  <div class="text-4xl font-bold text-green-700">{{ estadisticas?.usuarios?.activos || 0 }}</div>
+                  <div class="text-base font-semibold text-green-600">Usuarios Activos</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Widget de herramientas populares -->
-          <div class="col-span-12 lg:col-span-4">
-            <app-best-selling-widget />
+          <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <h3 class="text-2xl font-semibold text-[var(--primary-color)] mb-8 flex items-center">
+              <span class="material-icons mr-4 text-orange-500 text-3xl">assignment</span>
+              Estado de Préstamos
+            </h3>
+            <div class="space-y-6">
+              <div class="flex justify-between items-center p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                <span class="text-gray-700 font-semibold text-lg">Total Préstamos:</span>
+                <span class="font-bold text-2xl text-gray-900">{{ estadisticas?.prestamos?.total_prestamos || 0 }}</span>
+              </div>
+              <div class="flex justify-between items-center p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+                <span class="text-gray-700 font-semibold text-lg">Devueltos:</span>
+                <span class="font-bold text-2xl text-green-600">{{ estadisticas?.prestamos?.devueltos || 0 }}</span>
+              </div>
+              <div class="flex justify-between items-center p-6 bg-gradient-to-r from-red-50 to-red-100 rounded-xl border border-red-200">
+                <span class="text-gray-700 font-semibold text-lg">Vencidos:</span>
+                <span class="font-bold text-2xl text-red-600">{{ estadisticas?.prestamos?.vencidos || 0 }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Información adicional -->
-        <div class="grid grid-cols-12 gap-6">
-          <div class="col-span-12 md:col-span-6">
-            <div class="bg-white rounded-xl shadow p-6">
-              <h3 class="text-lg font-semibold text-[var(--primary-color)] mb-4">Resumen de Usuarios</h3>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="text-center p-4 bg-blue-50 rounded-lg">
-                  <div class="text-3xl font-bold text-blue-600">{{ estadisticas?.usuarios?.total_usuarios || 0 }}</div>
-                  <div class="text-sm text-blue-600">Total Usuarios</div>
-                </div>
-                <div class="text-center p-4 bg-green-50 rounded-lg">
-                  <div class="text-3xl font-bold text-green-600">{{ estadisticas?.usuarios?.activos || 0 }}</div>
-                  <div class="text-sm text-green-600">Usuarios Activos</div>
-                </div>
-              </div>
+        <!-- Gráficas y widgets principales -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <!-- Gráfica de línea principal -->
+          <div class="xl:col-span-2">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <app-line-chart
+                [title]="'Actividad del Sistema - Últimos 12 Meses'"
+                [loading]="loading"
+              />
             </div>
           </div>
 
-          <div class="col-span-12 md:col-span-6">
-            <div class="bg-white rounded-xl shadow p-6">
-              <h3 class="text-lg font-semibold text-[var(--primary-color)] mb-4">Estado de Préstamos</h3>
-              <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                  <span class="text-gray-600">Total Préstamos:</span>
-                  <span class="font-semibold">{{ estadisticas?.prestamos?.total_prestamos || 0 }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-gray-600">Devueltos:</span>
-                  <span class="font-semibold text-green-600">{{ estadisticas?.prestamos?.devueltos || 0 }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-gray-600">Vencidos:</span>
-                  <span class="font-semibold text-red-600">{{ estadisticas?.prestamos?.vencidos || 0 }}</span>
-                </div>
-              </div>
+          <!-- Widget de herramientas populares -->
+          <div class="xl:col-span-1">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 h-full">
+              <app-best-selling-widget />
             </div>
+          </div>
+        </div>
+
+        <!-- Gráficas de análisis -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <!-- Herramientas más solicitadas - Card más pequeña -->
+          <div class="xl:col-span-1">
+            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+              <app-herramientas-populares-chart />
+            </div>
+          </div>
+
+          <!-- Ranking de trabajadores - Card más grande -->
+          <div class="xl:col-span-2">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <app-trabajadores-ranking-chart />
+            </div>
+          </div>
+        </div>
+
+        <!-- Trabajadores con retardos - Full width para mejor visualización -->
+        <div class="grid grid-cols-1 gap-6">
+          <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <app-trabajadores-retardos-chart />
           </div>
         </div>
       </div>
@@ -148,51 +175,33 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
 export class Dashboard implements OnInit, OnDestroy {
   estadisticas?: Estadisticas;
   loading = false;
-  isRefreshing = false;
   private destroy$ = new Subject<void>();
-  private refreshSubject = new Subject<void>();
+  private interval: any;
 
   constructor(
     private reportsService: ReportsService,
     private rateLimitingService: RateLimitingService
-  ) {
-    // Configurar debounce para el refrescado (2 segundos)
-    this.refreshSubject.pipe(
-      debounceTime(2000),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.loadEstadisticas();
-    });
-  }
+  ) {}
 
   ngOnInit() {
     this.loadEstadisticas();
+    
+    // Actualización automática cada 15 segundos (balance entre frescura y rendimiento)
+    this.interval = setInterval(() => {
+      this.loadEstadisticas();
+    }, 15000);
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
   }
 
-    refreshData() {
-    if (this.loading || this.isRefreshing) {
-      return; // Evitar múltiples peticiones
-    }
 
-        // Verificar rate limiting usando configuración centralizada
-    const endpoint = 'dashboard-stats';
-    const config = getRateLimitConfig(endpoint);
-    if (!this.rateLimitingService.canMakeRequest(endpoint, config)) {
-      const timeRemaining = this.rateLimitingService.getTimeRemaining(endpoint);
-      const remainingRequests = this.rateLimitingService.getRemainingRequests(endpoint);
-
-      console.warn(`Rate limit alcanzado. Tiempo restante: ${Math.ceil(timeRemaining / 1000)}s, Peticiones restantes: ${remainingRequests}`);
-      return;
-    }
-
-    this.isRefreshing = true;
-    this.refreshSubject.next();
-  }
 
   loadEstadisticas() {
     this.loading = true;
@@ -202,21 +211,16 @@ export class Dashboard implements OnInit, OnDestroy {
       next: (data) => {
         this.estadisticas = data;
         this.loading = false;
-        this.isRefreshing = false;
         this.rateLimitingService.recordRequest(endpoint);
       },
       error: (error) => {
         console.error('Error cargando estadísticas:', error);
         this.loading = false;
-        this.isRefreshing = false;
       }
     });
   }
 
-  getPercentage(value: number | undefined, total: number | undefined): number {
-    if (!value || !total || total === 0) return 0;
-    return Math.round((value / total) * 100);
-  }
+
 }
 
 

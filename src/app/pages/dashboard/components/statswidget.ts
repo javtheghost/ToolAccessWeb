@@ -42,8 +42,8 @@ import { CommonModule } from '@angular/common';
                         <span class="block text-muted-color font-medium mb-4">Clientes</span>
                         <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">28441</div>
                     </div>
-                    <div class="flex items-center justify-center bg-cyan-100 dark:bg-cyan-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
-                        <i class="pi pi-users text-cyan-500 !text-xl"></i>
+                    <div class="flex items-center justify-center bg-green-100 dark:bg-green-400/10 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                        <i class="pi pi-users text-green-500 !text-xl"></i>
                     </div>
                 </div>
                 <span class="text-primary font-medium">520 </span>

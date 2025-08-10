@@ -23,9 +23,9 @@ import { MenuModule } from 'primeng/menu';
                 </div>
                 <div class="mt-2 md:mt-0 flex items-center">
                     <div class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24" style="height: 8px">
-                        <div class="bg-orange-500 h-full" style="width: 50%"></div>
+                        <div class="bg-blue-500 h-full" style="width: 50%"></div>
                     </div>
-                    <span class="text-orange-500 ml-4 font-medium">%50</span>
+                    <span class="text-blue-500 ml-4 font-medium">%50</span>
                 </div>
             </li>
             <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -35,9 +35,9 @@ import { MenuModule } from 'primeng/menu';
                 </div>
                 <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
                     <div class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24" style="height: 8px">
-                        <div class="bg-cyan-500 h-full" style="width: 16%"></div>
+                        <div class="bg-orange-500 h-full" style="width: 16%"></div>
                     </div>
-                    <span class="text-cyan-500 ml-4 font-medium">%16</span>
+                    <span class="text-orange-500 ml-4 font-medium">%16</span>
                 </div>
             </li>
             <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -47,9 +47,9 @@ import { MenuModule } from 'primeng/menu';
                 </div>
                 <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
                     <div class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24" style="height: 8px">
-                        <div class="bg-pink-500 h-full" style="width: 67%"></div>
+                        <div class="bg-green-500 h-full" style="width: 67%"></div>
                     </div>
-                    <span class="text-pink-500 ml-4 font-medium">%67</span>
+                    <span class="text-green-500 ml-4 font-medium">%67</span>
                 </div>
             </li>
             <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -59,9 +59,9 @@ import { MenuModule } from 'primeng/menu';
                 </div>
                 <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
                     <div class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24" style="height: 8px">
-                        <div class="bg-green-500 h-full" style="width: 35%"></div>
+                        <div class="bg-red-500 h-full" style="width: 35%"></div>
                     </div>
-                    <span class="text-primary ml-4 font-medium">%35</span>
+                    <span class="text-red-500 ml-4 font-medium">%35</span>
                 </div>
             </li>
             <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -83,9 +83,9 @@ import { MenuModule } from 'primeng/menu';
                 </div>
                 <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
                     <div class="bg-surface-300 dark:bg-surface-500 rounded-border overflow-hidden w-40 lg:w-24" style="height: 8px">
-                        <div class="bg-teal-500 h-full" style="width: 40%"></div>
+                        <div class="bg-blue-500 h-full" style="width: 40%"></div>
                     </div>
-                    <span class="text-teal-500 ml-4 font-medium">%40</span>
+                    <span class="text-blue-500 ml-4 font-medium">%40</span>
                 </div>
             </li>
         </ul>

@@ -131,17 +131,16 @@
               Tipo de Reporte
               <span class="required">*</span>
             </label>
-            <p-dropdown
+            <p-select
               id="tipoReporte"
               formControlName="tipoReporte"
               [options]="tiposReporte"
               optionLabel="label"
               optionValue="value"
               placeholder="Selecciona un tipo de reporte"
-              [disabled]="loading"
               [class.is-invalid]="f['tipoReporte'].invalid && formSubmitted"
               class="form-control">
-            </p-dropdown>
+            </p-select>
             <div class="error-message" *ngIf="f['tipoReporte'].invalid && formSubmitted">
               {{ getErrorMessage('tipoReporte') }}
             </div>
@@ -152,16 +151,15 @@
               <i class="pi pi-filter"></i>
               Estado
             </label>
-            <p-dropdown
+            <p-select
               id="estado"
               formControlName="estado"
               [options]="estados"
               optionLabel="label"
               optionValue="value"
               placeholder="Filtrar por estado"
-              [disabled]="loading"
               class="form-control">
-            </p-dropdown>
+            </p-select>
           </div>
         </div>
 
@@ -203,7 +201,6 @@
               formControlName="limiteHerramientas"
               min="1"
               max="100"
-              [disabled]="loading"
               [class.is-invalid]="f['limiteHerramientas'].invalid && formSubmitted"
               class="form-control">
             <div class="error-message" *ngIf="f['limiteHerramientas'].invalid && formSubmitted">
@@ -245,13 +242,22 @@
   <div class="recent-reports-section top-6" style="margin-top: 20px;" *ngIf="reportes.length > 0">
     <div class="recent-header">
       <h3><i class="pi pi-history"></i> Reportes Generados Recientemente</h3>
-      <span class="recent-count">{{ reportes.length }} reportes</span>
+      <div class="recent-header-actions">
+        <span class="recent-count">{{ reportes.length }} reportes</span>
+        <p-button
+          label="Borrar Todos"
+          icon="pi pi-trash"
+          styleClass="p-button-danger p-button-sm"
+          (onClick)="borrarTodosLosReportes()"
+          pTooltip="Eliminar todos los reportes">
+        </p-button>
+      </div>
     </div>
 
     <div class="reports-grid">
       <div
         class="report-card"
-        *ngFor="let reporte of reportes; trackBy: trackByReporte">
+        *ngFor="let reporte of reportes; trackBy: trackByReporte; let i = index">
         <div class="report-icon">
           <i class="pi pi-file-pdf"></i>
         </div>
@@ -267,9 +273,10 @@
         </div>
         <div class="report-actions">
           <p-button
-            icon="pi pi-download"
-            styleClass="p-button-text p-button-sm"
-            pTooltip="Descargar reporte">
+            icon="pi pi-trash"
+            styleClass="p-button-text p-button-danger p-button-sm"
+            (onClick)="borrarReporte(i)"
+            pTooltip="Eliminar reporte">
           </p-button>
         </div>
       </div>
@@ -290,6 +297,37 @@
         styleClass="p-button-outlined"
         (onClick)="scrollToConfig()">
       </p-button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
+<div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative" style="background: #fff;">
+    <button type="button" (click)="onCustomConfirmReject()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none text-2xl">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <div class="flex flex-col items-start">
+      <i class="material-symbols-outlined text-6xl mb-4"
+        [ngClass]="{
+          'text-danger': confirmIcon === 'delete',
+          'text-warning': confirmIcon === 'warning'
+        }"
+      >{{ confirmIcon }}</i>
+      <div class="text-left mb-6">
+        <div [innerHTML]="confirmMessage"></div>
+      </div>
+      <div class="flex gap-4 self-end">
+        <button type="button"
+          class="custom-cancel-btn px-4 py-2 font-semibold w-24 text-center"
+          (click)="onCustomConfirmReject()"
+        >Cancelar</button>
+        <button type="button"
+          [ngClass]="confirmIcon === 'delete' ? 'custom-confirm-accept-danger' : 'custom-confirm-accept-warning'"
+          class="px-4 py-2 rounded font-semibold w-24 text-center"
+          (click)="onCustomConfirmAccept()"
+        >Aceptar</button>
+      </div>
     </div>
   </div>
 </div>

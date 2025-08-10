@@ -754,9 +754,7 @@ export class UsersCrudComponent implements OnInit {
         const currentUser = this.oauthService.getCurrentUser();
         if (currentUser && currentUser.id) {
             this.currentUserId = currentUser.id;
-            console.log('👤 Usuario actual cargado:', currentUser.nombre, 'ID:', currentUser.id);
         } else {
-            console.warn('⚠️ No se pudo obtener el usuario actual');
             this.currentUserId = null;
         }
     }
@@ -816,24 +814,19 @@ export class UsersCrudComponent implements OnInit {
 
     // Cargar datos
     loadUsers() {
-        console.log('🔄 Iniciando carga de usuarios desde la API...');
         this.loading.set(true);
 
         const filters = this.showOnlyActive ? { is_active: true } : {};
-        console.log('🔍 Filtros aplicados:', filters);
 
         this.userService.getUsers(filters).subscribe({
             next: (users) => {
-                console.log('✅ Usuarios recibidos de la API:', users);
                 // Sanitizar usuarios recibidos
                 const sanitizedUsers = users.map(user => this.sanitizeUser(user));
                 this.users.set(sanitizedUsers);
                 this.updateFilteredUsers();
                 this.loading.set(false);
-                console.log('📊 Estado final de usuarios:', this.users());
             },
             error: (error) => {
-                console.error('❌ Error cargando usuarios desde API:', error);
                 this.showModalAlert('error', 'Error de conexión', this.sanitizeMessage('Error al cargar los usuarios: ' + error.message));
                 this.loading.set(false);
             }
@@ -843,21 +836,17 @@ export class UsersCrudComponent implements OnInit {
     // Filtros y búsqueda
     toggleActiveView() {
         this.showOnlyActive = !this.showOnlyActive;
-        console.log(`🔍 Cambiando filtro de usuarios a: ${this.showOnlyActive ? 'Solo Activos' : 'Todos'}`);
         this.loadUsers();
     }
 
     updateFilteredUsers() {
         const users = this.users();
-        console.log('📋 Usuarios antes del filtrado:', users);
 
         if (this.showOnlyActive) {
             this.filteredUsers.set(users.filter(user => user.is_active));
         } else {
             this.filteredUsers.set(users);
         }
-
-        console.log('✅ Usuarios después del filtrado:', this.filteredUsers());
     }
 
     onGlobalFilter(event: Event) {
@@ -928,7 +917,6 @@ export class UsersCrudComponent implements OnInit {
      */
     handleUserStatusToggle(user: User) {
         const newStatus = user.is_active;
-        console.log(`🔄 Intentando cambiar estado del usuario "${user.nombre}" (ID: ${user.id}) a: ${newStatus ? 'ACTIVO' : 'INACTIVO'}`);
 
         // Validaciones de seguridad
         if (this.currentUserId && user.id === this.currentUserId) {
@@ -1007,12 +995,9 @@ export class UsersCrudComponent implements OnInit {
     toggleUserStatus(user: User) {
         // Capturar el estado actual que queremos enviar al backend
         const newStatus = user.is_active;
-        console.log(`🔄 Cambiando estado del usuario "${user.nombre}" (ID: ${user.id}) a: ${newStatus ? 'ACTIVO' : 'INACTIVO'}`);
 
         this.userService.toggleUserStatus(user.id!, newStatus!).subscribe({
             next: (updatedUser) => {
-                console.log('✅ Respuesta del servidor para usuario:', updatedUser);
-
                 // Actualizar el usuario en la lista local
                 const users = this.users();
                 const index = users.findIndex(u => u.id === user.id);
@@ -1030,8 +1015,6 @@ export class UsersCrudComponent implements OnInit {
                 });
             },
             error: (error) => {
-                console.error('❌ Error al cambiar estado del usuario:', error);
-
                 // Revertir el cambio en caso de error
                 user.is_active = !newStatus;
 

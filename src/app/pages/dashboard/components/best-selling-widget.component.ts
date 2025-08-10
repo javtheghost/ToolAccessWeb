@@ -70,11 +70,11 @@ export class BestSellingWidgetComponent implements OnInit {
 
   getColorClass(index: number): string {
     const colors = [
-      'bg-blue-500',
-      'bg-green-500',
-      'bg-orange-500',
-      'bg-purple-500',
-      'bg-red-500'
+      'bg-blue-500',    // Azul - Herramientas Activas
+      'bg-orange-500',  // Naranja - Préstamos Activos
+      'bg-green-500',   // Verde - Herramientas Disponibles
+      'bg-red-500',     // Rojo - Para el cuarto elemento
+      'bg-purple-500'   // Púrpura - Para el quinto elemento
     ];
     return colors[index] || 'bg-gray-500';
   }

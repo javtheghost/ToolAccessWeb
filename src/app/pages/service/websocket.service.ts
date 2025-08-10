@@ -54,10 +54,8 @@ export class WebSocketService {
       });
 
       this.setupEventListeners();
-      
-      console.log('🔌 Intentando conectar WebSocket a:', socketUrl);
     } catch (error) {
-      console.error('❌ Error al conectar WebSocket:', error);
+      // Error de conexión WebSocket manejado silenciosamente
     }
   }
 
@@ -68,29 +66,24 @@ export class WebSocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket conectado:', this.socket?.id);
       this.connectionStatus.next(true);
 
       // Unirse a la sala del usuario (si hay token)
       const userId = this.getCurrentUserId();
       if (userId) {
         this.socket?.emit('join-user-room', userId);
-        console.log(`👤 Usuario ${userId} unido a su sala personal`);
       }
     });
 
     this.socket.on('disconnect', (reason: string) => {
-      console.log('🔌 WebSocket desconectado:', reason);
       this.connectionStatus.next(false);
     });
 
     this.socket.on('connect_error', (error: any) => {
-      console.error('❌ Error de conexión WebSocket:', error);
       this.connectionStatus.next(false);
     });
 
     this.socket.on('reconnect', (attemptNumber: any) => {
-      console.log('🔄 WebSocket reconectado después de', attemptNumber, 'intentos');
       this.connectionStatus.next(true);
     });
   }
@@ -121,7 +114,6 @@ export class WebSocketService {
 
       return null;
     } catch (error) {
-      console.error('Error obteniendo ID de usuario:', error);
       return null;
     }
   }
@@ -232,7 +224,6 @@ export class WebSocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.connectionStatus.next(false);
-      console.log('🔌 WebSocket desconectado manualmente');
     }
   }
 
@@ -240,7 +231,6 @@ export class WebSocketService {
   reconnect(): void {
     if (this.socket) {
       this.socket.connect();
-      console.log('🔄 Intentando reconectar WebSocket...');
     } else {
       this.connect();
     }
@@ -250,7 +240,6 @@ export class WebSocketService {
   emit(eventName: string, data: any): void {
     if (this.socket?.connected) {
       this.socket.emit(eventName, data);
-      console.log(`📤 Evento emitido: ${eventName}`, data);
     }
   }
 

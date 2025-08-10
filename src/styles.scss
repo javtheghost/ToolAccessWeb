@@ -377,4 +377,49 @@ body {
   overflow: visible !important;
 }
 
+/* ===== ESTILOS GLOBALES PARA BADGES ===== */
+/* Asegurar que todos los badges con bg-primary tengan buen contraste */
+.badge.bg-primary {
+  background-color: #03346E !important;
+  color: white !important;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #dbeafe !important; /* border-blue-100 */
+}
 
+/* Estilos para otros badges comunes */
+.badge.bg-info {
+  background-color: #17a2b8 !important;
+  color: white !important;
+  font-weight: 600;
+  border: 1px solid #dbeafe !important; /* border-blue-100 */
+}
+
+.badge.bg-success {
+  background-color: #28a745 !important;
+  color: white !important;
+  font-weight: 600;
+  border: 1px solid #dbeafe !important; /* border-blue-100 */
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+  font-weight: 600;
+  border: 1px solid #dbeafe !important; /* border-blue-100 */
+}
+
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+  color: white !important;
+  font-weight: 600;
+  border: 1px solid #dbeafe !important; /* border-blue-100 */
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+  color: white !important;
+  font-weight: 600;
+  border: 1px solid #dbeafe !important; /* border-blue-100 */
+}

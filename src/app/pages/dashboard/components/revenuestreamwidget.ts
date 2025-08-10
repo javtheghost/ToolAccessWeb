@@ -41,21 +41,21 @@ export class RevenueStreamWidget {
                 {
                     type: 'bar',
                     label: 'Subscriptions',
-                    backgroundColor: documentStyle.getPropertyValue('--p-primary-400'),
+                    backgroundColor: '#3b82f6', // Azul - Herramientas Activas
                     data: [4000, 10000, 15000, 4000],
                     barThickness: 32
                 },
                 {
                     type: 'bar',
                     label: 'Advertising',
-                    backgroundColor: documentStyle.getPropertyValue('--p-primary-300'),
+                    backgroundColor: '#f59e0b', // Naranja - Préstamos Activos
                     data: [2100, 8400, 2400, 7500],
                     barThickness: 32
                 },
                 {
                     type: 'bar',
                     label: 'Affiliate',
-                    backgroundColor: documentStyle.getPropertyValue('--p-primary-200'),
+                    backgroundColor: '#16a34a', // Verde - Herramientas Disponibles
                     data: [4100, 5200, 3400, 7400],
                     borderRadius: {
                         topLeft: 8,

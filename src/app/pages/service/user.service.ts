@@ -32,8 +32,6 @@ export class UserService {
 
     // GET - Obtener todos los usuarios
     getUsers(filters?: UserFilters): Observable<User[]> {
-        console.log('🌐 UserService: Solicitando usuarios con filtros:', filters);
-        
         let params = new HttpParams();
         
         if (filters) {
@@ -45,26 +43,19 @@ export class UserService {
             });
         }
 
-        console.log('📡 UserService: Parámetros HTTP:', params.toString());
-        console.log('🌐 UserService: URL completa:', `${this.apiUrl}?${params.toString()}`);
-
         return this.http.get<UserResponse>(this.apiUrl, { 
             headers: this.getHeaders(),
             params 
         }).pipe(
             map(response => {
-                console.log('📡 UserService: Respuesta recibida:', response);
                 if (response.success) {
                     const users = Array.isArray(response.data) ? response.data : [response.data];
-                    console.log('✅ UserService: Usuarios procesados:', users);
                     return users;
                 } else {
-                    console.error('❌ UserService: Respuesta con error:', response.message);
                     throw new Error(response.message || 'Error al obtener usuarios');
                 }
             }),
             catchError((error) => {
-                console.error('🚨 UserService: Error en HTTP request:', error);
                 return this.handleError(error);
             })
         );
@@ -155,11 +146,9 @@ export class UserService {
                 return this.updateUser(id, updateData);
             }),
             map(() => {
-                console.log('✅ Usuario desactivado correctamente usando UPDATE');
                 return true;
             }),
             catchError((error) => {
-                console.error('❌ Error al desactivar usuario:', error);
                 return throwError(() => new Error('Error al desactivar el usuario: ' + error.message));
             })
         );
@@ -176,8 +165,6 @@ export class UserService {
 
     // PATCH - Activar/Desactivar usuario (usando UPDATE por problemas de CORS)
     toggleUserStatus(id: number | string, isActive: boolean): Observable<User> {
-        console.log(`🔄 Cambiando estado del usuario ${id} a ${isActive ? 'activo' : 'inactivo'} usando UPDATE`);
-        
         // Primero obtenemos el usuario actual para mantener sus datos
         return this.getUserById(id).pipe(
             switchMap(user => {
@@ -191,15 +178,12 @@ export class UserService {
                     is_active: isActive  // Usamos el valor que se pasa como parámetro
                 };
                 
-                console.log('📤 Actualizando usuario con datos:', updateData);
                 return this.updateUser(id, updateData);
             }),
             map(updatedUser => {
-                console.log('✅ Usuario actualizado correctamente usando UPDATE');
                 return updatedUser;
             }),
             catchError((error) => {
-                console.error('❌ Error al cambiar estado del usuario:', error);
                 return throwError(() => new Error('Error al cambiar el estado del usuario: ' + error.message));
             })
         );
@@ -220,8 +204,6 @@ export class UserService {
 
     // Manejo de errores
     private handleError = (error: any) => {
-        console.error('❌ Error en UserService:', error);
-        
         let errorMessage = 'Error desconocido';
         
         if (error.error?.message) {
