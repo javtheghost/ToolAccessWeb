@@ -267,7 +267,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                     <ng-template pTemplate="emptyfilter">
                         <div class="text-center py-4">
                             <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
-                            <p class="text-gray-500">No se encontraron categoríass..</p>
+                            <p class="text-gray-500">No se encontraron categorías..</p>
                         </div>
                     </ng-template>
                 </p-dropdown>
