@@ -306,7 +306,7 @@ interface Column {
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-red-500]="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched"
                     [class.border-gray-300]="!userForm.get('nombre')?.invalid || !userForm.get('nombre')?.touched" />
-                <label for="nombre" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Nombre <span class="text-red-500">*</span></label>
+                <label for="nombre" class="absolute text-base text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-[var(--primary-color)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-10">Nombre <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('nombre')?.invalid && userForm.get('nombre')?.touched" class="text-red-500 text-xs mt-1 ml-10">El nombre es requerido</div>
             </div>
 
@@ -321,7 +321,7 @@ interface Column {
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-red-500]="userForm.get('apellido_paterno')?.invalid && userForm.get('apellido_paterno')?.touched"
                     [class.border-gray-300]="!userForm.get('apellido_paterno')?.invalid || !userForm.get('apellido_paterno')?.touched" />
-                <label for="apellido_paterno" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Paterno <span class="text-red-500">*</span></label>
+                <label for="apellido_paterno" class="absolute text-base text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-[var(--primary-color)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-10">Apellido Paterno <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('apellido_paterno')?.invalid && userForm.get('apellido_paterno')?.touched" class="text-red-500 text-xs mt-1 ml-10">El apellido paterno es requerido</div>
             </div>
 
@@ -335,7 +335,7 @@ interface Column {
                     placeholder=" "
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-gray-300]="true" />
-                <label for="apellido_materno" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Apellido Materno <span class="text-gray-400">(opcional)</span></label>
+                <label for="apellido_materno" class="absolute text-base text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-[var(--primary-color)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-10">Apellido Materno <span class="text-gray-400">(opcional)</span></label>
             </div>
 
             <!-- Email -->
@@ -349,7 +349,7 @@ interface Column {
                     class="peer block w-full h-12 rounded-lg border bg-transparent px-10 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
                     [class.border-red-500]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
                     [class.border-gray-300]="!userForm.get('email')?.invalid || !userForm.get('email')?.touched" />
-                <label for="email" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Email <span class="text-red-500">*</span></label>
+                <label for="email" class="absolute text-base text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-[var(--primary-color)] peer-focus:scale-75 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 start-10">Email <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="text-red-500 text-xs mt-1 ml-10">Email válido es requerido</div>
             </div>
 
@@ -367,7 +367,7 @@ interface Column {
                     [feedback]="true"
                     [toggleMask]="true">
                 </p-password>
-                <label for="password" class="absolute left-10 top-2 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Contraseña <span class="text-red-500">*</span></label>
+                <label for="password" class="absolute text-base text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-[var(--primary-color)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-10">Contraseña <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="text-red-500 text-xs mt-1 ml-10">La contraseña es requerida (mínimo 8 caracteres)</div>
             </div>
 
@@ -411,7 +411,7 @@ interface Column {
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <label class="absolute left-9 top-0.4 z-10 origin-[0] scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 peer-focus:text-[var(--primary-color)] bg-white px-1">Rol <span class="text-red-500">*</span></label>
+                <label class="absolute text-base text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-[var(--primary-color)] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 start-9">Rol <span class="text-red-500">*</span></label>
                 <div *ngIf="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched" class="text-red-500 text-xs mt-1 ml-16">El rol es requerido</div>
             </div>
         </form>
