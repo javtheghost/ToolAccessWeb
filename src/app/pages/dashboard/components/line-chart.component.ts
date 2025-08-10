@@ -1,8 +1,7 @@
-import { Component, Input, OnInit, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, ElementRef, ViewChild, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, ChartType } from 'chart.js';
-import { ReportsService, Estadisticas, DatosHistoricos } from '../../service/reports.service';
-import { environment } from '../../../../environments/environment';
+import { ReportsService, Estadisticas } from '../../service/reports.service';
 
 @Component({
   selector: 'app-line-chart',
@@ -35,7 +34,7 @@ import { environment } from '../../../../environments/environment';
         </div>
         
         <div *ngIf="variant === 'detailed'" class="mt-4 p-3 bg-blue-100 dark:bg-blue-900 rounded text-sm border-l-4 border-blue-500">
-          <p class="text-blue-800 dark:text-blue-200 font-medium">📊 Vista Detallada - Datos de los últimos 12 meses</p>
+          <p class="text-blue-800 dark:text-blue-200 font-medium">📊 Datos Reales del Sistema - Agosto 2024</p>
         </div>
       </div>
     </div>
@@ -62,16 +61,15 @@ import { environment } from '../../../../environments/environment';
     }
   `]
 })
-export class LineChartComponent implements OnInit, OnDestroy {
-  @Input() title: string = 'Actividad del Sistema';
+export class LineChartComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() title: string = 'Estado Actual del Sistema';
   @Input() variant: 'default' | 'detailed' = 'default';
   @Input() loading: boolean = false;
+  @Input() estadisticas?: Estadisticas;
 
   @ViewChild('lineChart', { static: false }) lineChartRef!: ElementRef<HTMLCanvasElement>;
   
   chart: Chart | null = null;
-  estadisticas?: Estadisticas;
-  datosHistoricos?: DatosHistoricos[];
   private refreshInterval: any;
 
   constructor(private reportsService: ReportsService) {}
@@ -82,11 +80,20 @@ export class LineChartComponent implements OnInit, OnDestroy {
     this.startRealTimeUpdates();
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    // Si cambian las estadísticas y no son undefined, actualizar el gráfico
+    if (changes['estadisticas'] && 
+        changes['estadisticas'].currentValue && 
+        !changes['estadisticas'].firstChange) {
+      this.updateChartWithRealData();
+    }
+  }
+
   ngAfterViewInit() {
     // Forzar actualización después de que la vista esté lista
     setTimeout(() => {
-      if (this.datosHistoricos && this.datosHistoricos.length > 0) {
-        this.updateChartWithHistoricalData();
+      if (this.estadisticas) {
+        this.updateChartWithRealData();
       }
     }, 100);
   }
@@ -111,105 +118,44 @@ export class LineChartComponent implements OnInit, OnDestroy {
   private loadChartData() {
     this.loading = true;
 
-    this.reportsService.getDatosHistoricos().subscribe({
-      next: (datosHistoricos) => {
-        this.datosHistoricos = datosHistoricos;
-        setTimeout(() => {
-          this.updateChartWithHistoricalData();
-        }, 100);
-        this.loading = false;
-      },
-      error: (error) => {
-        // Si no hay datos históricos, usar estadísticas actuales
-        this.loadEstadisticasForSimulation();
-      }
-    });
-  }
-
-  private loadEstadisticasForSimulation() {
-    this.reportsService.getEstadisticas().subscribe({
-      next: (data) => {
-        this.estadisticas = data;
-        this.updateChartWithSimulatedData();
-        this.loading = false;
-      },
-      error: (error) => {
-        // Usar datos por defecto si no se pueden obtener estadísticas
-        this.updateChartWithDefaultData();
-        this.loading = false;
-      }
-    });
-  }
-
-  private updateChartWithHistoricalData() {
-    if (!this.datosHistoricos || this.datosHistoricos.length === 0) {
-      this.updateChartWithDefaultData();
+    // Solo usar estadísticas reales del dashboard
+    if (this.estadisticas) {
+      this.updateChartWithRealData();
+      this.loading = false;
       return;
     }
 
-    // Filtrar solo meses con datos reales (no cero)
-    const mesesConDatos = this.datosHistoricos.filter(d => 
-      d.herramientas_activas > 0 || 
-      d.prestamos_activos > 0 || 
-      d.herramientas_disponibles > 0
-    );
-    
-    if (mesesConDatos.length === 0) {
-      this.updateChartWithDefaultData();
-      return;
-    }
-
-    // Si solo hay un mes con datos, mostrar solo ese mes
-    if (mesesConDatos.length === 1) {
-      this.updateChartWithSingleMonthData(mesesConDatos[0]);
-      return;
-    }
-
-    // Mostrar todos los meses con datos
-    const labels = mesesConDatos.map(d => d.mes);
-    const herramientasActivas = mesesConDatos.map(d => d.herramientas_activas);
-    const prestamosActivos = mesesConDatos.map(d => d.prestamos_activos);
-    const herramientasDisponibles = mesesConDatos.map(d => d.herramientas_disponibles);
-
-    this.createChart(labels, herramientasActivas, prestamosActivos, herramientasDisponibles);
+    // Si no hay estadísticas, mostrar mensaje de no datos
+    this.showNoDataMessage();
+    this.loading = false;
   }
 
-  private updateChartWithSingleMonthData(singleMonthData: DatosHistoricos) {
-    // Solo mostrar el mes que tiene datos reales
-    const labels = [singleMonthData.mes];
-    const herramientasActivas = [singleMonthData.herramientas_activas];
-    const prestamosActivos = [singleMonthData.prestamos_activos];
-    const herramientasDisponibles = [singleMonthData.herramientas_disponibles];
-
-    this.createChart(labels, herramientasActivas, prestamosActivos, herramientasDisponibles);
+  private showNoDataMessage() {
+    // Destruir chart existente si existe
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
   }
 
-  private updateChartWithSimulatedData() {
+  private updateChartWithRealData() {
     if (!this.estadisticas) {
-      this.updateChartWithDefaultData();
+      this.showNoDataMessage();
       return;
     }
 
-    // Generar datos simulados basados en estadísticas reales
+    // Usar las estadísticas reales del dashboard
     const herramientasActivas = this.estadisticas.herramientas?.herramientas_activas || 0;
     const prestamosActivos = this.estadisticas.prestamos?.activos || 0;
     const herramientasDisponibles = this.estadisticas.herramientas?.disponibles || 0;
 
-    const dataHerramientasActivas = this.generateTrendData(herramientasActivas, 12);
-    const dataPrestamosActivos = this.generateTrendData(prestamosActivos, 12);
-    const dataHerramientasDisponibles = this.generateTrendData(herramientasDisponibles, 12);
+    // Solo mostrar el mes actual (agosto) con datos reales
+    const labels = ['Agosto'];
+    const dataHerramientasActivas = [herramientasActivas];
+    const dataPrestamosActivos = [prestamosActivos];
+    const dataHerramientasDisponibles = [herramientasDisponibles];
 
-    const labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     this.createChart(labels, dataHerramientasActivas, dataPrestamosActivos, dataHerramientasDisponibles);
-  }
-
-  private updateChartWithDefaultData() {
-    const labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const herramientasActivas = [5, 7, 8, 10, 12, 15, 18, 20, 22, 25, 28, 30];
-    const prestamosActivos = [3, 5, 4, 6, 8, 10, 12, 11, 13, 15, 17, 19];
-    const herramientasDisponibles = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26];
-
-    this.createChart(labels, herramientasActivas, prestamosActivos, herramientasDisponibles);
   }
 
   private createChart(labels: string[], data1: number[], data2: number[], data3: number[]) {
@@ -252,9 +198,12 @@ export class LineChartComponent implements OnInit, OnDestroy {
       tertiary: '#16a34a'
     };
 
+    // Si solo hay un punto de datos, usar gráfico de barras
+    const chartType = labels.length === 1 ? 'bar' : 'line';
+
     try {
-      const chartConfig: ChartConfiguration<'line'> = {
-        type: 'line',
+      const chartConfig: ChartConfiguration<'line' | 'bar'> = {
+        type: chartType,
         data: {
           labels: labels,
           datasets: [
@@ -265,9 +214,9 @@ export class LineChartComponent implements OnInit, OnDestroy {
               borderColor: colors.primary,
               backgroundColor: colors.primary,
               tension: 0.1,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-              borderWidth: 2
+              pointRadius: labels.length === 1 ? 0 : 4,
+              pointHoverRadius: labels.length === 1 ? 0 : 6,
+              borderWidth: labels.length === 1 ? 0 : 2
             },
             {
               label: 'Préstamos Activos',
@@ -276,9 +225,9 @@ export class LineChartComponent implements OnInit, OnDestroy {
               borderColor: colors.secondary,
               backgroundColor: colors.secondary,
               tension: 0.1,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-              borderWidth: 2
+              pointRadius: labels.length === 1 ? 0 : 4,
+              pointHoverRadius: labels.length === 1 ? 0 : 6,
+              borderWidth: labels.length === 1 ? 0 : 2
             },
             {
               label: 'Herramientas Disponibles',
@@ -287,9 +236,9 @@ export class LineChartComponent implements OnInit, OnDestroy {
               borderColor: colors.tertiary,
               backgroundColor: colors.tertiary,
               tension: 0.1,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-              borderWidth: 2
+              pointRadius: labels.length === 1 ? 0 : 4,
+              pointHoverRadius: labels.length === 1 ? 0 : 6,
+              borderWidth: labels.length === 1 ? 0 : 2
             }
           ]
         },
@@ -385,29 +334,8 @@ export class LineChartComponent implements OnInit, OnDestroy {
     }
   }
 
-  private generateTrendData(currentValue: number, months: number): number[] {
-    const data: number[] = [];
-    const baseValue = Math.max(1, currentValue * 0.2);
-
-    for (let i = 0; i < months; i++) {
-      const progress = i / (months - 1);
-      const easedProgress = this.easeInOutCubic(progress);
-      const trend = baseValue + (currentValue - baseValue) * easedProgress;
-      const variation = (Math.random() - 0.5) * 0.2;
-      const finalValue = Math.max(0, trend * (1 + variation));
-      data.push(Math.round(finalValue));
-    }
-
-    return data;
-  }
-
-  private easeInOutCubic(t: number): number {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
-
   forceReload() {
     // Limpiar datos existentes
-    this.datosHistoricos = undefined;
     this.estadisticas = undefined;
     
     // Destruir chart existente

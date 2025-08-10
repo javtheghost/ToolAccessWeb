@@ -134,6 +134,7 @@ import { Subject, takeUntil } from 'rxjs';
               <app-line-chart
                 [title]="'Actividad del Sistema - Últimos 12 Meses'"
                 [loading]="loading"
+                [estadisticas]="estadisticas"
               />
             </div>
           </div>
