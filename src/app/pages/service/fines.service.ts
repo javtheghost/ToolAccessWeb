@@ -292,6 +292,26 @@ export class FinesService {
         );
     }
 
+    // GET - Obtener órdenes de préstamo por usuario específico
+    getLoansByUser(userId: number): Observable<any[]> {
+        const loansApiUrl = `${environment.apiServiceGeneralUrl}/api/loan-orders`;
+        const params = new HttpParams().set('usuario_id', userId.toString());
+
+        return this.http.get<any>(loansApiUrl, {
+            params,
+            headers: this.getHeaders()
+        }).pipe(
+            map(response => {
+                if (response.success) {
+                    return Array.isArray(response.data) ? response.data : [response.data];
+                } else {
+                    throw new Error(response.message || 'Error al obtener órdenes de préstamo por usuario');
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
     private handleError(error: any): Observable<never> {
         let errorMessage = 'Error desconocido';
 

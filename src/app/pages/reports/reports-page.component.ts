@@ -1006,32 +1006,8 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
       if (data && data.length > 0) {
 
-        // Probar URLs de imágenes
-        this.testImageUrls(data);
-
-        // Crear tabla de herramientas con imágenes en columna
+        // Crear tabla de herramientas sin columna de imágenes
         const tableData = [];
-        const imagenesBase64: (string | null)[] = [];
-
-        // Cargar todas las imágenes primero y esperar a que se completen
-        for (let i = 0; i < data.length; i++) {
-          const herramienta = data[i];
-          let imagenBase64: string | null = null;
-
-          if (herramienta.foto_url && herramienta.foto_url.trim() !== '') {
-            const imagenUrl = this.getImagenUrl(herramienta.foto_url);
-            
-            if (imagenUrl && imagenUrl.trim() !== '') {
-              try {
-                imagenBase64 = await this.cargarImagenComoBase64(imagenUrl);
-              } catch (error) {
-                // Imagen no pudo cargarse
-              }
-            }
-          }
-
-          imagenesBase64.push(imagenBase64);
-        }
 
 
 
@@ -1040,7 +1016,6 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           const herramienta = data[i];
           const row = [
             i + 1, // Número
-            '', // Celda vacía para la imagen (sin texto de fondo)
             herramienta.nombre,
             herramienta.folio,
             `${herramienta.categoria} - ${herramienta.subcategoria}`,
@@ -1086,9 +1061,9 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           doc.text(`Filtros aplicados: ${filtrosInfo}`, 65, 60);
         }
 
-        // Crear la tabla con columna de imagen
+        // Crear la tabla sin columna de imagen
         autoTable(doc, {
-          head: [['#', 'Imagen', 'Herramienta', 'Folio', 'Categoría', 'Veces Prestada', 'Stock']],
+          head: [['#', 'Herramienta', 'Folio', 'Categoría', 'Veces Prestada', 'Stock']],
           body: tableData,
           startY: filtrosInfo ? 80 : 70,
           styles: { fontSize: 8 },
@@ -1101,31 +1076,13 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           },
           columnStyles: {
             0: { cellWidth: 10 }, // Número
-            1: { cellWidth: 20 }, // Imagen
-            2: { cellWidth: 45 }, // Nombre
-            3: { cellWidth: 25 }, // Folio
-            4: { cellWidth: 40 }, // Categoría
-            5: { cellWidth: 20 }, // Veces prestada
-            6: { cellWidth: 15 }  // Stock
+            1: { cellWidth: 50 }, // Herramienta (ancho aumentado)
+            2: { cellWidth: 30 }, // Folio
+            3: { cellWidth: 45 }, // Categoría
+            4: { cellWidth: 25 }, // Veces prestada
+            5: { cellWidth: 20 }  // Stock
           },
-          didDrawCell: (cellData) => {
-            // Agregar imágenes en la columna de imagen
-            // Solo procesar filas de datos (no el encabezado) y asegurar que hay imagen disponible
-            if (cellData.column.index === 1 && cellData.row.index > 0) {
-              const rowIndex = cellData.row.index - 1; // Ajustar índice porque las filas de datos empiezan en 1
-              
-              // Verificar que el índice esté dentro del rango válido
-              if (rowIndex >= 0 && rowIndex < imagenesBase64.length) {
-                const imagenBase64 = imagenesBase64[rowIndex];
-                const herramienta = data[rowIndex];
 
-                // Debug: Verificar el mapeo de índices
-                // Imagen no pudo cargarse
-              } else {
-                // Índice fuera de rango
-              }
-            }
-          }
         });
 
         // Guardar el PDF

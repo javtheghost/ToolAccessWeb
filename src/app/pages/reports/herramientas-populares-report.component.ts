@@ -23,7 +23,6 @@ import { ToastModule } from 'primeng/toast';
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imagen</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Herramienta</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Folio</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
@@ -34,17 +33,6 @@ import { ToastModule } from 'primeng/toast';
           <tbody class="bg-white divide-y divide-gray-200">
             <tr *ngFor="let item of data; let i = index" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ i + 1 }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <img
-                  *ngIf="item.foto_url"
-                  [src]="item.foto_url"
-                  [alt]="item.nombre"
-                  class="h-10 w-10 rounded-lg object-cover"
-                />
-                <div *ngIf="!item.foto_url" class="h-10 w-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <span class="text-xs text-gray-500">Sin imagen</span>
-                </div>
-              </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ item.nombre }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.folio }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.categoria }}</td>

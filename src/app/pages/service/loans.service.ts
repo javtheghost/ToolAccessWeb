@@ -133,6 +133,35 @@ export class LoansService {
         );
     }
 
+    // GET - Obtener órdenes de préstamo por usuario específico
+    getLoansByUser(userId: number): Observable<Loan[]> {
+        // ✅ RATE LIMITING: Verificar límites antes de hacer petición
+        const endpoint = 'loans-by-user';
+        const config = getRateLimitConfig(endpoint);
+
+        if (!this.rateLimitingService.canMakeRequest(endpoint, config)) {
+            return throwError(() => new Error('Rate limit alcanzado para cargar préstamos por usuario'));
+        }
+
+        const params = new HttpParams().set('usuario_id', userId.toString());
+
+        return this.http.get<LoanResponse>(`${this.apiUrl}`, {
+            params,
+            headers: this.getHeaders()
+        }).pipe(
+            map(response => {
+                if (response.success) {
+                    return Array.isArray(response.data) ? response.data : [response.data];
+                } else {
+                    throw new Error(response.message || 'Error al obtener órdenes de préstamo por usuario');
+                }
+            }),
+            // ✅ RATE LIMITING: Registrar petición exitosa
+            tap(() => this.rateLimitingService.recordRequest(endpoint)),
+            catchError(this.handleError)
+        );
+    }
+
     // GET - Obtener orden de préstamo por ID con detalles (ADMIN)
     getLoanById(id: number): Observable<Loan> {
         return this.http.get<LoanResponse>(`${this.apiUrl}/${id}`, {

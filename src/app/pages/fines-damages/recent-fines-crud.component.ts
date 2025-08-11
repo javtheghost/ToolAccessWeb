@@ -483,7 +483,8 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     filterPlaceholder="Buscar usuarios..."
                     scrollHeight="200px"
                     [virtualScroll]="true"
-                    [virtualScrollItemSize]="38">
+                    [virtualScrollItemSize]="38"
+                    (onChange)="onUserChange($event.value)">
                     <ng-template pTemplate="selectedItem" let-usuario>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -521,7 +522,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                 </svg>
                 <p-dropdown
                     formControlName="orden_id"
-                    [options]="ordenes"
+                    [options]="filteredOrdenes.length > 0 ? filteredOrdenes : ordenes"
                     optionLabel="folio"
                     optionValue="id"
                     placeholder="Selecciona una opción"
@@ -908,6 +909,7 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     // Datos para formularios
     usuarios: any[] = [];
     ordenes: any[] = [];
+    filteredOrdenes: any[] = []; // Órdenes filtradas por usuario
     configuraciones: any[] = [];
     estados = [
         { label: 'Pendiente', value: 'pendiente' },
@@ -1139,6 +1141,31 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
         }
     }
 
+    // Método para manejar el cambio de usuario y filtrar órdenes
+    onUserChange(selectedUser: any) {
+        if (selectedUser && selectedUser.id) {
+            // Filtrar órdenes por el usuario seleccionado
+            this.finesService.getLoansByUser(selectedUser.id).subscribe({
+                next: (userLoans: any[]) => {
+                    this.filteredOrdenes = userLoans;
+                    // Limpiar la selección de orden si no está en las filtradas
+                    if (this.fineForm.get('orden_id')?.value) {
+                        const orderExists = this.filteredOrdenes.find(o => o.id === this.fineForm.get('orden_id')?.value);
+                        if (!orderExists) {
+                            this.fineForm.patchValue({ orden_id: '' });
+                        }
+                    }
+                },
+                error: (error: any) => {
+                    console.error('Error al obtener órdenes del usuario:', error);
+                    this.filteredOrdenes = [];
+                }
+            });
+        } else {
+            this.filteredOrdenes = [];
+        }
+    }
+
     // Métodos para CRUD completo
     private initForm() {
         this.fineForm = this.fb.group({
@@ -1183,6 +1210,7 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
         this.finesService.getOrdenes().subscribe({
             next: (ordenes) => {
                 this.ordenes = ordenes;
+                this.filteredOrdenes = []; // Inicializar órdenes filtradas vacías
             },
             error: (error) => {
                 this.messageService.add({
@@ -1224,6 +1252,7 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
             fecha_vencimiento: new Date(),
             monto_total: 0
         });
+        this.filteredOrdenes = []; // Limpiar órdenes filtradas al abrir nuevo
         this.fineDialog = true;
     }
 

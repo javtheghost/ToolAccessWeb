@@ -905,6 +905,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
     // Datos para los dropdowns
     tools: Tool[] = [];
     loans: Loan[] = [];
+    filteredLoans: Loan[] = []; // Órdenes filtradas por usuario
     categories: any[] = [];
     subcategories: any[] = [];
     damageTypesFromService: DamageType[] = []; // Tipos de daño dinámicos del servicio
@@ -1498,6 +1499,31 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
             this.onCustomConfirmReject();
         } else if (this.damageHistoryDialog) {
             this.hideDialog();
+        }
+    }
+
+    // Método para manejar el cambio de usuario y filtrar órdenes
+    onUserChange(selectedUser: any) {
+        if (selectedUser && selectedUser.id) {
+            // Filtrar órdenes por el usuario seleccionado
+            this.loansService.getLoansByUser(selectedUser.id).subscribe({
+                next: (userLoans: Loan[]) => {
+                    this.filteredLoans = userLoans;
+                    // Limpiar la selección de orden si no está en las filtradas
+                    if (this.damageHistoryItem.orden_prestamo_id) {
+                        const orderExists = this.filteredLoans.find(l => l.id === this.damageHistoryItem.orden_prestamo_id);
+                        if (!orderExists) {
+                            this.damageHistoryItem.orden_prestamo_id = 0;
+                        }
+                    }
+                },
+                error: (error: any) => {
+                    console.error('Error al obtener órdenes del usuario:', error);
+                    this.filteredLoans = [];
+                }
+            });
+        } else {
+            this.filteredLoans = [];
         }
     }
 
