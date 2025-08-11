@@ -354,13 +354,13 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
         if (!date) {
             switch (type) {
                 case 'solicitud':
-                    return { text: 'Pendiente', color: 'text-gray-500', fontWeight: 'font-normal', icon: '⏳' };
+                    return { text: 'Pendiente', color: 'text-gray-500', fontWeight: 'font-normal', icon: 'pending' };
                 case 'aprobacion':
-                    return { text: 'Sin aprobar', color: 'text-orange-500', fontWeight: 'font-medium', icon: '⏸️' };
+                    return { text: 'Sin aprobar', color: 'text-orange-500', fontWeight: 'font-medium', icon: 'pause' };
                 case 'devolucion_estimada':
-                    return { text: 'Sin estimar', color: 'text-blue-500', fontWeight: 'font-medium', icon: '📅' };
+                    return { text: 'Sin estimar', color: 'text-blue-500', fontWeight: 'font-medium', icon: 'event' };
                 case 'devolucion_real':
-                    return { text: 'Sin devolver', color: 'text-red-500', fontWeight: 'font-medium', icon: '🛠️' };
+                    return { text: 'Sin devolver', color: 'text-red-500', fontWeight: 'font-medium', icon: 'build' };
                 default:
                     return { text: '-', color: 'text-gray-400', fontWeight: 'font-normal' };
             }
@@ -377,14 +377,14 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
                     text: 'Completada',
                     color: 'text-green-600',
                     fontWeight: 'font-bold',
-                    icon: '📝'
+                    icon: 'edit_note'
                 };
             case 'aprobacion':
                 return {
                     text: 'Aprobada',
                     color: 'text-[var(--secundary-color)]',
                     fontWeight: 'font-bold',
-                    icon: '✅'
+                    icon: 'check_circle'
                 };
             case 'devolucion_estimada':
                 if (isPast && !isToday) {
@@ -392,21 +392,21 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
                         text: 'Vencida',
                         color: 'text-red-600',
                         fontWeight: 'font-bold',
-                        icon: '⚠️'
+                        icon: 'warning'
                     };
                 } else if (isToday) {
                     return {
                         text: 'Hoy',
                         color: 'text-orange-600',
                         fontWeight: 'font-bold',
-                        icon: '🔥'
+                        icon: 'local_fire_department'
                     };
                                 } else {
                     return {
                         text: 'Pendiente',
                         color: 'text-[var(--primary-color)]',
                         fontWeight: 'font-bold',
-                        icon: '📅'
+                        icon: 'event'
                     };
                 }
                                                 case 'devolucion_real':
@@ -414,7 +414,7 @@ export class LoansCrudComponent implements OnInit, OnDestroy {
                     text: 'Devuelta',
                     color: 'text-[var(--color-success)]',
                     fontWeight: 'font-bold',
-                    icon: '🛠️'
+                    icon: 'build'
                 };
             default:
                 return { text: 'Completada', color: 'text-gray-600', fontWeight: 'font-medium' };

@@ -57,20 +57,22 @@
                     <h5 class="m-0 p-2 text-[var(--primary-color)]">Consulta de Órdenes de Préstamo</h5>
                     <div class="flex gap-2">
                         <p-button
-                            icon="pi pi-refresh"
                             (click)="loadLoans()"
                             [loading]="loading"
                             styleClass="p-button-outlined p-button-sm"
                             pTooltip="Actualizar lista"
                             tooltipPosition="top">
+                            <ng-template pTemplate="icon">
+                                <i class="material-symbols-outlined">refresh</i>
+                            </ng-template>
                         </p-button>
                     </div>
                 </div>
                 <div class="flex items-center justify-between gap-4 mt-2">
-                    <p-iconfield class="flex-1">
-                        <p-inputicon styleClass="pi pi-search" />
-                        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, folio, usuario, correo o estado..." />
-                    </p-iconfield>
+                    <div class="flex-1 relative">
+                        <i class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</i>
+                        <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, folio, usuario, correo o estado..." class="pl-10 w-full" />
+                    </div>
                 </div>
             </ng-template>
             <ng-template pTemplate="header">
@@ -158,19 +160,31 @@
                                   'bg-[rgba(255,152,0,0.2)] text-orange-600': loan.estado?.toLowerCase() === 'vencido',
                                   'bg-gray-200 text-gray-700': !['aprobado', 'pendiente', 'rechazado', 'terminado', 'vencido'].includes(loan.estado?.toLowerCase())
                               }">
-                            <span *ngIf="loan.estado?.toLowerCase() === 'aprobado'" class="text-xs">✅</span>
-                            <span *ngIf="loan.estado?.toLowerCase() === 'pendiente'" class="text-xs">⏳</span>
-                            <span *ngIf="loan.estado?.toLowerCase() === 'rechazado'" class="text-xs">❌</span>
-                            <span *ngIf="loan.estado?.toLowerCase() === 'terminado'" class="text-xs">🛠️</span>
-                            <span *ngIf="loan.estado?.toLowerCase() === 'vencido'" class="text-xs">⚠️</span>
-                            <span *ngIf="!['aprobado', 'pendiente', 'rechazado', 'terminado', 'vencido'].includes(loan.estado?.toLowerCase())" class="text-xs">❓</span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'aprobado'" class="text-xs">
+                                <i class="material-symbols-outlined text-sm">check_circle</i>
+                            </span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'pendiente'" class="text-xs">
+                                <i class="material-symbols-outlined text-sm">pending</i>
+                            </span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'rechazado'" class="text-xs">
+                                <i class="material-symbols-outlined text-sm">cancel</i>
+                            </span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'terminado'" class="text-xs">
+                                <i class="material-symbols-outlined text-sm">build</i>
+                            </span>
+                            <span *ngIf="loan.estado?.toLowerCase() === 'vencido'" class="text-xs">
+                                <i class="material-symbols-outlined text-sm">warning</i>
+                            </span>
+                            <span *ngIf="!['aprobado', 'pendiente', 'rechazado', 'terminado', 'vencido'].includes(loan.estado?.toLowerCase())" class="text-xs">
+                                <i class="material-symbols-outlined text-sm">help</i>
+                            </span>
                             {{ loan.estado | titlecase }}
                         </span>
                     </td>
                     <td>
                         <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_solicitud, 'solicitud')">
                             <span *ngIf="getDateStatus(loan.fecha_solicitud, 'solicitud').icon" class="status-icon">
-                                {{ getDateStatus(loan.fecha_solicitud, 'solicitud').icon }}
+                                <i class="material-symbols-outlined text-sm">{{ getDateStatus(loan.fecha_solicitud, 'solicitud').icon }}</i>
                             </span>
                             <span [ngClass]="[getDateStatus(loan.fecha_solicitud, 'solicitud').color, getDateStatus(loan.fecha_solicitud, 'solicitud').fontWeight]">
                                 {{ loan.fecha_solicitud ? (loan.fecha_solicitud | date:'dd/MM/yy') : getDateStatus(loan.fecha_solicitud, 'solicitud').text }}
@@ -180,7 +194,7 @@
                     <td>
                         <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_aprobacion, 'aprobacion')">
                             <span *ngIf="getDateStatus(loan.fecha_aprobacion, 'aprobacion').icon" class="status-icon">
-                                {{ getDateStatus(loan.fecha_aprobacion, 'aprobacion').icon }}
+                                <i class="material-symbols-outlined text-sm">{{ getDateStatus(loan.fecha_aprobacion, 'aprobacion').icon }}</i>
                             </span>
                             <span [ngClass]="[getDateStatus(loan.fecha_aprobacion, 'aprobacion').color, getDateStatus(loan.fecha_aprobacion, 'aprobacion').fontWeight]">
                                 {{ loan.fecha_aprobacion ? (loan.fecha_aprobacion | date:'dd/MM/yy') : getDateStatus(loan.fecha_aprobacion, 'aprobacion').text }}
@@ -190,7 +204,7 @@
                     <td>
                         <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_devolucion_estimada, 'devolucion_estimada')">
                             <span *ngIf="getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').icon" class="status-icon">
-                                {{ getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').icon }}
+                                <i class="material-symbols-outlined text-sm">{{ getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').icon }}</i>
                             </span>
                             <span [ngClass]="[getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').color, getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').fontWeight]">
                                 {{ loan.fecha_devolucion_estimada ? (loan.fecha_devolucion_estimada | date:'dd/MM/yy') : getDateStatus(loan.fecha_devolucion_estimada, 'devolucion_estimada').text }}
@@ -200,7 +214,7 @@
                     <td>
                         <div class="flex items-center gap-1 date-cell" [ngClass]="getDateCellClasses(loan.fecha_devolucion_real, 'devolucion_real')">
                             <span *ngIf="getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').icon" class="status-icon">
-                                {{ getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').icon }}
+                                <i class="material-symbols-outlined text-sm">{{ getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').icon }}</i>
                             </span>
                             <span [ngClass]="[getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').color, getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').fontWeight]">
                                 {{ loan.fecha_devolucion_real ? (loan.fecha_devolucion_real | date:'dd/MM/yy') : getDateStatus(loan.fecha_devolucion_real, 'devolucion_real').text }}
@@ -234,7 +248,7 @@
                 <tr>
                     <td colspan="11" class="text-center py-8">
                         <div class="flex flex-col items-center gap-2">
-                            <i class="pi pi-inbox text-4xl text-gray-400"></i>
+                            <i class="material-symbols-outlined text-4xl text-gray-400">inbox</i>
                             <span class="text-gray-500">No se encontraron órdenes de préstamo</span>
                         </div>
                     </td>
@@ -261,7 +275,7 @@
     </app-modal-alert>
 
     <div *ngIf="loadingDetails" class="flex justify-center py-8">
-        <i class="pi pi-spin pi-spinner text-2xl"></i>
+        <i class="material-symbols-outlined text-2xl animate-spin">sync</i>
     </div>
 
     <div *ngIf="!loadingDetails">
@@ -322,7 +336,7 @@
                 <tr>
                     <td colspan="8" class="text-center py-4">
                         <div class="flex flex-col items-center gap-2">
-                            <i class="pi pi-tools text-2xl text-gray-400"></i>
+                            <i class="material-symbols-outlined text-2xl text-gray-400">build</i>
                             <span class="text-gray-500">No hay herramientas registradas</span>
                         </div>
                     </td>
