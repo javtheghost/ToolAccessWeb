@@ -294,11 +294,9 @@ export class FinesService {
 
     // GET - Obtener órdenes de préstamo por usuario específico
     getLoansByUser(userId: number): Observable<any[]> {
-        const loansApiUrl = `${environment.apiServiceGeneralUrl}/api/loan-orders`;
-        const params = new HttpParams().set('usuario_id', userId.toString());
+        const loansApiUrl = `${environment.apiServiceGeneralUrl}/api/loan-orders/operador/${userId}`;
 
         return this.http.get<any>(loansApiUrl, {
-            params,
             headers: this.getHeaders()
         }).pipe(
             map(response => {

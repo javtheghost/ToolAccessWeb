@@ -236,7 +236,7 @@ interface DamageHistory {
 >
   <ng-template pTemplate="header">
     <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
-      Reportar Daño a Herramienta
+      {{ isEditMode ? 'Editar' : 'Reportar' }} Daño a Herramienta
     </span>
   </ng-template>
     <ng-template pTemplate="content">

@@ -484,7 +484,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     scrollHeight="200px"
                     [virtualScroll]="true"
                     [virtualScrollItemSize]="38"
-                    (onChange)="onUserChange($event.value)">
+                    (onChange)="onUserChange($event)">
                     <ng-template pTemplate="selectedItem" let-usuario>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -522,10 +522,10 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                 </svg>
                 <p-dropdown
                     formControlName="orden_id"
-                    [options]="filteredOrdenes.length > 0 ? filteredOrdenes : ordenes"
+                    [options]="filteredOrdenes"
                     optionLabel="folio"
                     optionValue="id"
-                    placeholder="Selecciona una opción"
+                    placeholder="Primero selecciona un usuario"
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
@@ -534,7 +534,8 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     filterPlaceholder="Buscar órdenes..."
                     scrollHeight="200px"
                     [virtualScroll]="true"
-                    [virtualScrollItemSize]="38">
+                    [virtualScrollItemSize]="38"
+                    [disabled]="!filteredOrdenes.length">
                     <ng-template pTemplate="selectedItem" let-orden>
                         <div class="flex items-center justify-start h-full w-full">
                             <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -558,11 +559,29 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                     <ng-template pTemplate="emptyfilter">
                         <div class="text-center py-4">
                             <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
-                            <p class="text-gray-500">No se encontraron órdenes</p>
+                            <p class="text-gray-500">No se encontraron órdenes con ese filtro</p>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="empty">
+                        <div class="text-center py-4">
+                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">assignment</i>
+                            <p class="text-gray-500">No hay órdenes disponibles para este usuario</p>
                         </div>
                     </ng-template>
                 </p-dropdown>
                 <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Orden préstamo <span class="text-red-500">*</span></label>
+                
+                <!-- Mensaje informativo cuando no hay usuario seleccionado -->
+                <div *ngIf="!fineForm.get('usuario_id')?.value" class="mt-2 text-sm text-blue-600 flex items-center">
+                    <i class="material-symbols-outlined text-sm mr-1">info</i>
+                    Primero selecciona un usuario para ver sus órdenes de préstamo
+                </div>
+                
+                <!-- Mensaje cuando no hay órdenes para el usuario seleccionado -->
+                <div *ngIf="fineForm.get('usuario_id')?.value && filteredOrdenes.length === 0" class="mt-2 text-sm text-orange-600 flex items-center">
+                    <i class="material-symbols-outlined text-sm mr-1">warning</i>
+                    Este usuario no tiene órdenes de préstamo disponibles
+                </div>
             </div>
 
             <!-- Configuración -->
@@ -1141,24 +1160,37 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
         }
     }
 
-    // Método para manejar el cambio de usuario y filtrar órdenes
-    onUserChange(selectedUser: any) {
+        // Método para manejar el cambio de usuario y filtrar órdenes
+    onUserChange(event: any) {
+        // Obtener el usuario seleccionado del array de usuarios
+        const selectedUserId = event.value;
+        const selectedUser = this.usuarios.find(u => u.id === selectedUserId);
+        
+        // Limpiar siempre la selección de orden cuando cambie el usuario
+        this.fineForm.patchValue({ orden_id: '' });
+        
         if (selectedUser && selectedUser.id) {
-            // Filtrar órdenes por el usuario seleccionado
+            // Obtener órdenes específicas del usuario seleccionado
             this.finesService.getLoansByUser(selectedUser.id).subscribe({
                 next: (userLoans: any[]) => {
                     this.filteredOrdenes = userLoans;
-                    // Limpiar la selección de orden si no está en las filtradas
-                    if (this.fineForm.get('orden_id')?.value) {
-                        const orderExists = this.filteredOrdenes.find(o => o.id === this.fineForm.get('orden_id')?.value);
-                        if (!orderExists) {
-                            this.fineForm.patchValue({ orden_id: '' });
-                        }
+                    
+                    if (userLoans && userLoans.length > 0) {
+                        this.messageService.add({
+                            severity: 'success',
+                            summary: 'Órdenes cargadas',
+                            detail: `Se cargaron ${userLoans.length} órdenes para ${selectedUser.nombre}`
+                        });
                     }
                 },
                 error: (error: any) => {
                     console.error('Error al obtener órdenes del usuario:', error);
                     this.filteredOrdenes = [];
+                    this.messageService.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: 'No se pudieron cargar las órdenes del usuario seleccionado'
+                    });
                 }
             });
         } else {
@@ -1206,20 +1238,8 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
             }
         });
 
-        // Cargar órdenes
-        this.finesService.getOrdenes().subscribe({
-            next: (ordenes) => {
-                this.ordenes = ordenes;
-                this.filteredOrdenes = []; // Inicializar órdenes filtradas vacías
-            },
-            error: (error) => {
-                this.messageService.add({
-                    severity: 'warn',
-                    summary: 'Advertencia',
-                    detail: 'No se pudieron cargar las órdenes. Usando ruta: /api/loan-orders'
-                });
-            }
-        });
+        // Inicializar órdenes filtradas vacías - solo se cargarán cuando se seleccione un usuario
+        this.filteredOrdenes = [];
 
         // Cargar configuraciones (temporalmente vacío)
         this.finesService.getConfiguraciones().subscribe({
@@ -1268,6 +1288,14 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
             fecha_vencimiento: new Date(fine.fecha_vencimiento),
             comentarios: fine.comentarios || ''
         });
+        
+        // Cargar las órdenes del usuario cuando se edita
+        if (fine.usuario_id) {
+            // Simular el evento del dropdown para mantener consistencia
+            const mockEvent = { value: fine.usuario_id };
+            this.onUserChange(mockEvent);
+        }
+        
         this.fineDialog = true;
     }
 
@@ -1356,6 +1384,7 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
     hideDialog() {
         this.fineDialog = false;
         this.fineForm.reset();
+        this.filteredOrdenes = []; // Limpiar órdenes filtradas al cerrar
     }
 
     getEstadoClass(estado: string): string {
