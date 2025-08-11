@@ -1357,7 +1357,13 @@ export class RecentFinesCrudComponent implements OnInit, OnDestroy {
 
     deleteFine(fine: Fine) {
         this.confirmIcon = 'delete';
-        this.confirmMessage = `¿Estás seguro de eliminar la multa #${fine.id}? Una vez que aceptes, no podrás revertir los cambios.`;
+        
+        // Obtener el nombre del usuario y el folio de la orden
+        const userName = fine.usuario_nombre || `Usuario #${fine.usuario_id}`;
+        const orderFolio = fine.orden_folio || `Orden #${fine.orden_id}`;
+        
+        this.confirmMessage = `¿Estás seguro de eliminar la multa de <strong>${userName}</strong> con orden <strong>${orderFolio}</strong>? Una vez que aceptes, no podrás revertir los cambios.`;
+        
         this.confirmAction = () => {
             this.finesService.deleteFine(fine.id)
                 .subscribe({
