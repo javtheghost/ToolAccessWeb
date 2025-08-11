@@ -385,8 +385,7 @@ interface Column {
                     class="w-full"
                     [styleClass]="'h-12 pl-16 pr-4'"
                     [showClear]="false"
-                    [filter]="true"
-                    filterPlaceholder="Buscar roles..."
+                    [filter]="false"
                     [class.border-red-500]="userForm.get('rol_id')?.invalid && userForm.get('rol_id')?.touched"
                     [class.border-gray-300]="!userForm.get('rol_id')?.invalid || !userForm.get('rol_id')?.touched"
                     scrollHeight="150px"
@@ -402,12 +401,6 @@ interface Column {
                     <ng-template pTemplate="item" let-role>
                         <div class="flex items-center justify-start h-full w-full">
                             <span class="font-medium">{{ role.nombre }}</span>
-                        </div>
-                    </ng-template>
-                    <ng-template pTemplate="emptyfilter">
-                        <div class="text-center py-4">
-                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
-                            <p class="text-gray-500">No se encontraron roles</p>
                         </div>
                     </ng-template>
                 </p-dropdown>
@@ -718,7 +711,11 @@ export class UsersCrudComponent implements OnInit {
 
     // Datos auxiliares
     selectedUser: User | null = null;
-    rolesDb: any[] = [];
+    rolesDb: any[] = [
+        { id: 1, nombre: 'admin' },
+        { id: 2, nombre: 'operador' },
+        { id: 3, nombre: 'recepcionista' }
+    ];
     currentUserId: number | null = null; // Se obtiene del servicio de autenticación
 
     // Filtros
