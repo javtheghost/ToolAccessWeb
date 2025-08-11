@@ -556,7 +556,7 @@ interface DamageHistory {
         </ng-template>
     </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
-<div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
+<div *ngIf="showCustomConfirm" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 custom-confirm-modal" style="z-index: 9999;">
   <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative" style="background: #fff;">
     <button type="button" (click)="onCustomConfirmReject()" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 focus:outline-none text-2xl">
       <span class="material-symbols-outlined">close</span>
@@ -880,6 +880,26 @@ interface DamageHistory {
             background-color: #FFABAB !important;
         }
 
+        /* Estilos específicos para el modal de confirmación personalizado */
+        :host ::ng-deep .custom-confirm-modal {
+            z-index: 9999 !important;
+            position: fixed !important;
+        }
+
+        /* Asegurar que el modal de confirmación esté siempre por encima */
+        :host ::ng-deep .custom-confirm-modal .bg-white {
+            z-index: 10000 !important;
+            position: relative !important;
+        }
+
+        /* Asegurar que el modal de confirmación esté por encima de los modales de PrimeNG */
+        :host ::ng-deep .p-dialog {
+            z-index: 1000 !important;
+        }
+
+        :host ::ng-deep .p-dialog-mask {
+            z-index: 999 !important;
+        }
    
         
     `]
@@ -1226,7 +1246,10 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                         }
                     });
                 };
-                this.showCustomConfirm = true;
+                // Agregar un pequeño delay para asegurar que el modal de confirmación se muestre por encima
+                setTimeout(() => {
+                    this.showCustomConfirm = true;
+                }, 100);
             } else {
                 // Modo creación
                 const costoReparacion = Number(this.damageHistoryItem.costo_reparacion || this.damageHistoryItem.repairCost || 0);
