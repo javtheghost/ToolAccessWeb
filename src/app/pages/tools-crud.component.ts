@@ -124,7 +124,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mt-4">
                 <p-iconfield class="flex-1">
                     <p-inputicon styleClass="pi pi-search" />
-                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar herramientas..." />
+                    <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar por ID, herramienta, folio..." />
                 </p-iconfield>
                 <p-button
                     label="Crear Herramienta"

@@ -176,14 +176,16 @@ interface DamageHistory {
                 <td>{{ history.orden_folio || getLoanFolio(history.orden_prestamo_id) }}</td>
                 <td>{{ history.costo_reparacion | currency: 'MXN' }}</td>
                 <td>
-                    <span class="px-3 py-1 rounded-full text-white text-sm font-medium" 
+                    <span class="px-3 py-1 rounded-full text-white text-sm font-medium cursor-help" 
                           [ngClass]="{
                               'bg-yellow-500': history.status === 'reportado',
                               'bg-blue-500': history.status === 'en_reparacion',
                               'bg-green-500': history.status === 'reparado',
                               'bg-red-500': history.status === 'dado_de_baja',
                               'bg-gray-500': !history.status
-                          }">
+                          }"
+                          pTooltip="Haz clic en el icono de editar para cambiar el estado"
+                          tooltipPosition="top">
                         {{ getStatusDisplay(history.status) }}
                     </span>
                 </td>
@@ -199,20 +201,11 @@ interface DamageHistory {
                     </p-button>
                     <p-button
                         (click)="editDamageHistory(history)"
-                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
-                        pTooltip="Editar historial de daño"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit"
+                        pTooltip="Editar reporte de daño"
                         tooltipPosition="top">
                         <ng-template pTemplate="icon">
                             <i class="material-symbols-outlined">edit</i>
-                        </ng-template>
-                    </p-button>
-                    <p-button
-                        (click)="deleteDamageHistory(history)"
-                        styleClass="custom-flat-icon-button custom-flat-icon-button-delete"
-                        pTooltip="Eliminar historial de daño"
-                        tooltipPosition="top">
-                        <ng-template pTemplate="icon">
-                            <i class="material-symbols-outlined">delete</i>
                         </ng-template>
                     </p-button>
                 </td>
@@ -1171,22 +1164,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         this.detailsDialog = true;
     }
 
-    deleteDamageHistory(history: Damage) {
-        this.confirmIcon = 'delete';
-        const toolName = this.tools.find(t => t.id === history.herramienta_id)?.nombre || 'Herramienta';
-        this.confirmMessage = `¿Estás seguro de eliminar el reporte de daño de <span class='text-primary'>${toolName}</span>? Una vez que aceptes, no podrás revertir los cambios.`;
-        this.confirmAction = () => {
-            // La eliminación física de reportes no está disponible en el backend
-            // Los reportes se manejan a través de cambios de estado
-            this.messageService.add({
-                severity: 'info',
-                summary: 'Información',
-                detail: 'Los reportes de daños no se pueden eliminar, solo cambiar de estado. Use la función de editar para actualizar.',
-                life: 4000
-            });
-        };
-        this.showCustomConfirm = true;
-    }
+
 
     hideDialog() {
         this.damageHistoryDialog = false;
@@ -1410,8 +1388,14 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
     }
 
     getStatusDisplay(status: string): string {
-        // Mostrar los valores reales de la base de datos
-        return status || 'N/A';
+        if (!status) return 'N/A';
+        
+        // Reemplazar guiones bajos con espacios y capitalizar cada palabra
+        return status
+            .replace(/_/g, ' ')
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
     }
 
     // Método para formatear fechas
