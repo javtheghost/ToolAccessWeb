@@ -32,6 +32,12 @@ export interface Damage {
     subcategory?: any;
     repairCost?: number;
     fineType?: string;
+
+    // Nuevos campos de categoría y subcategoría desde la API
+    categoria_id?: number;
+    categoria_nombre?: string;
+    subcategoria_id?: number;
+    subcategoria_nombre?: string;
 }
 
 export interface DamageCreateRequest {
@@ -40,6 +46,9 @@ export interface DamageCreateRequest {
     tipo_dano_id: number;
     descripcion: string;
     costo_reparacion?: number;
+    status?: 'reportado' | 'en_reparacion' | 'reparado' | 'dado_de_baja';
+    categoria_id?: number;
+    subcategoria_id?: number;
 }
 
 export interface DamageUpdateRequest {
@@ -50,6 +59,8 @@ export interface DamageUpdateRequest {
     costo_reparacion?: number;
     status?: 'reportado' | 'en_reparacion' | 'reparado' | 'dado_de_baja';
     repair_date?: string;
+    categoria_id?: number;
+    subcategoria_id?: number;
 }
 
 export interface DamageManageRequest {

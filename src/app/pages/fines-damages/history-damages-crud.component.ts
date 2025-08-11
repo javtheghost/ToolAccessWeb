@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -24,7 +24,7 @@ import { SubcategoryService } from '../service/subcategory.service';
 import { DamageTypesService, DamageType } from '../service/damage-types.service';
 import { OAuthService } from '../service/oauth.service';
 import { CommunicationService } from '../service/communication.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, Observable } from 'rxjs';
 
 interface DamageHistory {
     id: string;
@@ -33,7 +33,7 @@ interface DamageHistory {
     damageType: string;
     description: string;
     repairCost: number;
-    status: 'Pendiente' | 'Reparado';
+    status: 'Pendiente' | 'Reparado' | 'En reparación' | 'Dado de baja' | 'N/A';
     category: string;
     subcategory: string;
     fineType: string;
@@ -70,15 +70,13 @@ interface DamageHistory {
             <div class="flex items-center space-x-4">
                 <p-skeleton height="1.5rem" width="60px" styleClass="bg-white/20"></p-skeleton>
                 <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="140px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="200px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
-                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
                 <p-skeleton height="1.5rem" width="80px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="100px" styleClass="bg-white/20"></p-skeleton>
+                <p-skeleton height="1.5rem" width="120px" styleClass="bg-white/20"></p-skeleton>
             </div>
         </div>
         <!-- Filas skeleton -->
@@ -86,15 +84,13 @@ interface DamageHistory {
             <div *ngFor="let item of [1,2,3,4,5]" class="flex items-center space-x-4 py-3 border-b border-gray-100 last:border-b-0">
                 <p-skeleton height="1rem" width="60px"></p-skeleton>
                 <p-skeleton height="1rem" width="120px"></p-skeleton>
-                <p-skeleton height="1rem" width="100px"></p-skeleton>
-                <p-skeleton height="1rem" width="140px"></p-skeleton>
-                <p-skeleton height="1rem" width="200px"></p-skeleton>
-                <p-skeleton height="1rem" width="120px"></p-skeleton>
-                <p-skeleton height="1rem" width="100px"></p-skeleton>
-                <p-skeleton height="1rem" width="120px"></p-skeleton>
-                <p-skeleton height="1rem" width="120px"></p-skeleton>
-                <p-skeleton height="1rem" width="100px"></p-skeleton>
                 <p-skeleton height="1rem" width="80px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
+                <p-skeleton height="1rem" width="100px"></p-skeleton>
+                <p-skeleton height="1rem" width="120px"></p-skeleton>
             </div>
         </div>
     </div>
@@ -106,7 +102,7 @@ interface DamageHistory {
             [value]="damageHistory"
             [rows]="10"
             [paginator]="true"
-            [globalFilterFields]="['id', 'tool', 'order', 'damageType', 'description']"
+            [globalFilterFields]="['id', 'herramienta_id', 'orden_prestamo_id', 'costo_reparacion', 'status']"
             [tableStyle]="{ 'min-width': '100%' }"
             [(selection)]="selectedDamageHistory"
             [rowHover]="true"
@@ -150,21 +146,13 @@ interface DamageHistory {
                         <p-sortIcon field="herramienta_id"></p-sortIcon>
                     </div>
                 </th>
+
                 <th pSortableColumn="orden_prestamo_id">
                     <div class="flex justify-content-center align-items-center">
                         Orden
                         <p-sortIcon field="orden_prestamo_id"></p-sortIcon>
                     </div>
                 </th>
-                <!-- COMENTADO TEMPORALMENTE - Tipo de daño
-                <th pSortableColumn="tipo_dano_id">
-                    <div class="flex justify-content-center align-items-center">
-                        Tipo Daño
-                        <p-sortIcon field="tipo_dano_id"></p-sortIcon>
-                    </div>
-                </th>
-                -->
-                <th>Descripción</th>
                 <th pSortableColumn="costo_reparacion">
                     <div class="flex justify-content-center align-items-center">
                         Costo Rep.
@@ -183,19 +171,32 @@ interface DamageHistory {
         <ng-template pTemplate="body" let-history>
             <tr>
                 <td>{{ history.id }}</td>
-                <td>{{ getToolName(history.herramienta_id) }}</td>
-                <td>{{ getLoanFolio(history.orden_prestamo_id) }}</td>
-                <!-- COMENTADO TEMPORALMENTE - Tipo de daño
-                <td>{{ getDamageTypeDisplay(history.tipo_dano_id) }}</td>
-                -->
-                <td>{{ history.descripcion }}</td>
-                <td>{{ history.costo_reparacion | currency: 'USD' }}</td>
+                <td>{{ history.herramienta_nombre || getToolName(history.herramienta_id) }}</td>
+
+                <td>{{ history.orden_folio || getLoanFolio(history.orden_prestamo_id) }}</td>
+                <td>{{ history.costo_reparacion | currency: 'MXN' }}</td>
                 <td>
-                    <span class="px-3 py-1 rounded-full text-white" [ngStyle]="{ 'background': history.status === 'reportado' ? '#FEE8B9' : '#AAEACA', 'color': '#333' }">
+                    <span class="px-3 py-1 rounded-full text-white text-sm font-medium" 
+                          [ngClass]="{
+                              'bg-yellow-500': history.status === 'reportado',
+                              'bg-blue-500': history.status === 'en_reparacion',
+                              'bg-green-500': history.status === 'reparado',
+                              'bg-red-500': history.status === 'dado_de_baja',
+                              'bg-gray-500': !history.status
+                          }">
                         {{ getStatusDisplay(history.status) }}
                     </span>
                 </td>
                 <td>
+                    <p-button
+                        (click)="viewDamageDetails(history)"
+                        styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
+                        pTooltip="Ver detalles del daño"
+                        tooltipPosition="top">
+                        <ng-template pTemplate="icon">
+                                        <i class="material-symbols-outlined">visibility</i>
+                                    </ng-template>
+                    </p-button>
                     <p-button
                         (click)="editDamageHistory(history)"
                         styleClass="custom-flat-icon-button custom-flat-icon-button-edit mr-2"
@@ -219,7 +220,7 @@ interface DamageHistory {
         </ng-template>
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="7" class="text-center py-8">
+                <td colspan="6" class="text-center py-8">
                     <div class="flex flex-col items-center justify-center space-y-4">
                         <i class="material-symbols-outlined text-6xl text-gray-300">database</i>
                         <div class="text-center">
@@ -306,64 +307,44 @@ interface DamageHistory {
                 <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Préstamo asociado <span class="text-red-500">*</span></label>
             </div>
 
-            <!-- Categoría -->
-            <div class="relative">
+
+
+
+
+            <!-- Estado de la herramienta -->
+            <div class="relative col-span-1">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none w-6 h-6 z-20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 21H4V10H6V19H18V10H20V21ZM3 3H21V9H3V3ZM9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11ZM5 5V7H19V5H5Z" fill="var(--primary-color)"/>
+                    <path d="M14.4 6L14 4H5V21H7V14H12.6L13 16H20V6H14.4Z" fill="var(--primary-color)"/>
                 </svg>
                 <p-dropdown
-                    [options]="categories"
-                    [(ngModel)]="damageHistoryItem.category"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    [filter]="true"
-                    filterPlaceholder="Buscar categorías..."
-                    placeholder=" "
+                    [options]="toolStatusOptions"
+                    [(ngModel)]="damageHistoryItem.status"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Selecciona un estado"
                     [style]="{ width: '100%' }"
                     class="w-full"
                     [styleClass]="'h-12 px-10'"
-                    [showClear]="false"
-                    (onShow)="onDropdownOpen($event)"
-                    (onHide)="onDropdownClose($event)">
-                    <ng-template pTemplate="emptyfilter">
-                        <div class="text-center py-4">
-                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
-                            <p class="text-gray-500">No se encontraron categorías</p>
+                    [showClear]="false">
+                    <ng-template pTemplate="selectedItem" let-status>
+                        <div class="flex items-center justify-start h-full w-full">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14.4 6L14 4H5V21H7V14H12.6L13 16H20V6H14.4Z" fill="currentColor"/>
+                            </svg>
+                            <span>{{ status.label }}</span>
+                        </div>
+                    </ng-template>
+                    <ng-template pTemplate="item" let-status>
+                        <div class="flex items-center justify-start h-full w-full">
+                            <svg class="w-5 h-5 text-gray-500 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14.4 6L14 4H5V21H7V14H12.6L13 16H20V6H14.4Z" fill="currentColor"/>
+                            </svg>
+                            <span>{{ status.label }}</span>
                         </div>
                     </ng-template>
                 </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Categoría <span class="text-red-500">*</span></label>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Estado de la herramienta <span class="text-red-500">*</span></label>
             </div>
-
-            <!-- Subcategorías -->
-            <div class="relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none w-6 h-6 z-20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 21H4V10H6V19H18V10H20V21ZM3 3H21V9H3V3ZM9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11ZM5 5V7H19V5H5Z" fill="var(--primary-color)"/>
-                </svg>
-                <p-dropdown
-                    [options]="subcategories"
-                    [(ngModel)]="damageHistoryItem.subcategory"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    [filter]="true"
-                    filterPlaceholder="Buscar subcategorías..."
-                    placeholder=" "
-                    [style]="{ width: '100%' }"
-                    class="w-full"
-                    [styleClass]="'h-12 px-10'"
-                    [showClear]="false"
-                    (onShow)="onDropdownOpen($event)"
-                    (onHide)="onDropdownClose($event)">
-                    <ng-template pTemplate="emptyfilter">
-                        <div class="text-center py-4">
-                            <i class="material-symbols-outlined text-4xl text-gray-300 mb-2">search_off</i>
-                            <p class="text-gray-500">No se encontraron subcategorías</p>
-                        </div>
-                    </ng-template>
-                </p-dropdown>
-                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Subcategoría <span class="text-red-500">*</span></label>
-            </div>
-
             <!-- COMENTADO TEMPORALMENTE - Tipo de Daño
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--primary-color)] pointer-events-none">warning</span>
@@ -395,7 +376,8 @@ interface DamageHistory {
             <!-- Descripción detallada -->
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3 top-6 text-[var(--primary-color)] pointer-events-none">edit_document</span>
-                <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Descripción detallada" [(ngModel)]="damageHistoryItem.descripcion"></textarea>
+                <textarea id="description" name="description" rows="3" class="peer block w-full rounded-lg border border-gray-300 bg-transparent px-10 pt-4 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]" placeholder="Descripción detallada " [(ngModel)]="damageHistoryItem.descripcion"></textarea>
+                <label class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 bg-white px-1">Descripción detallada <span class="text-gray-500">(opcional)</span></label>
             </div>
 
             <!-- Costo de reparación -->
@@ -418,6 +400,7 @@ interface DamageHistory {
                     [inputStyle]="{'padding-left': '2.5rem'}">
                 </p-inputnumber>
             </div>
+
 
             <!-- Tipo de multa - COMENTADO TEMPORALMENTE
             <div class="relative">
@@ -446,6 +429,149 @@ interface DamageHistory {
         </div>
     </ng-template>
 </p-dialog>
+
+    <!-- Modal de Detalles del Daño -->
+    <p-dialog
+        [(visible)]="detailsDialog"
+        [style]="{ width: '700px' }"
+        [modal]="true"
+        [draggable]="false"
+        [resizable]="false"
+    >
+        <ng-template pTemplate="header">
+            <span style="color: var(--primary-color); font-weight: bold; font-size: 1.25rem;">
+                Detalles del Reporte de Daño
+            </span>
+        </ng-template>
+        <ng-template pTemplate="content">
+            <div *ngIf="selectedDamageForDetails" class="space-y-6">
+                <!-- Información de la Herramienta -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="material-symbols-outlined mr-2 text-[var(--primary-color)]">build</i>
+                        Información de la Herramienta
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Herramienta:</label>
+                            <p class="text-gray-900 font-medium">{{ getToolName(selectedDamageForDetails.herramienta_id) }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Folio:</label>
+                            <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.herramienta_folio || 'N/A' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del Préstamo -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="material-symbols-outlined mr-2 text-[var(--primary-color)]">receipt</i>
+                        Información del Préstamo
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Orden:</label>
+                            <p class="text-gray-900 font-medium">{{ getLoanFolio(selectedDamageForDetails.orden_prestamo_id) }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">ID Orden:</label>
+                            <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.orden_prestamo_id }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del Daño -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="material-symbols-outlined mr-2 text-[var(--primary-color)]">warning</i>
+                        Información del Daño
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Descripción:</label>
+                            <p class="text-gray-900">{{ selectedDamageForDetails.descripcion || 'Sin descripción' }}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Costo de Reparación:</label>
+                                <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.costo_reparacion | currency: 'MXN' }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Estado:</label>
+                                <span class="px-3 py-1 rounded-full text-white text-sm font-medium" 
+                                      [ngClass]="{
+                                          'bg-yellow-500': selectedDamageForDetails.status === 'reportado',
+                                          'bg-blue-500': selectedDamageForDetails.status === 'en_reparacion',
+                                          'bg-green-500': selectedDamageForDetails.status === 'reparado',
+                                          'bg-red-500': selectedDamageForDetails.status === 'dado_de_baja',
+                                          'bg-gray-500': !selectedDamageForDetails.status
+                                      }">
+                                    {{ getStatusDisplay(selectedDamageForDetails.status) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Categoría:</label>
+                                <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.categoria_nombre || 'N/A' }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Subcategoría:</label>
+                                <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.subcategoria_nombre || 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fechas -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="material-symbols-outlined mr-2 text-[var(--primary-color)]">schedule</i>
+                        Fechas
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Fecha de Reporte:</label>
+                            <p class="text-gray-900 font-medium">{{ formatDate(selectedDamageForDetails.report_date) }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Fecha de Reparación:</label>
+                            <p class="text-gray-900 font-medium">{{ formatDate(selectedDamageForDetails.repair_date) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del Sistema -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <i class="material-symbols-outlined mr-2 text-[var(--primary-color)]">info</i>
+                        Información del Sistema
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">ID del Reporte:</label>
+                            <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.id }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Última Actualización:</label>
+                            <p class="text-gray-900 font-medium">{{ formatDate(selectedDamageForDetails.updated_at) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end">
+                <p-button
+                    label="Cerrar"
+                    icon="pi pi-times"
+                    (onClick)="detailsDialog = false"
+                    styleClass="p-button-secondary">
+                </p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN -->
 <div *ngIf="showCustomConfirm" class="fixed inset-0 z-modal-confirm flex items-center justify-center bg-black bg-opacity-40">
   <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative" style="background: #fff;">
@@ -483,8 +609,6 @@ interface DamageHistory {
         :host ::ng-deep .p-dialog {
             border-radius: 12px !important;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-            max-height: 90vh !important;
-            overflow: hidden !important;
         }
 
         :host ::ng-deep .p-dialog .p-dialog-header {
@@ -505,6 +629,11 @@ interface DamageHistory {
         /* Prevenir scroll en el modal cuando el dropdown está abierto */
         :host ::ng-deep .p-dialog .p-dialog-content.p-dropdown-open {
             overflow: hidden !important;
+        }
+
+        /* Permitir scroll en el contenido del modal */
+        :host ::ng-deep .p-dialog .p-dialog-content .grid {
+            overflow: visible !important;
         }
 
         /* Estilos para que los dropdowns se vean como selects */
@@ -574,10 +703,28 @@ interface DamageHistory {
             overflow-y: auto !important;
         }
 
-        /* Prevenir que el scroll del modal interfiera con el dropdown */
+        /* Permitir scroll en el panel del dropdown del estado */
         :host ::ng-deep .p-dropdown-panel .p-dropdown-items-wrapper {
             max-height: 180px !important;
             overflow-y: auto !important;
+        }
+
+        /* Asegurar que el dropdown del estado tenga scroll */
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items {
+            max-height: 160px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Estilos específicos para el dropdown del estado de la herramienta */
+        :host ::ng-deep .p-dropdown-panel {
+            max-height: 200px !important;
+            overflow: visible !important;
+        }
+
+        :host ::ng-deep .p-dropdown-panel .p-dropdown-items-wrapper {
+            max-height: 180px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
         }
 
         /* Asegurar que el dropdown se muestre por encima del modal */
@@ -667,7 +814,7 @@ interface DamageHistory {
             line-height: 1 !important;
         }
 
-        /* Centrar cualquier texto en el dropdown */
+        /* Centrado específico para placeholder */
         :host ::ng-deep .p-dropdown .p-dropdown-label {
             display: flex !important;
             align-items: center !important;
@@ -749,6 +896,9 @@ interface DamageHistory {
         :host ::ng-deep button[style*="background-color: #FFABAB"] {
             background-color: #FFABAB !important;
         }
+
+   
+        
     `]
 })
 export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
@@ -757,6 +907,8 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
     damageHistoryItem: Damage = this.emptyDamageHistory();
     selectedDamageHistory: Damage[] | null = null;
     isEditMode: boolean = false;
+    detailsDialog: boolean = false;
+    selectedDamageForDetails: Damage | null = null;
     confirmIcon: string = 'delete';
     @ViewChild('dt') dt!: Table;
 
@@ -832,6 +984,14 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         { name: 'Térmico', color: '#333333', bgColor: '#F5F5F5', hoverColor: '#F5F5F5' }
     ];
 
+    // Opciones de estado de la herramienta
+    toolStatusOptions: { label: string; value: string }[] = [
+        { label: 'Reportado', value: 'reportado' },
+        { label: 'En reparación', value: 'en_reparacion' },
+        { label: 'Reparado', value: 'reparado' },
+        { label: 'Dado de baja', value: 'dado_de_baja' }
+    ];
+
     // Array para tipos de multa
     fineTypes: string[] = [
         'Multa por daño',
@@ -879,7 +1039,8 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         private subcategoryService: SubcategoryService,
         private damageTypesService: DamageTypesService,
         private oauthService: OAuthService,
-        private communicationService: CommunicationService
+        private communicationService: CommunicationService,
+        private cdr: ChangeDetectorRef
     ) {}
 
     ngOnInit() {
@@ -974,25 +1135,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
             }
         });
 
-        // Cargar categorías
-        this.categoryService.getCategories().subscribe({
-            next: (categories: any[]) => {
-                this.categories = categories;
-            },
-            error: (error: any) => {
-                console.error('Error cargando categorías:', error);
-            }
-        });
-
-        // Cargar subcategorías
-        this.subcategoryService.getAllSubcategories().subscribe({
-            next: (subcategories: any[]) => {
-                this.subcategories = subcategories;
-            },
-            error: (error: any) => {
-                console.error('Error cargando subcategorías:', error);
-            }
-        });
+        // No es necesario cargar categorías y subcategorías ya que se obtienen de la herramienta
 
         // COMENTADO TEMPORALMENTE - Cargar tipos de daño del servicio
         /*
@@ -1015,12 +1158,26 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         this.damageHistoryItem = this.emptyDamageHistory();
         this.isEditMode = false;
         this.damageHistoryDialog = true;
+        
+        // No es necesario cargar subcategorías ya que se obtienen de la herramienta
     }
 
     editDamageHistory(history: Damage) {
-        this.damageHistoryItem = { ...history };
+        // Obtener el objeto más reciente del array damageHistory
+        const currentHistory = this.damageHistory.find(h => h.id === history.id) || history;
+        
+        this.damageHistoryItem = { ...currentHistory };
+        
+        // La categoría y subcategoría se obtienen automáticamente de la herramienta
+        // No es necesario establecerlas manualmente
+        
         this.isEditMode = true;
         this.damageHistoryDialog = true;
+    }
+
+    viewDamageDetails(history: Damage) {
+        this.selectedDamageForDetails = { ...history };
+        this.detailsDialog = true;
     }
 
     deleteDamageHistory(history: Damage) {
@@ -1047,25 +1204,38 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
     }
 
     saveDamageHistory() {
-        if (this.damageHistoryItem.herramienta_id && this.damageHistoryItem.descripcion?.trim()) {
+        if (this.damageHistoryItem.herramienta_id && this.damageHistoryItem.status) {
+            // Para simplificar, no enviar tipo_dano_id si no hay categoría y subcategoría seleccionadas
+            let tipoDanoId: number | undefined = undefined;
+            
             if (this.damageHistoryItem.id) {
                 // Modo edición - mostrar confirmación
                 this.confirmIcon = 'warning';
                 const toolName = this.tools.find(t => t.id === this.damageHistoryItem.herramienta_id)?.nombre || 'Herramienta';
                 this.confirmMessage = `¿Estás seguro que deseas actualizar el reporte de daño de <span class='text-primary'>${toolName}</span>? Una vez que aceptes, los cambios reemplazarán la información actual.`;
                 this.confirmAction = () => {
+                    const costoReparacion = Number(this.damageHistoryItem.costo_reparacion || this.damageHistoryItem.repairCost || 0);
+                    
                     const updateData: DamageUpdateRequest = {
                         herramienta_id: this.damageHistoryItem.herramienta_id,
                         orden_prestamo_id: this.damageHistoryItem.orden_prestamo_id || 1, // Valor por defecto
-                        tipo_dano_id: this.mapDamageTypeToId(this.damageHistoryItem.tipo_dano_id?.toString() || 'daño_menor'),
+                        tipo_dano_id: tipoDanoId,
                         descripcion: this.damageHistoryItem.descripcion,
-                        costo_reparacion: this.damageHistoryItem.costo_reparacion || this.damageHistoryItem.repairCost
+                        costo_reparacion: costoReparacion,
+                        status: this.damageHistoryItem.status
                     };
-
+                    
                     this.damagesService.updateDamage(this.damageHistoryItem.id, updateData).subscribe({
                         next: (updatedDamage: Damage) => {
                             const idx = this.damageHistory.findIndex(t => t.id === this.damageHistoryItem.id);
-                            if (idx > -1) this.damageHistory[idx] = updatedDamage;
+                            if (idx > -1) {
+                                // Actualizar el objeto con los nuevos datos del backend
+                                this.damageHistory[idx] = updatedDamage;
+                                
+                                // Forzar la detección de cambios para actualizar la tabla
+                                this.cdr.detectChanges();
+                            }
+                            
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Éxito',
@@ -1075,8 +1245,6 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                             this.damageHistoryDialog = false;
                             this.isEditMode = false;
                             this.damageHistoryItem = this.emptyDamageHistory();
-                            // Recargar la lista para mostrar los cambios
-                            this.loadData();
                         },
                         error: (error: any) => {
                             console.error('Error actualizando daño:', error);
@@ -1092,14 +1260,17 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
                 this.showCustomConfirm = true;
             } else {
                 // Modo creación
+                const costoReparacion = Number(this.damageHistoryItem.costo_reparacion || this.damageHistoryItem.repairCost || 0);
+                
                 const createData: DamageCreateRequest = {
                     herramienta_id: this.damageHistoryItem.herramienta_id,
                     orden_prestamo_id: this.damageHistoryItem.orden_prestamo_id || 1, // Valor por defecto
-                    tipo_dano_id: this.mapDamageTypeToId(this.damageHistoryItem.tipo_dano_id?.toString() || 'daño_menor'),
+                    tipo_dano_id: tipoDanoId || 1, // Valor por defecto para creación
                     descripcion: this.damageHistoryItem.descripcion,
-                    costo_reparacion: this.damageHistoryItem.costo_reparacion || this.damageHistoryItem.repairCost || 0
+                    costo_reparacion: costoReparacion,
+                    status: this.damageHistoryItem.status || 'reportado'
                 };
-
+                
                 this.damagesService.reportDamage(createData).subscribe({
                     next: (newDamage: Damage) => {
                         this.damageHistory.push(newDamage);
@@ -1130,7 +1301,7 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
             this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: 'Por favor completa todos los campos requeridos',
+                detail: 'Por favor, complete todos los campos requeridos (herramienta y estado)',
                 life: 3000
             });
         }
@@ -1190,10 +1361,55 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         return loan?.folio || 'N/A';
     }
 
-    // COMENTADO TEMPORALMENTE - Método para mostrar tipo de daño
-    /*
+    // Método para obtener nombre de categoría
+    getCategoryName(category: any): string {
+        if (!category) return 'N/A';
+        
+        // Si es un objeto con id, buscar por id
+        if (typeof category === 'object' && category.id) {
+            const categoryObj = this.categories.find(cat => cat.id === category.id);
+            return categoryObj?.nombre || 'N/A';
+        }
+        
+        // Si es un ID directo
+        if (typeof category === 'number') {
+            const categoryObj = this.categories.find(cat => cat.id === category);
+            return categoryObj?.nombre || 'N/A';
+        }
+        
+        return 'N/A';
+    }
+
+    // Método para obtener nombre de subcategoría
+    getSubcategoryName(subcategory: any): string {
+        if (!subcategory) return 'N/A';
+        
+        // Si es un objeto con id, buscar por id
+        if (typeof subcategory === 'object' && subcategory.id) {
+            const subcategoryObj = this.subcategories.find(sub => sub.id === subcategory.id);
+            return subcategoryObj?.nombre || 'N/A';
+        }
+        
+        // Si es un ID directo
+        if (typeof subcategory === 'number') {
+            const subcategoryObj = this.subcategories.find(sub => sub.id === subcategory);
+            return subcategoryObj?.nombre || 'N/A';
+        }
+        
+        return 'N/A';
+    }
+
+    // Método para mostrar tipo de daño
     getDamageTypeDisplay(damageTypeId: number): string {
-        // Mapeo de IDs a nombres de tipos de daño
+        if (!damageTypeId) return 'N/A';
+        
+        // Buscar el tipo de daño por ID en el servicio
+        const damageType = this.damageTypesFromService.find(dt => dt.id === damageTypeId);
+        if (damageType) {
+            return damageType.nombre;
+        }
+        
+        // Mapeo de IDs a nombres de tipos de daño como fallback
         const damageTypeMap: { [key: number]: string } = {
             1: 'Leve',
             2: 'Moderado',
@@ -1201,16 +1417,30 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         };
         return damageTypeMap[damageTypeId] || `Tipo ${damageTypeId}`;
     }
-    */
 
     getStatusDisplay(status: string): string {
-        const statusMap: { [key: string]: string } = {
-            'reportado': 'Pendiente',
-            'en_reparacion': 'En Reparación',
-            'reparado': 'Reparado',
-            'dado_de_baja': 'Dado de Baja'
-        };
-        return statusMap[status] || status;
+        // Mostrar los valores reales de la base de datos
+        return status || 'N/A';
+    }
+
+    // Método para formatear fechas
+    formatDate(dateString: string | undefined): string {
+        if (!dateString) return 'N/A';
+        
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'N/A';
+            
+            return date.toLocaleDateString('es-MX', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            return 'N/A';
+        }
     }
 
     mapDamageTypeToId(damageType: string): number {
@@ -1252,6 +1482,25 @@ export class HistoryDamagesCrudComponent implements OnInit, OnDestroy {
         return damageType ? this.damageHistoryItem.tipo_dano_id === damageType.id : false;
     }
     */
+
+    // onCategoryChange ya no es necesario ya que no se seleccionan categorías manualmente
+
+    private loadAllSubcategories() {
+        // Cargar todas las subcategorías disponibles
+        this.subcategoryService.getAllSubcategories().subscribe({
+            next: (subcategories) => {
+                this.subcategories = subcategories;
+            },
+            error: (error) => {
+                console.error('Error cargando subcategorías:', error);
+            }
+        });
+    }
+
+    private loadSubcategoriesByCategory(categoryId: number): Observable<any[]> {
+        // Cargar subcategorías específicas de una categoría
+        return this.subcategoryService.getSubcategoriesByCategory(categoryId);
+    }
 
     @HostListener('document:keydown.escape')
     onEscapePress() {

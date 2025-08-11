@@ -259,7 +259,9 @@ export class SubcategoryService {
 
     // GET - Obtener subcategorías por categoría
     getSubcategoriesByCategory(categoryId: number): Observable<SubcategoryDisplay[]> {
-        return this.http.get<SubcategoryResponse>(`${this.apiUrl}/by-category/${categoryId}`).pipe(
+        // La ruta correcta es /api/categories/{id}/subcategories, no /api/subcategories/by-category/{id}
+        const categoriesApiUrl = `${environment.apiServiceGeneralUrl}/api/categories`;
+        return this.http.get<SubcategoryResponse>(`${categoriesApiUrl}/${categoryId}/subcategories`).pipe(
             map(response => {
                 if (response.success) {
                     const data = Array.isArray(response.data) ? response.data : [response.data];
