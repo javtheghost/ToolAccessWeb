@@ -1,6 +1,5 @@
 
 import { Routes } from '@angular/router';
-import { RolesCrudComponent } from './roles/roles-crud.component';
 import { CategoriesCrudComponent } from './categories/categories-crud.component';
 import { UsersCrudComponent } from './users/users-crud.component';
 import { ToolsCrudComponent } from './tools-crud.component';
@@ -16,7 +15,6 @@ export default [
     {path: 'categories-list', component:CategoriesCrudComponent},
     {path: 'subcategories-list', component:SubcategoriasCrudComponent},
     {path: 'users-list', component:UsersCrudComponent},
-    {path: 'roles-crud', component:RolesCrudComponent},
     {
       path: 'reports',
       loadComponent: () => import('./reports/reports-page.component').then(m => m.ReportsPageComponent)

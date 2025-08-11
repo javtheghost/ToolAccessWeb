@@ -23,9 +23,9 @@ import { TagModule } from 'primeng/tag';
 import { AvatarModule } from 'primeng/avatar';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { UserService } from '../service/user.service';
-import { RoleService, Role } from '../service/role.service';
+
 import { OAuthService } from '../service/oauth.service';
-import { User, UserCreateRequest, UserUpdateRequest, AVAILABLE_ROLES } from '../interfaces';
+import { User, UserCreateRequest, UserUpdateRequest } from '../interfaces';
 import { ModalAlertService, ModalAlert } from '../utils/modal-alert.service';
 import { ModalAlertComponent } from '../utils/modal-alert.component';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -718,7 +718,7 @@ export class UsersCrudComponent implements OnInit {
 
     // Datos auxiliares
     selectedUser: User | null = null;
-    rolesDb: Role[] = [];
+    rolesDb: any[] = [];
     currentUserId: number | null = null; // Se obtiene del servicio de autenticación
 
     // Filtros
@@ -738,7 +738,7 @@ export class UsersCrudComponent implements OnInit {
         private messageService: MessageService,
         private confirmationService: ConfirmationService,
         private fb: FormBuilder,
-        private roleService: RoleService,
+
         private oauthService: OAuthService,
         private modalAlertService: ModalAlertService,
         private sanitizer: DomSanitizer
@@ -749,7 +749,6 @@ export class UsersCrudComponent implements OnInit {
     ngOnInit() {
         this.loadCurrentUser();
         this.loadUsers();
-        this.loadRolesDb();
     }
 
     showModalAlert(type: 'error' | 'warning' | 'info' | 'success', title: string, message: string) {
@@ -782,23 +781,7 @@ export class UsersCrudComponent implements OnInit {
         }
     }
 
-    loadRolesDb() {
-        this.roleService.getRoles().subscribe({
-            next: (roles) => {
-                // Sanitizar roles
-                this.rolesDb = roles.filter(r => r.is_active).map(role => this.sanitizeRole(role));
-            },
-            error: (err) => {
-                this.rolesDb = [];
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: this.sanitizeMessage('No se pudieron cargar los roles de la base de datos'),
-                    life: 3000
-                });
-            }
-        });
-    }
+
 
     private initForms() {
         // Formulario principal de usuario
@@ -1254,13 +1237,7 @@ export class UsersCrudComponent implements OnInit {
         };
     }
 
-    private sanitizeRole(role: Role): Role {
-        return {
-            ...role,
-            nombre: this.sanitizeString(role.nombre),
-            descripcion: role.descripcion ? this.sanitizeString(role.descripcion) : ''
-        };
-    }
+
 
     private sanitizeString(value: string | undefined): string {
         if (!value || typeof value !== 'string') return '';

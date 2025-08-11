@@ -108,12 +108,6 @@ export class AppMenu {
                         icon: 'material-symbols-outlined',
                         iconText: 'groups',
                         routerLink: ['/dashboard/pages/users-list']
-                    },
-                    {
-                        label: 'Roles',
-                        icon: 'material-symbols-outlined',
-                        iconText: 'groups',
-                        routerLink: ['/dashboard/pages/roles-crud']
                     }
                 ]
             },
