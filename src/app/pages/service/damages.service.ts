@@ -115,19 +115,12 @@ export class DamagesService {
         if (page) params = params.set('page', page.toString());
         if (limit) params = params.set('limit', limit.toString());
 
-        // Debug logging
-        console.log('🔍 DamagesService - getDamages called');
-        console.log('🔍 API URL:', this.apiUrl);
-        console.log('🔍 Headers:', this.getHeaders());
-        console.log('🔍 Params:', params.toString());
+
 
         return this.http.get<DamageResponse>(this.apiUrl, {
             headers: this.getHeaders(),
             params: params
         }).pipe(
-            tap(response => {
-                console.log('✅ API Response:', response);
-            }),
             map(response => {
                 if (response.success) {
                     return Array.isArray(response.data) ? response.data : [response.data];
@@ -136,9 +129,6 @@ export class DamagesService {
                 }
             }),
             catchError(error => {
-                console.error('❌ API Error:', error);
-                console.error('❌ Error Status:', error.status);
-                console.error('❌ Error Message:', error.message);
                 return this.handleError(error);
             })
         );

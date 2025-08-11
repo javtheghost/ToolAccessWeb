@@ -1290,7 +1290,7 @@ export class SubcategoriasCrudComponent implements OnInit {
                 is_active: true // Siempre activa por defecto para nuevas subcategorías
             };
 
-            console.log('🔍 Datos para crear subcategoría:', createData);
+
 
             this.subcategoryService.createSubcategory(createData).subscribe({
                 next: (newSubcategory: any) => {

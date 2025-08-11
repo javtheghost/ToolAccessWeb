@@ -274,7 +274,6 @@ export class SubcategoryService {
 
     // Método de prueba para verificar si el problema es que no hay datos
     getTestSubcategories(): Observable<SubcategoryDisplay[]> {
-        console.log('🧪 Usando datos de prueba...');
         const testData: SubcategoryDisplay[] = [
             {
                 id: 1,

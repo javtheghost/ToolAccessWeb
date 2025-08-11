@@ -128,8 +128,6 @@ export class UserService {
 
     // DELETE - Eliminar usuario (desactivar usando update)
     deleteUser(id: number | string): Observable<boolean> {
-        console.log(`🗑️ Desactivando usuario ${id} usando método UPDATE`);
-        
         // Primero obtenemos el usuario actual para mantener sus datos
         return this.getUserById(id).pipe(
             switchMap(user => {

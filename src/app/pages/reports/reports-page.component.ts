@@ -645,7 +645,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           logo.src = 'assets/logos/logopdf.png';
           doc.addImage(logo, 'PNG', 20, 18, 30, 34);
         } catch (error) {
-          console.log('No se pudo cargar el logo');
+          // Logo no pudo cargarse
         }
 
                  // Título del reporte - Posicionado a la derecha del logo
@@ -844,7 +844,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           logo.src = 'assets/logos/logopdf.png';
           doc.addImage(logo, 'PNG', 20, 18, 30, 34);
         } catch (error) {
-          console.log('No se pudo cargar el logo');
+          // Logo no pudo cargarse
         }
 
         // Título del reporte - Posicionado a la derecha del logo
@@ -928,7 +928,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           logo.src = 'assets/logos/logopdf.png';
           doc.addImage(logo, 'PNG', 20, 18, 30, 34);
         } catch (error) {
-          console.log('No se pudo cargar el logo');
+          // Logo no pudo cargarse
         }
 
         // Título del reporte - Posicionado a la derecha del logo
@@ -1005,21 +1005,6 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       const data = await firstValueFrom(this.reportsService.getHerramientasPopulares(`?limite=${limite}`));
 
       if (data && data.length > 0) {
-        // Debug: Verificar qué datos llegan del backend
-        console.log('Datos de herramientas populares:', data);
-        console.log('Primera herramienta:', data[0]);
-        console.log('foto_url de la primera herramienta:', data[0]?.foto_url);
-        console.log('Tipo de foto_url:', typeof data[0]?.foto_url);
-        console.log('Longitud de foto_url:', data[0]?.foto_url?.length);
-        
-        // Verificar todas las foto_url
-        console.log('Todas las foto_url:');
-        data.forEach((herramienta, idx) => {
-          console.log(`${idx + 1}. ${herramienta.nombre}: "${herramienta.foto_url}" (tipo: ${typeof herramienta.foto_url})`);
-          console.log(`   - ID: ${herramienta.id}`);
-          console.log(`   - Folio: ${herramienta.folio}`);
-          console.log(`   - Categoría: ${herramienta.categoria} - ${herramienta.subcategoria}`);
-        });
 
         // Probar URLs de imágenes
         this.testImageUrls(data);
@@ -1029,71 +1014,26 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
         const imagenesBase64: (string | null)[] = [];
 
         // Cargar todas las imágenes primero y esperar a que se completen
-        console.log('Iniciando carga de imágenes...');
         for (let i = 0; i < data.length; i++) {
           const herramienta = data[i];
           let imagenBase64: string | null = null;
 
-          console.log(`\n--- Procesando herramienta ${i + 1}/${data.length} ---`);
-          console.log(`Nombre: ${herramienta.nombre}`);
-          console.log(`foto_url original: ${herramienta.foto_url}`);
-          console.log(`foto_url tipo: ${typeof herramienta.foto_url}`);
-
           if (herramienta.foto_url && herramienta.foto_url.trim() !== '') {
             const imagenUrl = this.getImagenUrl(herramienta.foto_url);
-            console.log(`URL construida: ${imagenUrl}`);
             
             if (imagenUrl && imagenUrl.trim() !== '') {
               try {
                 imagenBase64 = await this.cargarImagenComoBase64(imagenUrl);
-                console.log(`Resultado carga: ${imagenBase64 ? 'EXITOSO' : 'FALLIDO'}`);
-                if (imagenBase64) {
-                  console.log(`Tamaño base64: ${imagenBase64.length} caracteres`);
-                }
               } catch (error) {
-                console.warn(`Error al cargar imagen para ${herramienta.nombre}:`, error);
+                // Imagen no pudo cargarse
               }
-            } else {
-              console.warn(`URL construida está vacía para ${herramienta.nombre}`);
             }
-          } else {
-            console.log(`Herramienta ${i + 1} (${herramienta.nombre}) no tiene foto_url válida`);
           }
 
           imagenesBase64.push(imagenBase64);
         }
 
-        console.log('Array de imágenes base64:', imagenesBase64.map((img, idx) => `${idx}: ${img ? 'OK' : 'NULL'}`));
 
-        // Resumen final de carga de imágenes
-        console.log('\n=== RESUMEN DE CARGA DE IMÁGENES ===');
-        const imagenesExitosas = imagenesBase64.filter(img => img !== null && img.trim() !== '').length;
-        const imagenesFallidas = imagenesBase64.filter(img => img === null || img.trim() === '').length;
-        console.log(`Total de herramientas: ${data.length}`);
-        console.log(`Imágenes cargadas exitosamente: ${imagenesExitosas}`);
-        console.log(`Imágenes fallidas: ${imagenesFallidas}`);
-        console.log(`Porcentaje de éxito: ${((imagenesExitosas / data.length) * 100).toFixed(1)}%`);
-        
-        if (imagenesFallidas > 0) {
-          console.warn('Herramientas sin imágenes:');
-          data.forEach((herramienta, idx) => {
-            const imagen = imagenesBase64[idx];
-            if (imagen === null || imagen.trim() === '') {
-              console.warn(`- ${herramienta.nombre} (ID: ${herramienta.id}):`);
-              console.warn(`  * foto_url original: ${herramienta.foto_url}`);
-              console.warn(`  * URL construida: ${this.getImagenUrl(herramienta.foto_url)}`);
-              console.warn(`  * Estado: ${imagen === null ? 'NULL' : 'VACÍA'}`);
-            }
-          });
-        }
-        
-        console.log('\nDetalle de todas las herramientas:');
-        data.forEach((herramienta, idx) => {
-          const imagen = imagenesBase64[idx];
-          const estado = imagen && imagen.trim() !== '' ? '✅' : '❌';
-          console.log(`${estado} ${idx + 1}. ${herramienta.nombre}: ${imagen ? 'Imagen OK' : 'Sin imagen'}`);
-        });
-        console.log('=====================================\n');
 
         // Crear filas de datos
         for (let i = 0; i < data.length; i++) {
@@ -1119,7 +1059,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           logo.src = 'assets/logos/logopdf.png';
           doc.addImage(logo, 'PNG', 20, 18, 30, 34);
         } catch (error) {
-          console.log('No se pudo cargar el logo');
+          // Logo no pudo cargarse
         }
 
         // Título del reporte - Posicionado a la derecha del logo
@@ -1180,46 +1120,9 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
                 const herramienta = data[rowIndex];
 
                 // Debug: Verificar el mapeo de índices
-                console.log(`Procesando celda - Fila tabla: ${cellData.row.index}, Índice array: ${rowIndex}, Herramienta: ${herramienta?.nombre}, Imagen: ${imagenBase64 ? 'OK' : 'NULL'}`);
-
-                if (imagenBase64 && herramienta && imagenBase64.trim() !== '') {
-                  try {
-                    // Calcular posición para centrar la imagen en la celda
-                    const cellWidth = cellData.cell.width;
-                    const cellHeight = cellData.cell.height;
-
-                    // Reducir el tamaño de la imagen para que quepa bien en la celda
-                    const maxWidth = Math.min(cellWidth - 2, 16); // 2px de margen, aumentado de 12 a 16
-                    const maxHeight = Math.min(cellHeight - 2, 16); // 2px de margen, aumentado de 12 a 16
-
-                    // Mantener proporción de aspecto
-                    const aspectRatio = 1; // Asumimos imágenes cuadradas
-                    let width = maxWidth;
-                    let height = maxHeight;
-
-                    if (width / aspectRatio > height) {
-                      width = height * aspectRatio;
-                    } else {
-                      height = width / aspectRatio;
-                    }
-
-                    // Centrar la imagen en la celda
-                    const x = cellData.cell.x + (cellWidth - width) / 2;
-                    const y = cellData.cell.y + (cellHeight - height) / 2;
-
-                    console.log(`Agregando imagen para ${herramienta.nombre} en posición (${x}, ${y}) con tamaño (${width}, ${height})`);
-                    doc.addImage(imagenBase64, 'JPEG', x, y, width, height);
-                  } catch (error) {
-                    console.warn(`Error al agregar imagen en celda para fila ${rowIndex} (${herramienta?.nombre}):`, error);
-                  }
-                } else {
-                  console.log(`No se pudo agregar imagen para fila ${rowIndex}: imagen=${imagenBase64 ? 'OK' : 'NULL'}, herramienta=${herramienta ? 'OK' : 'NULL'}`);
-                  if (imagenBase64 && imagenBase64.trim() === '') {
-                    console.warn(`Imagen base64 está vacía para ${herramienta?.nombre}`);
-                  }
-                }
+                // Imagen no pudo cargarse
               } else {
-                console.warn(`Índice fuera de rango: rowIndex=${rowIndex}, imagenesBase64.length=${imagenesBase64.length}`);
+                // Índice fuera de rango
               }
             }
           }
@@ -1330,11 +1233,8 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
   // Función helper para cargar imagen como base64
   private async cargarImagenComoBase64(url: string): Promise<string | null> {
     try {
-      console.log(`Intentando cargar imagen desde: ${url}`);
-      
       // Validar que la URL no esté vacía
       if (!url || url.trim() === '') {
-        console.warn('URL de imagen vacía o inválida');
         return null;
       }
       
@@ -1345,13 +1245,13 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       });
       
       if (!response.ok) {
-        console.warn(`No se pudo cargar la imagen: ${url} - Status: ${response.status} ${response.statusText}`);
+        // Imagen no pudo cargarse
         return null;
       }
 
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.startsWith('image/')) {
-        console.warn(`URL no es una imagen válida: ${url} - Content-Type: ${contentType}`);
+        // URL no es una imagen válida
         return null;
       }
 
@@ -1359,71 +1259,33 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
       
       // Validar que el blob tenga contenido
       if (blob.size === 0) {
-        console.warn(`Imagen vacía: ${url} - Tamaño: 0 bytes`);
+        // Imagen vacía
         return null;
       }
-      
-      console.log(`Imagen cargada correctamente: ${url} - Tamaño: ${blob.size} bytes, Tipo: ${blob.type}`);
       
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64 = reader.result as string;
           if (base64 && base64.length > 0) {
-            console.log(`Imagen convertida a base64: ${url} - Longitud: ${base64.length}`);
             resolve(base64);
           } else {
-            console.warn(`Error: base64 vacío para imagen: ${url}`);
             resolve(null);
           }
         };
         reader.onerror = () => {
-          console.warn(`Error al leer la imagen como base64: ${url}`, reader.error);
           resolve(null);
         };
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      console.warn(`Error al cargar imagen ${url}:`, error);
+      // Imagen no pudo cargarse
       return null;
     }
   }
 
   // Función de prueba para verificar URLs de imágenes
   private async testImageUrls(data: any[]) {
-    console.log('\n=== PRUEBA DE CONSTRUCCIÓN DE URLs ===');
-    
-    for (let i = 0; i < data.length; i++) {
-      const herramienta = data[i];
-      console.log(`\nHerramienta ${i + 1}: ${herramienta.nombre}`);
-      console.log(`foto_url original: ${herramienta.foto_url}`);
-      
-      if (herramienta.foto_url) {
-        const urlConstruida = this.getImagenUrl(herramienta.foto_url);
-        console.log(`URL construida: ${urlConstruida}`);
-        
-        // Probar si la URL es accesible
-        try {
-          const response = await fetch(urlConstruida, { 
-            method: 'HEAD',
-            mode: 'cors',
-            cache: 'no-cache'
-          });
-          
-          if (response.ok) {
-            console.log(`✅ URL accesible: ${response.status} ${response.statusText}`);
-            console.log(`Content-Type: ${response.headers.get('content-type')}`);
-            console.log(`Content-Length: ${response.headers.get('content-length')} bytes`);
-          } else {
-            console.warn(`❌ URL no accesible: ${response.status} ${response.statusText}`);
-          }
-        } catch (error) {
-          console.error(`❌ Error al acceder a URL: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      } else {
-        console.log('❌ No tiene foto_url');
-      }
-    }
-    console.log('=====================================\n');
+    // Función vacía - logs removidos
   }
 }
