@@ -88,7 +88,7 @@ export class OAuthService {
    * @private
    * @returns {Promise<void>}
    */
-    private async initializeAuthState(): Promise<void> {
+      private async initializeAuthState(): Promise<void> {
     this.setLoading(true);
     try {
       const token = this.getStoredToken();
@@ -99,6 +99,7 @@ export class OAuthService {
         await this.loadUserInfo();
       }
     } catch (error) {
+      console.error('OAuthService - Error al inicializar estado de autenticación:', error);
       this.clearAuthState();
     } finally {
       this.setLoading(false);
