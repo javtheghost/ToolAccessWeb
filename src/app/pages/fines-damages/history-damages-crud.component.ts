@@ -155,7 +155,7 @@ interface DamageHistory {
                 </th>
                 <th pSortableColumn="costo_reparacion">
                     <div class="flex justify-content-center align-items-center">
-                        Costo Rep.
+                        Costo Reparación
                         <p-sortIcon field="costo_reparacion"></p-sortIcon>
                     </div>
                 </th>
@@ -509,16 +509,6 @@ interface DamageHistory {
                                       }">
                                     {{ getStatusDisplay(selectedDamageForDetails.status) }}
                                 </span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Categoría:</label>
-                                <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.categoria_nombre || 'N/A' }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600">Subcategoría:</label>
-                                <p class="text-gray-900 font-medium">{{ selectedDamageForDetails.subcategoria_nombre || 'N/A' }}</p>
                             </div>
                         </div>
                     </div>
