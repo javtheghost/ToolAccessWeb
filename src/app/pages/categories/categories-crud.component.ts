@@ -129,8 +129,23 @@ interface Column {
                     [label]="showOnlyActive ? 'Ver Todas' : 'Solo Activas'"
                     [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
                     (onClick)="toggleActiveView()"
-                    styleClass="w-full sm:w-auto p-button-outlined">
+                    styleClass="w-full sm:w-auto p-button-outlined"
+                    pTooltip="Mostrar categorías activas e inactivas"
+                    tooltipPosition="bottom">
                 </p-button>
+                <!-- Indicador de estado de la vista -->
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                    <span class="hidden sm:inline">
+                        {{ showOnlyActive ? 'Vista: Solo Activas' : 'Vista: Todas' }}
+                    </span>
+                    <span class="px-2 py-1 rounded-full text-xs font-medium"
+                          [ngClass]="{
+                              'bg-green-100 text-green-800': showOnlyActive,
+                              'bg-blue-100 text-blue-800': !showOnlyActive
+                          }">
+                        {{ showOnlyActive ? getActiveCategoriesCount() : getTotalCategoriesCount() }} categoría{{ (showOnlyActive ? getActiveCategoriesCount() : getTotalCategoriesCount()) !== 1 ? 's' : '' }}
+                    </span>
+                </div>
             </div>
         </ng-template>
         <ng-template pTemplate="header">
@@ -156,16 +171,44 @@ interface Column {
                 </th>
                 <th class="text-center p-3">Acción</th>
             </tr>
+            <!-- Indicador de vista actual -->
+            <tr *ngIf="!showOnlyActive" class="bg-blue-50 border-b border-blue-200">
+                <td colspan="5" class="text-center py-2">
+                    <div class="flex items-center justify-center gap-2 text-blue-700">
+                        <i class="material-symbols-outlined text-sm">info</i>
+                        <span class="text-sm font-medium">Vista extendida: Mostrando categorías activas e inactivas</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ getTotalCategoriesCount() }} total
+                        </span>
+                    </div>
+                </td>
+            </tr>
         </ng-template>
         <ng-template pTemplate="body" let-category>
-            <tr class="hover:bg-gray-50" [ngClass]="{'opacity-60 bg-gray-100': !category.is_active}">
+            <tr class="hover:bg-gray-50" 
+                [ngClass]="{
+                    'opacity-60 bg-gray-100': !category.is_active,
+                    'border-l-4 border-red-400': !category.is_active
+                }">
                 <td class="text-center p-3">
-                    <span class="font-mono text-sm text-gray-600">{{ category.id }}</span>
+                    <span class="font-mono text-sm" 
+                          [ngClass]="{'text-gray-600': category.is_active, 'text-red-600': !category.is_active}">
+                        {{ category.id }}
+                    </span>
                 </td>
                 <td class="p-3">
-                    <div class="font-medium" [ngClass]="{'text-gray-500': !category.is_active}">{{ category.nombre }}</div>
-                    <span *ngIf="category.is_active" class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Activa</span>
-                    <span *ngIf="!category.is_active" class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Inactiva</span>
+                    <div class="font-medium" 
+                         [ngClass]="{'text-gray-900': category.is_active, 'text-gray-500': !category.is_active}">
+                        {{ category.nombre }}
+                    </div>
+                    <span *ngIf="category.is_active" 
+                          class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                        Activa
+                    </span>
+                    <span *ngIf="!category.is_active" 
+                          class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                        Inactiva
+                    </span>
                     <div class="text-sm text-gray-500 sm:hidden">
                         <span *ngIf="category.descripcion && category.descripcion.trim()">{{ category.descripcion }}</span>
                         <span *ngIf="!category.descripcion || !category.descripcion.trim()" class="text-gray-400 italic">Sin descripción</span>
@@ -213,6 +256,32 @@ interface Column {
             </tr>
         </ng-template>
     </p-table>
+    
+    <!-- Información adicional de la vista -->
+    <div *ngIf="!showOnlyActive && categories().length > 0" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-blue-700">
+                <i class="material-symbols-outlined">info</i>
+                <span class="text-sm font-medium">Vista extendida activada</span>
+            </div>
+            <div class="flex items-center gap-4 text-sm text-blue-600">
+                <span>
+                    <span class="font-medium">{{ getActiveCategoriesCount() }}</span> activas
+                </span>
+                <span>
+                    <span class="font-medium">{{ getTotalCategoriesCount() - getActiveCategoriesCount() }}</span> inactivas
+                </span>
+                <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-800 font-medium">
+                    Total: {{ getTotalCategoriesCount() }}
+                </span>
+            </div>
+        </div>
+        <p class="text-xs text-blue-600 mt-2">
+            Las categorías inactivas se muestran con un borde rojo izquierdo y texto atenuado. 
+            Puedes reactivarlas usando el switch de estado.
+        </p>
+    </div>
+    
     <div class="flex justify-center mt-6"></div>
 </div>
 
@@ -709,9 +778,16 @@ export class CategoriesCrudComponent implements OnInit {
 
     loadCategories() {
         this.loading.set(true);
-        this.categoryService.getCategories().subscribe({
+        
+        // Usar el método correcto según si queremos ver solo activas o todas
+        const categoriesObservable = this.showOnlyActive 
+            ? this.categoryService.getCategories() 
+            : this.categoryService.getAllCategories();
+        
+        categoriesObservable.subscribe({
             next: (categories) => {
-                // Filtrar categorías según showOnlyActive
+                // Si showOnlyActive es false, ya tenemos todas las categorías
+                // Si es true, filtramos solo las activas
                 const filteredCategories = this.showOnlyActive
                     ? categories.filter(cat => cat.is_active)
                     : categories;
@@ -732,13 +808,35 @@ export class CategoriesCrudComponent implements OnInit {
 
     toggleActiveView() {
         this.showOnlyActive = !this.showOnlyActive;
-        this.loadCategories();
+        
+        // Mostrar mensaje informativo
+        const message = this.showOnlyActive 
+            ? 'Cambiando a vista de solo categorías activas...' 
+            : 'Cargando todas las categorías (activas e inactivas)...';
+        
         this.messageService.add({
             severity: 'info',
-            summary: 'Vista cambiada',
-            detail: this.showOnlyActive ? 'Mostrando solo categorías activas' : 'Mostrando todas las categorías',
-            life: 2000
+            summary: 'Cambiando vista',
+            detail: message,
+            life: 1500
         });
+        
+        // Recargar las categorías con el nuevo filtro
+        this.loadCategories();
+        
+        // Mostrar mensaje de confirmación después de cargar
+        setTimeout(() => {
+            const confirmMessage = this.showOnlyActive 
+                ? `Vista cambiada: Mostrando ${this.getActiveCategoriesCount()} categorías activas`
+                : `Vista cambiada: Mostrando ${this.getTotalCategoriesCount()} categorías (activas e inactivas)`;
+            
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Vista actualizada',
+                detail: confirmMessage,
+                life: 3000
+            });
+        }, 500);
     }
 
     // Método para cambiar el estado de la categoría directamente

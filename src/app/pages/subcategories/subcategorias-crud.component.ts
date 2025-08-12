@@ -234,7 +234,7 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
     </div>
 </div>
 
-<p-dialog [(visible)]="subcategoryDialog" [style]="{ width: '95vw', maxWidth: '600px' }" [header]="isEditMode ? 'Editar Subcategoría' : 'Nueva Subcategoría'" [modal]="true" [draggable]="false" [resizable]="false">
+<p-dialog [(visible)]="subcategoryDialog" [style]="{ width: '95vw', maxWidth: '600px', minHeight: '500px' }" [header]="isEditMode ? 'Editar Subcategoría' : 'Nueva Subcategoría'" [modal]="true" [draggable]="false" [resizable]="false">
     <ng-template pTemplate="content">
         <!-- Alerta Modal -->
         <app-modal-alert
@@ -328,7 +328,14 @@ import { ModalAlertComponent } from '../utils/modal-alert.component';
                         (blur)="onDescripcionBlur()">
                     </textarea>
                     <label for="descripcion" class="absolute left-10 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform text-base text-gray-600 duration-300 peer-placeholder-shown:left-10 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-focus:left-3 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-[var(--primary-color)] bg-white px-1">Descripción (Opcional)</label>
-                    <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs mt-1 ml-10 absolute top-full left-0">{{ getErrorMessage('descripcion') }}</div>
+                    
+                    <!-- Contador de caracteres -->
+                    <div class="flex justify-between items-center mt-2">
+                        <div *ngIf="isFieldInvalid('descripcion')" class="text-red-500 text-xs">{{ getErrorMessage('descripcion') }}</div>
+                        <div class="text-xs text-gray-500 ml-auto">
+                            {{ (descripcion?.value?.length || 0) }}/1000 caracteres
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">

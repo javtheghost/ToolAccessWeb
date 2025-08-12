@@ -27,6 +27,20 @@ export class CategoryService {
         );
     }
 
+    // GET - Obtener todas las categorías (activas e inactivas) - Solo para ADMIN
+    getAllCategories(): Observable<Category[]> {
+        return this.http.get<CategoryResponse>(`${this.apiUrl}`).pipe(
+            map(response => {
+                if (response.success) {
+                    return Array.isArray(response.data) ? response.data : [response.data];
+                } else {
+                    throw new Error(response.message || 'Error al obtener categorías');
+                }
+            }),
+            catchError(this.handleError)
+        );
+    }
+
     // GET - Obtener categoría por ID
     getCategoryById(id: number | string): Observable<Category> {
         return this.http.get<CategoryResponse>(`${this.apiUrl}/${id}`).pipe(
