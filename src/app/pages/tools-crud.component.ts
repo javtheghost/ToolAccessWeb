@@ -263,6 +263,7 @@ import { RateLimitingService } from './service/rate-limiting.service';
                 </td>
             </tr>
         </ng-template>
+        
     </p-table>
     <div class="flex justify-center mt-6"></div>
 </div>
