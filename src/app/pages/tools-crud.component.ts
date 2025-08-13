@@ -447,40 +447,46 @@ import { RateLimitingService } from './service/rate-limiting.service';
                 <label class="block mb-2">Selecciona la imagen <span class="text-gray-400">(opcional)</span></label>
                 <div class="flex flex-col items-center">
                     <label 
-                        class="border-2 border-dashed rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center drag-drop-area"
-                        [class.border-gray-400]="!isDragOver"
-                        [class.hover:border-[var(--primary-color)]]="!isDragOver"
+                        class="border-2 border-dashed rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center drag-drop-area relative overflow-hidden"
+                        [class.border-gray-400]="!isDragOver && !(selectedImage || tool.foto_url)"
+                        [class.hover:border-[var(--primary-color)]]="!isDragOver && !(selectedImage || tool.foto_url)"
                         [class.drag-over]="isDragOver"
                         style="width: 150px; height: 150px;"
                         (dragover)="onDragOver($event)"
                         (dragleave)="onDragLeave($event)"
                         (drop)="onDrop($event)">
-                        <span class="material-symbols-outlined text-4xl mb-2 transition-colors"
-                              [class.text-gray-400]="!isDragOver"
-                              [class.text-[var(--primary-color)]]="isDragOver">
-                            {{ isDragOver ? 'file_download' : 'cloud_upload' }}
-                        </span>
-                        <span class="text-sm transition-colors"
-                              [class.text-gray-500]="!isDragOver"
-                              [class.text-[var(--primary-color)]]="isDragOver">
-                            {{ isDragOver ? 'Suelta la imagen aquí' : 'Click o arrastra imagen' }}
-                        </span>
-                        <span class="text-xs text-gray-400 mt-1">Máx. 5MB</span>
-                        <span class="text-xs text-gray-400">JPG, PNG, WEBP</span>
+                        
+                        <!-- Imagen cargada dentro del área de drag and drop -->
+                        <div *ngIf="selectedImage || tool.foto_url" class="absolute inset-0 flex items-center justify-center">
+                            <img [src]="getImagePreview()" alt="Imagen" class="w-full h-full object-cover rounded" />
+                            <!-- Botón de eliminar superpuesto -->
+                            <button
+                                type="button"
+                                (click)="removeImage()"
+                                class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors z-10"
+                                title="Eliminar imagen">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Contenido del área de drag and drop (solo visible cuando no hay imagen) -->
+                        <div *ngIf="!(selectedImage || tool.foto_url)" class="flex flex-col items-center justify-center">
+                            <span class="material-symbols-outlined text-4xl mb-2 transition-colors"
+                                  [class.text-gray-400]="!isDragOver"
+                                  [class.text-[var(--primary-color)]]="isDragOver">
+                                {{ isDragOver ? 'file_download' : 'cloud_upload' }}
+                            </span>
+                            <span class="text-sm transition-colors"
+                                  [class.text-gray-500]="!isDragOver"
+                                  [class.text-[var(--primary-color)]]="isDragOver">
+                                {{ isDragOver ? 'Suelta la imagen aquí' : 'Click o arrastra imagen' }}
+                            </span>
+                            <span class="text-xs text-gray-400 mt-1">Máx. 5MB</span>
+                            <span class="text-xs text-gray-400">JPG, PNG, WEBP</span>
+                        </div>
+                        
                         <input type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden" />
                     </label>
-
-                    <!-- Imagen cargada con botón de eliminar -->
-                    <div *ngIf="selectedImage || tool.foto_url" class="mt-2 relative">
-                        <img [src]="getImagePreview()" alt="Imagen" class="rounded" style="max-width: 120px; max-height: 120px; object-fit: cover;" />
-                        <button
-                            type="button"
-                            (click)="removeImage()"
-                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-                            title="Eliminar imagen">
-                            <span class="material-symbols-outlined text-sm">close</span>
-                        </button>
-                    </div>
                 </div>
                 <!-- ✅ INFORMACIÓN ADICIONAL SOBRE IMÁGENES -->
                 <div class="mt-2 text-xs text-gray-500 text-center">
