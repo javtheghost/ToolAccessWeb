@@ -151,6 +151,7 @@ interface Column {
                             <input
                                 pInputText
                                 type="text"
+
                                 (input)="onGlobalFilter($event)"
                                 placeholder="Buscar usuarios..."
                                 class="w-full" />
@@ -159,15 +160,16 @@ interface Column {
                             <p-button
                                 label="Crear Usuario"
                                 (onClick)="openNew()"
+                                icon= "pi pi-plus"
                                 class="w-full sm:w-auto">
                             </p-button>
                             <p-button
                                 [label]="showOnlyActive ? 'Ver Todos' : 'Solo Activos'"
                                 severity="secondary"
-                                size="small"
                                 (onClick)="toggleActiveView()"
-                                pTooltip="Alternar vista de usuarios activos/todos"
-                                class="w-full sm:w-auto">
+                                [label]="showOnlyActive ? 'Ver Todas' : 'Solo Activas'"
+                    [icon]="showOnlyActive ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                                styleClass="w-full sm:w-auto p-button-outlined">
                             </p-button>
                         </div>
                     </div>
