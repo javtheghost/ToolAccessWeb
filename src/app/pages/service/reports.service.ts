@@ -173,6 +173,15 @@ export class ReportsService {
   }
 
   /**
+   * Obtener trabajadores con retardos - DATOS 100% REALES (Solo ADMIN)
+   */
+  getTrabajadoresRetardos(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/trabajadores-retardos`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
    * Generar datos simulados basados en estadísticas actuales
    * Útil cuando no hay datos históricos disponibles
    */

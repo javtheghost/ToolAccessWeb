@@ -1,14 +1,22 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReportsService, Prestamo } from '../../service/reports.service';
-import { Subject, takeUntil, interval } from 'rxjs';
+import { ReportsService } from '../../service/reports.service';
+import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 
 interface TrabajadorRetardo {
+  usuario_id: number;
   nombre: string;
   email: string;
   dias_atraso: number;
-  prestamos_atrasados: string[];
+  prestamos_atrasados: number;
   ultimo_prestamo: string;
+  nivel_urgencia: 'critico' | 'advertencia' | 'normal';
+}
+
+interface ResumenRetardos {
+  total_retardos: number;
+  promedio_dias_atraso: number;
+  trabajadores_afectados: number;
 }
 
 @Component({
@@ -40,15 +48,15 @@ interface TrabajadorRetardo {
           <div class="stats-summary mb-4">
             <div class="stats-grid">
               <div class="stat-item bg-warning bg-opacity-10">
-                <h4 class="text-warning mb-0">{{ totalRetardos }}</h4>
+                <h4 class="text-warning mb-0">{{ resumen?.total_retardos || 0 }}</h4>
                 <small class="text-muted">Total Retardos</small>
               </div>
               <div class="stat-item bg-danger bg-opacity-10">
-                <h4 class="text-danger mb-0">{{ promedioDiasAtraso | number:'1.0-0' }}</h4>
+                <h4 class="text-danger mb-0">{{ resumen?.promedio_dias_atraso || 0 }}</h4>
                 <small class="text-muted">Promedio Días Atraso</small>
               </div>
               <div class="stat-item bg-info bg-opacity-10">
-                <h4 class="text-info mb-0">{{ trabajadoresAfectados }}</h4>
+                <h4 class="text-info mb-0">{{ resumen?.trabajadores_afectados || 0 }}</h4>
                 <small class="text-muted">Trabajadores Afectados</small>
               </div>
             </div>
@@ -82,13 +90,13 @@ interface TrabajadorRetardo {
                       <div class="retardo-metric-item">
                         <small class="text-muted">
                           <i class="pi pi-calendar me-1"></i>
-                          Último préstamo: {{ trabajador.ultimo_prestamo | date:'shortDate' }}
+                          Último préstamo: {{ trabajador.ultimo_prestamo }}
                         </small>
                       </div>
                       <div class="retardo-metric-item">
                         <small class="text-muted">
                           <i class="pi pi-list me-1"></i>
-                          {{ trabajador.prestamos_atrasados.length }} préstamos atrasados
+                          {{ trabajador.prestamos_atrasados }} préstamos atrasados
                         </small>
                       </div>
                     </div>
@@ -107,220 +115,137 @@ interface TrabajadorRetardo {
     </div>
   `,
   styles: [`
-    .card {
-      border: none;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      border-radius: 0.5rem;
-    }
-    
-    .card-header {
-      background-color: #f8f9fa;
-      border-bottom: 1px solid #dee2e6;
-      border-radius: 0.5rem 0.5rem 0 0;
-    }
-    
-    .card-title {
-      color: #495057;
-      font-weight: 600;
-    }
-    
-    .stats-summary {
-      margin-bottom: 1.5rem;
-    }
-    
     .stats-grid {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 1rem;
-      justify-content: space-between;
-      align-items: stretch;
     }
     
     .stat-item {
-      flex: 1;
-      min-width: 200px;
+      text-align: center;
       padding: 1rem;
       border-radius: 0.5rem;
-      border: 1px solid transparent;
-      text-align: center;
+      border: 1px solid rgba(0,0,0,0.1);
     }
     
     .retardo-item {
+      border: 1px solid rgba(0,0,0,0.1);
       background-color: #f8f9fa;
-      border-left: 4px solid #dee2e6;
-      transition: all 0.2s ease;
-    }
-    
-    .retardo-item:hover {
-      background-color: #e9ecef;
-      transform: translateX(5px);
     }
     
     .retardo-indicator {
-      width: 40px;
-      height: 40px;
+      width: 2rem;
+      height: 2rem;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 1.2rem;
     }
     
-    .retardo-leve {
-      background-color: #ffc107;
-    }
-    
-    .retardo-moderado {
-      background-color: #fd7e14;
-    }
-    
-    .retardo-critico {
+    .retardo-indicator.critico {
       background-color: #dc3545;
     }
     
-    .retardo-details {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #dee2e6;
+    .retardo-indicator.advertencia {
+      background-color: #fd7e14;
+    }
+    
+    .retardo-indicator.normal {
+      background-color: #0dcaf0;
     }
     
     .retardo-metrics-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      justify-content: space-between;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.5rem;
     }
     
     .retardo-metric-item {
-      flex: 1;
-      min-width: 150px;
-      text-align: center;
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .retardo-metric-item .badge {
-      display: block;
-      margin: 0 auto 0.5rem auto;
-      width: fit-content;
-      min-width: 120px;
-    }
-    
-    .retardo-metric-item small {
-      display: block;
-      margin-top: 0.25rem;
-      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
     }
     
     .badge {
-      font-size: 0.75rem;
-      padding: 0.5rem 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .badge.critico {
+      background-color: #dc3545;
+      color: white;
+    }
+    
+    .badge.advertencia {
+      background-color: #fd7e14;
+      color: white;
+    }
+    
+    .badge.normal {
+      background-color: #0dcaf0;
+      color: white;
     }
   `]
 })
 export class TrabajadoresRetardosChartComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
-  private interval: any;
-  
-  loading = true;
+  loading = false;
+  error: string | null = null;
+  resumen: ResumenRetardos | null = null;
   retardosData: TrabajadorRetardo[] = [];
-  totalRetardos = 0;
-  promedioDiasAtraso = 0;
-  trabajadoresAfectados = 0;
+
+  private destroy$ = new Subject<void>();
 
   constructor(private reportsService: ReportsService) {}
 
   ngOnInit() {
-    this.loadData();
-    // Actualización automática cada 30 segundos
-    this.interval = setInterval(() => {
-      this.loadData();
-    }, 30000);
+    this.cargarTrabajadoresRetardos();
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.interval) {
-      clearInterval(this.interval);
+  }
+
+  async cargarTrabajadoresRetardos() {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      const data = await firstValueFrom(
+        this.reportsService.getTrabajadoresRetardos().pipe(
+          takeUntil(this.destroy$)
+        )
+      );
+
+      this.resumen = data.resumen;
+      this.retardosData = data.detalle;
+    } catch (error) {
+      console.error('Error al cargar trabajadores con retardos:', error);
+      this.error = 'Error al cargar datos de retardos';
+    } finally {
+      this.loading = false;
     }
   }
 
-  private loadData() {
-    this.loading = true;
-    this.reportsService.getReportePrestamos()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (prestamos: Prestamo[]) => {
-          this.processRetardosData(prestamos);
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error cargando préstamos:', error);
-          this.loading = false;
-        }
-      });
-  }
-
-  private processRetardosData(prestamos: Prestamo[]) {
-    const hoy = new Date();
-    const userRetardos = new Map<string, TrabajadorRetardo>();
-    
-    prestamos.forEach(prestamo => {
-      if (prestamo.estado === 'activo' || prestamo.estado === 'vencido') {
-        const fechaDevolucion = new Date(prestamo.fecha_devolucion_estimada);
-        const diasAtraso = Math.ceil((hoy.getTime() - fechaDevolucion.getTime()) / (1000 * 60 * 60 * 24));
-        
-        // ← VALIDACIÓN: Solo procesar retrasos reales (fechas pasadas)
-        if (diasAtraso > 0 && fechaDevolucion < hoy) {
-          const key = prestamo.usuario_email;
-          const existing = userRetardos.get(key);
-          
-          if (existing) {
-            existing.dias_atraso = Math.max(existing.dias_atraso, diasAtraso);
-            existing.prestamos_atrasados.push(prestamo.folio);
-          } else {
-            userRetardos.set(key, {
-              nombre: prestamo.usuario_nombre,
-              email: prestamo.usuario_email,
-              dias_atraso: diasAtraso,
-              prestamos_atrasados: [prestamo.folio],
-              ultimo_prestamo: prestamo.fecha_solicitud
-            });
-          }
-        }
-      }
-    });
-    
-    // Convertir a array y ordenar por días de atraso
-    this.retardosData = Array.from(userRetardos.values())
-      .sort((a, b) => b.dias_atraso - a.dias_atraso);
-    
-    // Calcular estadísticas
-    this.totalRetardos = this.retardosData.reduce((sum, item) => sum + item.prestamos_atrasados.length, 0);
-    this.promedioDiasAtraso = this.retardosData.length > 0 
-      ? this.retardosData.reduce((sum, item) => sum + item.dias_atraso, 0) / this.retardosData.length
-      : 0;
-    this.trabajadoresAfectados = this.retardosData.length;
-  }
-
   getRetardoClass(diasAtraso: number): string {
-    if (diasAtraso <= 3) return 'retardo-leve';
-    if (diasAtraso <= 7) return 'retardo-moderado';
-    return 'retardo-critico';
+    if (diasAtraso > 10) return 'critico';
+    if (diasAtraso > 5) return 'advertencia';
+    return 'normal';
   }
 
   getRetardoIcon(diasAtraso: number): string {
-    if (diasAtraso <= 3) return 'pi-exclamation-circle';
-    if (diasAtraso <= 7) return 'pi-exclamation-triangle';
-    return 'pi-times-circle';
+    if (diasAtraso > 10) return 'pi-times';
+    if (diasAtraso > 5) return 'pi-exclamation-triangle';
+    return 'pi-info-circle';
   }
 
   getDiasBadgeClass(diasAtraso: number): string {
-    if (diasAtraso <= 3) return 'bg-warning text-dark';
-    if (diasAtraso <= 7) return 'bg-warning text-dark';
-    return 'bg-danger text-white';
+    if (diasAtraso > 10) return 'critico';
+    if (diasAtraso > 5) return 'advertencia';
+    return 'normal';
   }
 } 

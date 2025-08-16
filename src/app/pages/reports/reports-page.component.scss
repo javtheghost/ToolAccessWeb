@@ -171,6 +171,12 @@
     color: var(--color-danger);
     background: rgba(217, 83, 79, 0.1);
   }
+  
+  &.info {
+    color: var(--text-secondary);
+    background: rgba(100, 116, 139, 0.1);
+    font-style: italic;
+  }
 }
 
 // Config Section

@@ -122,6 +122,10 @@ import { Subject, takeUntil } from 'rxjs';
                 <span class="text-gray-700 font-semibold text-lg">Vencidos:</span>
                 <span class="font-bold text-2xl text-red-600">{{ estadisticas?.prestamos?.vencidos || 0 }}</span>
               </div>
+              <div class="flex justify-between items-center p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                <span class="text-gray-700 font-semibold text-lg">Préstamos Activos:</span>
+                <span class="font-bold text-2xl text-blue-600">{{ estadisticas?.prestamos?.activos || 0 }}</span>
+              </div>
             </div>
           </div>
         </div>

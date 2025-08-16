@@ -38,13 +38,17 @@
         <h3>{{ estadisticas.herramientas.total_herramientas }}</h3>
         <p>Herramientas Totales</p>
         <div class="stat-details">
-          <span class="stat-item disponible">
+          <span class="stat-item disponible" *ngIf="estadisticas.herramientas.disponibles > 0">
             <i class="pi pi-check-circle"></i>
             {{ estadisticas.herramientas.disponibles }} disponibles
           </span>
-          <span class="stat-item prestada">
+          <span class="stat-item prestada" *ngIf="estadisticas.herramientas.prestadas > 0">
             <i class="pi pi-clock"></i>
             {{ estadisticas.herramientas.prestadas }} prestadas
+          </span>
+          <span class="stat-item info" *ngIf="estadisticas.herramientas.disponibles === 0 && estadisticas.herramientas.prestadas === 0">
+            <i class="pi pi-info-circle"></i>
+            Sin actividad reciente
           </span>
         </div>
       </div>
@@ -58,13 +62,17 @@
         <h3>{{ estadisticas.prestamos.total_prestamos }}</h3>
         <p>Préstamos Totales</p>
         <div class="stat-details">
-          <span class="stat-item activo">
+          <span class="stat-item activo" *ngIf="estadisticas.prestamos.activos > 0">
             <i class="pi pi-play-circle"></i>
             {{ estadisticas.prestamos.activos }} activos
           </span>
-          <span class="stat-item vencido">
+          <span class="stat-item vencido" *ngIf="estadisticas.prestamos.vencidos > 0">
             <i class="pi pi-exclamation-triangle"></i>
             {{ estadisticas.prestamos.vencidos }} vencidos
+          </span>
+          <span class="stat-item info" *ngIf="estadisticas.prestamos.activos === 0 && estadisticas.prestamos.vencidos === 0">
+            <i class="pi pi-info-circle"></i>
+            Sin préstamos activos o vencidos
           </span>
         </div>
       </div>
@@ -78,13 +86,17 @@
         <h3>{{ estadisticas.multas.total_multas }}</h3>
         <p>Multas Generadas</p>
         <div class="stat-details">
-          <span class="stat-item pendiente">
+          <span class="stat-item pendiente" *ngIf="estadisticas.multas.pendientes > 0">
             <i class="pi pi-clock"></i>
             {{ estadisticas.multas.pendientes }} pendientes
           </span>
-          <span class="stat-item pagada">
+          <span class="stat-item pagada" *ngIf="estadisticas.multas.pagadas > 0">
             <i class="pi pi-check"></i>
             {{ estadisticas.multas.pagadas }} pagadas
+          </span>
+          <span class="stat-item info" *ngIf="estadisticas.multas.pendientes === 0 && estadisticas.multas.pagadas === 0">
+            <i class="pi pi-info-circle"></i>
+            Sin multas pendientes o pagadas
           </span>
         </div>
       </div>
@@ -98,9 +110,13 @@
         <h3>{{ estadisticas.usuarios.total_usuarios }}</h3>
         <p>Usuarios Registrados</p>
         <div class="stat-details">
-          <span class="stat-item activo">
+          <span class="stat-item activo" *ngIf="estadisticas.usuarios.activos > 0">
             <i class="pi pi-user"></i>
             {{ estadisticas.usuarios.activos }} activos
+          </span>
+          <span class="stat-item info" *ngIf="estadisticas.usuarios.activos === 0">
+            <i class="pi pi-info-circle"></i>
+            Sin usuarios activos
           </span>
         </div>
       </div>

@@ -241,7 +241,7 @@ interface Column {
                     </td>
                     <td class="text-center">
                         <p-inputswitch
-                            [(ngModel)]="user.is_active"
+                            [ngModel]="getUserToggleDisplayValue(user)"
                             (onChange)="handleUserStatusToggle(user)"
                             [disabled]="shouldDisableUserToggle(user)"
                             [pTooltip]="getUserToggleTooltip(user)"
@@ -708,6 +708,9 @@ export class UsersCrudComponent implements OnInit {
     confirmMessage = '';
     confirmAction: (() => void) | null = null;
 
+    // Estado temporal para toggles en proceso
+    pendingToggles = new Map<number, boolean>();
+
     // Formularios
     userForm!: FormGroup;
 
@@ -918,10 +921,22 @@ export class UsersCrudComponent implements OnInit {
     }
 
     /**
+     * Obtiene el valor de visualización del toggle (estado real o temporal)
+     */
+    getUserToggleDisplayValue(user: User): boolean {
+        if (!user.id) return user.is_active ?? false;
+        return this.pendingToggles.get(user.id) ?? user.is_active ?? false;
+    }
+
+    /**
      * Maneja el toggle de estado del usuario con validaciones
      */
     handleUserStatusToggle(user: User) {
-        const newStatus = user.is_active;
+        if (!user.id) return;
+
+        // Obtener el estado actual y el nuevo estado deseado
+        const currentStatus = user.is_active ?? false;
+        const newStatus = !currentStatus;
 
         // Validaciones de seguridad
         if (this.currentUserId && user.id === this.currentUserId) {
@@ -931,8 +946,6 @@ export class UsersCrudComponent implements OnInit {
                 detail: 'No puedes desactivarte a ti mismo',
                 life: 3000
             });
-            // Revertir el cambio
-            user.is_active = !newStatus;
             return;
         }
 
@@ -944,15 +957,16 @@ export class UsersCrudComponent implements OnInit {
                 detail: 'No puedes desactivar al último administrador activo',
                 life: 3000
             });
-            // Revertir el cambio
-            user.is_active = !newStatus;
             return;
         }
 
         // Confirmación para desactivar administradores
         if (user.rol_id === 1 && !newStatus) {
+            // Establecer estado temporal para mostrar el cambio visual
+            this.pendingToggles.set(user.id!, newStatus);
+            
             this.confirmationService.confirm({
-                message: '¿Estás seguro de que quieres desactivar a este administrador?',
+                message: `¿Estás seguro de que quieres desactivar al administrador "${this.sanitizeString(user.nombre)} ${this.sanitizeString(user.apellido_paterno)}"?`,
                 header: 'Confirmar desactivación',
                 icon: 'pi pi-exclamation-triangle',
                 acceptLabel: 'Sí',
@@ -960,11 +974,14 @@ export class UsersCrudComponent implements OnInit {
                 acceptButtonStyleClass: 'p-button-warning',
                 rejectButtonStyleClass: 'p-button-warning p-button-outlined',
                 accept: () => {
+                    // Confirmar el cambio
+                    this.pendingToggles.delete(user.id!);
+                    user.is_active = newStatus;
                     this.toggleUserStatus(user);
                 },
                 reject: () => {
-                    // Revertir el cambio
-                    user.is_active = !newStatus;
+                    // Revertir el estado temporal
+                    this.pendingToggles.delete(user.id!);
                 }
             });
             return;
@@ -972,9 +989,13 @@ export class UsersCrudComponent implements OnInit {
 
         // Confirmación para desactivar usuarios normales
         if (!newStatus) {
+            // Establecer estado temporal para mostrar el cambio visual
+            this.pendingToggles.set(user.id!, newStatus);
+            
             const sanitizedName = this.sanitizeString(user.nombre);
+            const sanitizedApellido = this.sanitizeString(user.apellido_paterno);
             this.confirmationService.confirm({
-                message: `¿Estás seguro de que quieres desactivar al usuario "${sanitizedName}"?`,
+                message: `¿Estás seguro de que quieres desactivar al usuario "${sanitizedName} ${sanitizedApellido}"?`,
                 header: 'Confirmar desactivación',
                 icon: 'pi pi-exclamation-triangle',
                 acceptLabel: 'Sí',
@@ -982,11 +1003,14 @@ export class UsersCrudComponent implements OnInit {
                 acceptButtonStyleClass: 'p-button-warning',
                 rejectButtonStyleClass: 'p-button-warning p-button-outlined',
                 accept: () => {
+                    // Confirmar el cambio
+                    this.pendingToggles.delete(user.id!);
+                    user.is_active = newStatus;
                     this.toggleUserStatus(user);
                 },
                 reject: () => {
-                    // Revertir el cambio
-                    user.is_active = !newStatus;
+                    // Revertir el estado temporal
+                    this.pendingToggles.delete(user.id!);
                 }
             });
             return;
