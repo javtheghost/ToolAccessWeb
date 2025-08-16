@@ -110,7 +110,8 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
   }
 
   private updateFormControlsState() {
-    const controls = ['estado', 'rangoFechas', 'limiteHerramientas'];
+    // Solo deshabilitar campos que no sean críticos para la generación del reporte
+    const controls = ['rangoFechas', 'limiteHerramientas'];
     controls.forEach(controlName => {
       const control = this.reportForm.get(controlName);
       if (control) {
@@ -121,6 +122,12 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
         }
       }
     });
+    
+    // El campo estado siempre debe estar habilitado para poder capturar su valor
+    const estadoControl = this.reportForm.get('estado');
+    if (estadoControl && estadoControl.disabled) {
+      estadoControl.enable();
+    }
   }
 
   private setLoading(loading: boolean) {
@@ -136,6 +143,18 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
         this.updateValidators(tipo);
         // Asignar fechas por defecto como sugerencia inicial
         this.assignDefaultDates(tipo);
+        
+        // Limpiar el filtro de estado si no es aplicable para el nuevo tipo de reporte
+        if (tipo === 'estadisticas') {
+          this.reportForm.get('estado')?.setValue('');
+        }
+      });
+
+    // Escuchar cambios en el campo estado
+    this.reportForm.get('estado')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(estado => {
+        // El campo estado se actualizó correctamente
       });
 
     // Escuchar cambios en el límite de herramientas
@@ -179,6 +198,14 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
      // Actualizar opciones de estado según el tipo de reporte
      this.updateEstadoOptions(tipoReporte);
+
+     // Limpiar el campo estado si no es aplicable para el tipo de reporte
+     if (tipoReporte === 'estadisticas') {
+       estadoControl?.setValue('');
+       estadoControl?.disable();
+     } else {
+       estadoControl?.enable();
+     }
 
      // Aplicar validadores según el tipo de reporte
      switch (tipoReporte) {
@@ -238,10 +265,11 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
          this.estados = [
            todosOption,
            { label: 'Pendiente', value: 'pendiente' },
-           { label: 'Aprobado', value: 'aprobado' },
+           { label: 'Aprobado/Aprobada', value: 'aprobado' },
            { label: 'Rechazado', value: 'rechazado' },
            { label: 'Terminado', value: 'terminado' },
-           { label: 'Vencido', value: 'vencido' }
+           { label: 'Vencido', value: 'vencido' },
+           { label: 'Completada', value: 'completada' }
          ];
          break;
        case 'multas':
@@ -257,23 +285,29 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
          this.estados = [
            todosOption,
            { label: 'Pendiente', value: 'pendiente' },
-           { label: 'Aprobado', value: 'aprobado' },
+           { label: 'Aprobado/Aprobada', value: 'aprobado' },
            { label: 'Rechazado', value: 'rechazado' },
            { label: 'Terminado', value: 'terminado' },
-           { label: 'Vencido', value: 'vencido' }
+           { label: 'Vencido', value: 'vencido' },
+           { label: 'Completada', value: 'completada' }
          ];
+         break;
+       case 'estadisticas':
+         // Para estadísticas, no hay filtros de estado
+         this.estados = [];
          break;
        default:
          // Estados por defecto (todos)
          this.estados = [
            todosOption,
            { label: 'Pendiente', value: 'pendiente' },
-           { label: 'Aprobado', value: 'aprobado' },
+           { label: 'Aprobado/Aprobada', value: 'aprobado' },
            { label: 'Rechazado', value: 'rechazado' },
            { label: 'Terminado', value: 'terminado' },
            { label: 'Vencido', value: 'vencido' },
            { label: 'Pagado', value: 'pagado' },
-           { label: 'Exonerada', value: 'exonerada' }
+           { label: 'Exonerada', value: 'exonerada' },
+           { label: 'Completada', value: 'completada' }
          ];
          break;
      }
@@ -602,19 +636,31 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
     try {
       const formValue = this.reportForm.value;
+      
+      // Obtener el valor del estado directamente del control del formulario
+      const estadoValue = this.reportForm.get('estado')?.value;
+      
+      // Asegurarse de que el campo estado esté habilitado antes de obtener su valor
+      const estadoControl = this.reportForm.get('estado');
+      if (estadoControl && estadoControl.disabled) {
+        estadoControl.enable();
+      }
+      
+      // Obtener el valor actualizado del estado
+      const estadoFinal = estadoControl?.value || estadoValue;
 
       switch (formValue.tipoReporte) {
         case 'estadisticas':
           await this.generarReporteEstadisticas();
           break;
         case 'prestamos':
-          await this.generarReportePrestamos(formValue);
+          await this.generarReportePrestamos({ ...formValue, estado: estadoFinal });
           break;
         case 'multas':
-          await this.generarReporteMultas(formValue);
+          await this.generarReporteMultas({ ...formValue, estado: estadoFinal });
           break;
         case 'herramientas-populares':
-          await this.generarReporteHerramientasPopulares(formValue);
+          await this.generarReporteHerramientasPopulares({ ...formValue, estado: estadoFinal });
           break;
         default:
           this.messageService.add({
@@ -828,14 +874,92 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Método para normalizar estados y hacer filtrado case-insensitive
+  private normalizeEstado(estado: string): string {
+    if (!estado) return '';
+    return estado.toLowerCase().trim();
+  }
+
+  // Método para obtener estados equivalentes (case-insensitive)
+  private getEquivalentEstados(estadoFiltro: string): string[] {
+    if (!estadoFiltro) return [];
+    
+    const estadoNormalizado = this.normalizeEstado(estadoFiltro);
+    const equivalentes: string[] = [];
+    
+    // Agregar el estado original del filtro
+    equivalentes.push(estadoFiltro);
+    
+    // Agregar variaciones de mayúsculas/minúsculas comunes
+    switch (estadoNormalizado) {
+      case 'aprobado':
+        equivalentes.push('APROBADO', 'Aprobado', 'APROBADA', 'Aprobada');
+        break;
+      case 'pendiente':
+        equivalentes.push('PENDIENTE', 'Pendiente');
+        break;
+      case 'rechazado':
+        equivalentes.push('RECHAZADO', 'Rechazado');
+        break;
+      case 'terminado':
+        equivalentes.push('TERMINADO', 'Terminado');
+        break;
+      case 'vencido':
+        equivalentes.push('VENCIDO', 'Vencido');
+        break;
+      case 'completada':
+        equivalentes.push('COMPLETADA', 'Completada');
+        break;
+      case 'pagado':
+        equivalentes.push('PAGADO', 'Pagado');
+        break;
+      case 'exonerada':
+        equivalentes.push('EXONERADA', 'Exonerada');
+        break;
+    }
+    
+    // Eliminar duplicados
+    return [...new Set(equivalentes)];
+  }
+
+  // Método alternativo para filtrar por estado en el frontend (respaldo)
+  private filtrarPorEstadoEnFrontend(data: any[], estadoFiltro: string): any[] {
+    if (!estadoFiltro || !data || data.length === 0) {
+      return data;
+    }
+    
+    const equivalentes = this.getEquivalentEstados(estadoFiltro);
+    
+    const datosFiltrados = data.filter(item => {
+      if (!item.estado) return false;
+      return equivalentes.some(estado => 
+        this.normalizeEstado(item.estado) === this.normalizeEstado(estado)
+      );
+    });
+    
+    return datosFiltrados;
+  }
+
   async generarReportePrestamos(formValue: any) {
     const params = new URLSearchParams();
-    if (formValue.estado && formValue.estado !== '') params.append('estado', formValue.estado);
+    if (formValue.estado && formValue.estado !== '') {
+      const equivalentes = this.getEquivalentEstados(formValue.estado);
+      params.append('estado', equivalentes.join(','));
+    }
     if (formValue.rangoFechas?.startDate) params.append('fecha_inicio', formValue.rangoFechas.startDate.toISOString());
     if (formValue.rangoFechas?.endDate) params.append('fecha_fin', formValue.rangoFechas.endDate.toISOString());
 
     this.reportsService.getReportePrestamos(params.toString()).subscribe({
       next: (data: Prestamo[]) => {
+        // Aplicar filtro en frontend como respaldo si el backend no filtró correctamente
+        let datosFinales = data;
+        if (formValue.estado && formValue.estado !== '') {
+          const datosFiltrados = this.filtrarPorEstadoEnFrontend(data, formValue.estado);
+          if (datosFiltrados.length < data.length) {
+            datosFinales = datosFiltrados;
+          }
+        }
+
         const doc = new jsPDF();
 
         // Agregar logo
@@ -863,8 +987,8 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
             prestamo.id || '',
             prestamo.folio || '',
             prestamo.usuario_nombre || '',
-            prestamo.fecha_solicitud ? new Date(prestamo.fecha_solicitud).toLocaleDateString() : '',
-            prestamo.fecha_devolucion_estimada ? new Date(prestamo.fecha_devolucion_estimada).toLocaleDateString() : '',
+            prestamo.fecha_solicitud ? new Date(prestamo.fecha_solicitud).toLocaleDateString() : 'N/A',
+            prestamo.fecha_devolucion_estimada ? new Date(prestamo.fecha_devolucion_estimada).toLocaleDateString() : 'Sin fecha de devolución',
             prestamo.estado || ''
           ]);
 
@@ -914,7 +1038,10 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
   async generarReporteMultas(formValue: any) {
     const params = new URLSearchParams();
-    if (formValue.estado && formValue.estado !== '') params.append('estado', formValue.estado);
+    if (formValue.estado && formValue.estado !== '') {
+      const equivalentes = this.getEquivalentEstados(formValue.estado);
+      params.append('estado', equivalentes.join(','));
+    }
     if (formValue.rangoFechas?.startDate) params.append('fecha_inicio', formValue.rangoFechas.startDate.toISOString());
     if (formValue.rangoFechas?.endDate) params.append('fecha_fin', formValue.rangoFechas.endDate.toISOString());
 
@@ -944,12 +1071,12 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
         if (data.length > 0) {
           // Tabla de multas
           const tableData = data.map((multa: any) => [
-            multa.id || '',
-            multa.usuario_nombre || '',
-            multa.monto ? `$${multa.monto}` : '',
-            multa.motivo || 'N/A', // Mostrar "N/A" cuando no hay motivo
-            multa.fecha_creacion ? new Date(multa.fecha_creacion).toLocaleDateString() : '',
-            multa.estado || ''
+            multa.id || 'N/A',
+            multa.usuario_nombre || 'Usuario no especificado',
+            multa.monto ? `$${multa.monto}` : 'Sin monto',
+            multa.motivo || 'Sin motivo especificado',
+            multa.fecha_creacion ? new Date(multa.fecha_creacion).toLocaleDateString() : 'Fecha no disponible',
+            multa.estado || 'Estado no especificado'
           ]);
 
           autoTable(doc, {
@@ -1016,11 +1143,11 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           const herramienta = data[i];
           const row = [
             i + 1, // Número
-            herramienta.nombre,
-            herramienta.folio,
-            `${herramienta.categoria} - ${herramienta.subcategoria}`,
-            herramienta.veces_prestada,
-            herramienta.stock
+            herramienta.nombre || 'Nombre no especificado',
+            herramienta.folio || 'Sin folio',
+            `${herramienta.categoria || 'Sin categoría'} - ${herramienta.subcategoria || 'Sin subcategoría'}`,
+            herramienta.veces_prestada || 0,
+            herramienta.stock || 0
           ];
           tableData.push(row);
         }

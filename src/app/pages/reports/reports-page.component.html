@@ -146,7 +146,7 @@
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group" *ngIf="f['tipoReporte'].value && f['tipoReporte'].value !== 'estadisticas'">
             <label for="estado">
               <i class="pi pi-filter"></i>
               Estado
